@@ -3,10 +3,7 @@ package com.presidentsimulator.game.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,14 +43,14 @@ fun MissionResultDialog(
     val rival = state.diplomacy.rivalById(mission.targetCountryId)
     val targetName = rival?.name ?: mission.targetCountryId
     val isSuccess = mission.status == MissionStatus.SUCCESS
-    
+
     val color = if (isSuccess) NssSky else NssRed
     val icon = if (isSuccess) Icons.Default.CheckCircleOutline else Icons.Default.ErrorOutline
     val title = if (isSuccess) "OPERATION SUCCESSFUL" else "OPERATION COMPROMISED"
     val description = if (isSuccess) {
-        "Our operatives successfully completed the ${mission.missionType.displayName} mission in $targetName."
+        "Operatives completed ${mission.missionType.displayName} in $targetName."
     } else {
-        "Our operatives were caught attempting the ${mission.missionType.displayName} mission in $targetName. The operation has failed and diplomatic blowback is expected."
+        "Operatives were compromised on ${mission.missionType.displayName} in $targetName."
     }
 
     Dialog(
@@ -74,11 +70,11 @@ fun MissionResultDialog(
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = Modifier.size(64.dp)
+                modifier = Modifier.size(64.dp),
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             Text(
                 text = title,
                 color = color,
@@ -87,18 +83,29 @@ fun MissionResultDialog(
                 letterSpacing = 2.sp,
                 textAlign = TextAlign.Center,
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 text = description,
                 color = NssForeground,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center,
             )
-            
+
+            if (mission.outcomeSummary.isNotBlank()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = mission.outcomeSummary,
+                    color = NssMutedForeground,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             Text(
                 text = "ACKNOWLEDGE",
                 modifier = Modifier
