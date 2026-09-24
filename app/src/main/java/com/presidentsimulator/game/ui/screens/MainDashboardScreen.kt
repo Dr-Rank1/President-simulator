@@ -259,6 +259,45 @@ fun MainDashboardScreen(
                 }
             }
 
+            val governmentSystem = state.legal.governmentSystem
+            DashboardSection(
+                title = "Governing System",
+                subtitle = "${governmentSystem.displayName} · ${governmentSystem.executiveTitle}",
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard)
+                        .border(1.dp, NssBorder, NssCardShape).padding(Dimens.SpacingMedium),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(governmentSystem.description, color = NssMutedForeground, fontSize = 11.sp)
+                    Text(state.term.summaryLine(governmentSystem), color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    when {
+                        governmentSystem == com.presidentsimulator.game.data.GovernmentSystem.THEOCRATIC_MONARCHY -> {
+                            Text("Succession is decided by conclave; no scheduled popular election.", color = NssOnPhoto, fontSize = 10.sp)
+                        }
+                        governmentSystem.hasConfidenceVotes -> {
+                            val ruling = state.opposition.rulingParty
+                            val support = if (state.opposition.hasMajority) "Majority" else "Minority government"
+                            Text("Legislative support · $support${ruling?.let { " · ${it.name} ${it.seats}/${state.opposition.chamberSeats} seats" }.orEmpty()}", color = NssOnPhoto, fontSize = 10.sp)
+                            Text("Confidence pressure · ${state.opposition.noConfidenceHeat.roundToInt()}%", color = if (state.opposition.noConfidenceHeat >= 60f) NssRed else NssMutedForeground, fontSize = 10.sp)
+                        }
+                        else -> {
+                            val election = if (state.nextElectionYear > 0) "Next national election · ${state.nextElectionYear}" else "No scheduled national election"
+                            Text(election, color = NssOnPhoto, fontSize = 10.sp)
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(if (governmentSystem.hasConfidenceVotes) "MANAGE CABINET" else "LEADERSHIP & ELECTIONS",
+                            modifier = Modifier.clip(NssCardShape).background(NssPrimary).clickable {
+                                onNavigate(if (governmentSystem.hasConfidenceVotes) GameDestination.Cabinet else GameDestination.Demographics)
+                            }.padding(horizontal = 10.dp, vertical = 8.dp), color = NssOnPhoto, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                        if (governmentSystem.hasConfidenceVotes) Text("OPEN LEGISLATURE",
+                            modifier = Modifier.clip(NssCardShape).background(NssPrimary.copy(alpha = 0.7f)).clickable { onNavigate(GameDestination.LawsSociety) }
+                                .padding(horizontal = 10.dp, vertical = 8.dp), color = NssOnPhoto, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                    }
+                }
+            }
+
             if (state.scenario.scenarioId == "standard" && state.month == 1 && state.year == 2026) {
                 DashboardSection(title = "Your First Month", subtitle = "A quick route through the core governing loop") {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -271,9 +310,9 @@ fun MainDashboardScreen(
 
             if (state.diplomacy.rivals.isNotEmpty()) {
                 DashboardSection(
-                    title = "World Relations Map",
+                    title = "Diplomatic Network",
                     subtitle = state.diplomacy.activeWar?.let { "ACTIVE FRONT · ${state.diplomacy.rivalById(it.targetCountryId)?.name ?: "Rival"}" }
-                        ?: "Diplomatic ties · tap a neighbor to act",
+                        ?: "Key relationships · tap a country to manage diplomacy",
                 ) {
                     RegionalPowerMap(state = state, onOpenDiplomacy = { onNavigate(GameDestination.Diplomacy) })
                 }
