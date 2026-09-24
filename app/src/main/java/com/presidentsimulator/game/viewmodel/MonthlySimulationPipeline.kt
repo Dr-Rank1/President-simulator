@@ -8,6 +8,7 @@ import com.presidentsimulator.game.data.LegacyLedger
 import com.presidentsimulator.game.data.OppositionEngine
 import com.presidentsimulator.game.data.PressDesk
 import com.presidentsimulator.game.data.SpeechEngine
+import com.presidentsimulator.game.data.StoryArcEngine
 import com.presidentsimulator.game.data.TermEngine
 import kotlin.random.Random
 
@@ -68,7 +69,8 @@ internal class MonthlySimulationPipeline(
         // 5. Record history and publish the next presidential agenda.
         next = analytics.recordHistoricalSnapshot(next)
         next = LegacyLedger.processMonth(current, next)
-        return next.copy(agenda = AgendaBuilder.applyMonthlyAgenda(next.agenda, next))
+        next = next.copy(agenda = AgendaBuilder.applyMonthlyAgenda(next.agenda, next))
+        return StoryArcEngine.onMonth(next)
     }
 
     private fun processCrisisTick(state: GameState): GameState {

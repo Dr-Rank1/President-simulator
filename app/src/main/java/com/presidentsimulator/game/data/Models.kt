@@ -46,6 +46,8 @@ data class GameState(
     val legacy: LegacyState = LegacyState(),
     /** Challenge scenario applied at new game. */
     val scenario: ScenarioState = ScenarioState(),
+    /** Persistent multi-month political story currently unfolding. */
+    val storyArc: StoryArcState = StoryArcState(),
     /** Speeches and press conferences. */
     val speech: SpeechState = SpeechState(),
     /** Term limits, succession, and soft-defeat pressure. */
@@ -205,6 +207,10 @@ data class EventConsequence(
     val scienceChange: Long = 0L,
     val techUnlockId: String? = null,
     val relationshipChanges: Map<String, Int> = emptyMap(),
+    val mediaSentimentChange: Float = 0f,
+    val pressCredibilityChange: Float = 0f,
+    val cabinetCohesionChange: Float = 0f,
+    val oppositionHeatChange: Float = 0f,
 ) {
     fun applyTo(state: GameState): GameState {
         var next = state.copy(
@@ -230,7 +236,17 @@ data class EventConsequence(
                 unlockedTechIds = if (techUnlockId != null && techUnlockId !in state.research.unlockedTechIds) {
                     state.research.unlockedTechIds + techUnlockId
                 } else state.research.unlockedTechIds,
-            )
+            ),
+            press = state.press.copy(
+                mediaSentiment = (state.press.mediaSentiment + mediaSentimentChange).coerceIn(0f, 100f),
+                credibility = (state.press.credibility + pressCredibilityChange).coerceIn(0f, 100f),
+            ),
+            cabinet = state.cabinet.copy(
+                cohesion = (state.cabinet.cohesion + cabinetCohesionChange).coerceIn(0f, 100f),
+            ),
+            opposition = state.opposition.copy(
+                noConfidenceHeat = (state.opposition.noConfidenceHeat + oppositionHeatChange).coerceIn(0f, 100f),
+            ),
         )
 
         if (relationshipChanges.isNotEmpty()) {
@@ -280,7 +296,7 @@ enum class Ministry(
  */
 object EventRepository {
 
-    fun byId(id: String): GameEvent? = eventPool.find { it.id == id }
+    fun byId(id: String): GameEvent? = eventPool.find { it.id == id } ?: StoryArcEngine.eventById(id)
 
     val eventPool: List<GameEvent> = listOf(
         // Existing Events

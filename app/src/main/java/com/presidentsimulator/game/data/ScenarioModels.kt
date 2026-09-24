@@ -26,4 +26,13 @@ data class ScenarioState(
     val challengeSeed: Int = 0,
     val victoryYearOverride: Int? = null,
     val notes: List<String> = emptyList(),
+    val challengeId: String = "standard",
+    val scoreMultiplier: Float = 1f,
+)
+
+data class CampaignChallenge(
+    val id: String,
+    val title: String,
+    val description: String,
+    val scoreMultiplier: Float,
 )
