@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.presidentsimulator.game.data.ActiveCrisisState
-import com.presidentsimulator.game.data.AgendaBuilder
 import com.presidentsimulator.game.data.AgendaItem
 import com.presidentsimulator.game.data.CabinetEngine
 import com.presidentsimulator.game.data.CabinetPortfolio
@@ -101,6 +100,19 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val tradeEngine = TradeMarketViewModel(random)
     private val governanceEngine = GovernanceViewModel(random)
     private val demographicsEngine = DemographicsCampaignViewModel()
+    private val monthlyPipeline = MonthlySimulationPipeline(
+        random = random,
+        diplomacy = diplomacyEngine,
+        productionLaw = productionLawEngine,
+        analytics = analyticsEngine,
+        security = securityEngine,
+        advancement = advancementEngine,
+        trade = tradeEngine,
+        governance = governanceEngine,
+        demographics = demographicsEngine,
+        advanceDate = ::advanceDate,
+        applyPopulationChange = ::applyPopulationChange,
+    )
 
     private val savePrefs = application.getSharedPreferences(
         AnalyticsSaveViewModel.PREFS_NAME,
@@ -135,82 +147,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
         _state.update { current ->
             if (current.gameOver.isGameOver) return@update current
-
-            val (nextMonth, nextYear) = advanceDate(current.month, current.year)
-
-            var next = current.copy(month = nextMonth, year = nextYear)
-
-            // Industrial pipeline updates stocks and lastGoodsRevenue for this month.
-            next = productionLawEngine.processProductionTick(next)
-
-            val settledBudget = next.vitals.budget + next.netIncome
-            val grownPopulation = applyPopulationChange(next)
-
-            next = next.copy(
-                vitals = next.vitals.copy(
-                    budget = settledBudget,
-                    population = grownPopulation,
-                ),
-            )
-
-            next = diplomacyEngine.simulateGeopolitics(next)
-            if (next.diplomacy.activeWar != null) {
-                next = diplomacyEngine.simulateWarBattle(next)
-            }
-
-            // Domestic stability, coup risk, and covert mission resolution.
-            next = securityEngine.processSecurityTick(next)
-            if (next.gameOver.isGameOver) {
-                return@update next
-            }
-
-            // Lingering crisis aftermath (strikes, epidemics, etc.).
-            next = processCrisisTick(next)
-
-            // National press cycle — headlines and sentiment pull.
-            next = PressDesk.processMonth(next, random)
-
-            // Cabinet tenure, scandals, resignations, and ministry effects.
-            next = CabinetEngine.processMonth(next, random)
-
-            // Named parties, chamber pressure, and opposition tactics.
-            next = OppositionEngine.processMonth(next, random)
-
-            // Disaster spawn, escalation, and response fallout.
-            next = DisasterEngine.processMonth(next, random)
-
-            // Speech cooldowns.
-            next = SpeechEngine.tickCooldowns(next)
-
-            // Term-limit / soft-defeat pressure.
-            next = TermEngine.processMonth(next)
-            if (next.gameOver.isGameOver) {
-                return@update next
-            }
-
-            // Science generation, social ministry funding, and health demographics.
-            next = advancementEngine.processSocietyTick(next)
-
-            // Resolve pending laws in parliament
-            next = productionLawEngine.processLawsTick(next)
-
-            // Global markets, trade contracts, and tariff collection.
-            next = tradeEngine.processTradeTick(next)
-
-            // UN voting, resolution outcomes, and alliance passive effects.
-            next = governanceEngine.processGovernanceTick(next)
-
-            // Cohort approval, elections, and alternate victory paths.
-            next = demographicsEngine.processDemographicsTick(next)
-            if (next.gameOver.isGameOver) {
-                return@update next
-            }
-
-            // Final ledger step: append KPI snapshot to the rolling history window.
-            next = analyticsEngine.recordHistoricalSnapshot(next)
-            next = LegacyLedger.processMonth(before, next)
-            next = next.copy(agenda = AgendaBuilder.applyMonthlyAgenda(next.agenda, next))
-            next
+            monthlyPipeline.advance(current)
         }
 
         val after = _state.value
@@ -280,6 +217,26 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         beforePending: Set<String>,
     ): List<String> {
         val lines = mutableListOf<String>()
+        if (after.vitals.budget != before.vitals.budget) {
+            val revenue = after.economy.totalRevenue(after.vitals.population) + after.tradeExportBonus +
+                after.production.lastGoodsRevenue + after.society.tourismIncome
+            val costs = after.economy.totalExpenses +
+                (after.military.monthlyUpkeep * after.cabinet.combinedEffects().militaryUpkeepMultiplier).toLong() +
+                after.legal.totalUpkeep + after.internalSecurity.monthlyUpkeep
+            lines += "Treasury moved ${(after.vitals.budget - before.vitals.budget).toBudgetString()}; current month: ${revenue.toBudgetString()} revenue against ${costs.toBudgetString()} in recurring costs."
+        }
+        if (after.vitals.approval < before.vitals.approval) {
+            val drivers = buildList {
+                if (after.production.foodShortage) add("food shortage")
+                if (after.production.energyShortage) add("energy shortage")
+                if (after.press.mediaSentiment < before.press.mediaSentiment) add("worsening press sentiment")
+                if (after.internalSecurity.instabilityScore > before.internalSecurity.instabilityScore) add("rising instability")
+                if (after.crisis.monthlyApprovalDelta < 0f || after.crisis.lingeringMonths > 0) add("crisis fallout")
+                if (after.economy.taxRate > before.economy.taxRate) add("higher taxes")
+            }
+            lines += "Approval fell ${"%.1f".format(after.vitals.approval - before.vitals.approval)} points" +
+                if (drivers.isEmpty()) ". Review cohort changes in Demographics." else ": ${drivers.joinToString()}."
+        }
         if (after.production.energyShortage) {
             lines += "Energy shortage — industrial output penalized to 30%."
         }
@@ -978,7 +935,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
         _state.update { current ->
             val applied = choice.consequence.applyTo(
-                current.copy(crisis = current.crisis.copy(pendingEventId = null)),
+                current.copy(crisis = current.crisis.copy(pendingEventId = null, eventCooldownMonths = EVENT_COOLDOWN_MONTHS)),
             )
             applied.copy(crisis = lingeringFrom(choice.consequence, active.title, applied.crisis))
         }
@@ -992,35 +949,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             _currentActiveEvent.value = EventRepository.byId(pendingId)
             return
         }
-        if (_state.value.crisis.blocksNewEvents) return
+        if (_state.value.crisis.blocksNewEvents || _state.value.crisis.eventCooldownMonths > 0) return
         if (random.nextFloat() >= EVENT_CHANCE_PER_TICK) return
         val event = EventRepository.weightedEvent(_state.value, random)
         _currentActiveEvent.value = event
         _state.update {
             it.copy(crisis = it.crisis.copy(pendingEventId = event.id))
         }
-    }
-
-    private fun processCrisisTick(state: GameState): GameState {
-        val crisis = state.crisis
-        if (crisis.lingeringMonths <= 0) return state
-        val remaining = crisis.lingeringMonths - 1
-        return state.copy(
-            vitals = state.vitals.copy(
-                budget = state.vitals.budget + crisis.monthlyBudgetDelta,
-                approval = (state.vitals.approval + crisis.monthlyApprovalDelta).coerceIn(0f, 100f),
-            ),
-            internalSecurity = state.internalSecurity.copy(
-                instabilityScore = (
-                    state.internalSecurity.instabilityScore + crisis.monthlyInstabilityDelta
-                    ).coerceIn(0f, 100f),
-            ),
-            crisis = if (remaining <= 0) {
-                ActiveCrisisState()
-            } else {
-                crisis.copy(lingeringMonths = remaining)
-            },
-        )
     }
 
     private fun lingeringFrom(
@@ -1035,6 +970,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (!severe) return current.copy(pendingEventId = null)
         return ActiveCrisisState(
             pendingEventId = null,
+            eventCooldownMonths = current.eventCooldownMonths,
             lingeringMonths = 3,
             monthlyApprovalDelta = consequence.approvalChange * 0.12f,
             monthlyInstabilityDelta = consequence.instabilityChange * 0.2f,
@@ -1172,6 +1108,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         const val MIN_TAX_RATE = 0.00f
         const val MAX_TAX_RATE = 0.50f
         const val EVENT_CHANCE_PER_TICK = 0.15f
+        const val EVENT_COOLDOWN_MONTHS = 3
     }
 }
 

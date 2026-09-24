@@ -26,9 +26,21 @@ import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.Gavel
+import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +70,16 @@ val bottomNavItems = listOf(
     BottomNavItem(GameDestination.SecretService, "Intel", Icons.Default.Visibility),
 )
 
+private val moreNavItems = listOf(
+    BottomNavItem(GameDestination.Science, "Science", Icons.Default.Science),
+    BottomNavItem(GameDestination.LawsSociety, "Domestic Policy", Icons.Default.Gavel),
+    BottomNavItem(GameDestination.Governance, "United Nations", Icons.Default.Public),
+    BottomNavItem(GameDestination.Cabinet, "Cabinet", Icons.Default.AccountBalance),
+    BottomNavItem(GameDestination.Demographics, "Demographics", Icons.Default.Groups),
+    BottomNavItem(GameDestination.Analytics, "Analytics", Icons.Default.Analytics),
+    BottomNavItem(GameDestination.AudioSettings, "Settings", Icons.Default.Settings),
+)
+
 fun bottomNavAlertCount(state: GameState, destination: GameDestination): Int = when (destination) {
     GameDestination.Dashboard -> collectAlertCount(state)
     GameDestination.Military -> if (state.diplomacy.activeWar != null) 1 else 0
@@ -85,6 +107,7 @@ fun MinistryBottomNav(
     onNavigate: (GameDestination) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var moreExpanded by remember { mutableStateOf(false) }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -173,6 +196,28 @@ fun MinistryBottomNav(
                         color = if (selected) NssOnPhoto else NssOnPhoto.copy(alpha = 0.5f),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
+        }
+        Box(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.fillMaxWidth().clickable { moreExpanded = true }.padding(vertical = Dimens.SpacingSmall),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Dimens.SpacingXSmall),
+            ) {
+                Icon(Icons.Default.MoreHoriz, contentDescription = "More ministries", tint = NssOnPhoto.copy(alpha = 0.75f), modifier = Modifier.size(20.dp))
+                Text("More", color = NssOnPhoto.copy(alpha = 0.75f), fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+            }
+            DropdownMenu(expanded = moreExpanded, onDismissRequest = { moreExpanded = false }) {
+                moreNavItems.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Text(item.label) },
+                        leadingIcon = { Icon(item.icon, contentDescription = null) },
+                        onClick = {
+                            moreExpanded = false
+                            onNavigate(item.destination)
+                        },
                     )
                 }
             }

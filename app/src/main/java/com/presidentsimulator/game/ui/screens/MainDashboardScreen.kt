@@ -33,6 +33,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Public
@@ -62,6 +63,7 @@ import com.presidentsimulator.game.data.AgendaBuilder
 import com.presidentsimulator.game.data.AgendaItem
 import com.presidentsimulator.game.data.AgendaPriority
 import com.presidentsimulator.game.data.GameState
+import com.presidentsimulator.game.data.ScenarioCatalog
 import com.presidentsimulator.game.data.summaryLine
 import com.presidentsimulator.game.ui.components.CardHeaderBottomScrim
 import com.presidentsimulator.game.ui.components.HeroHeaderScrim
@@ -254,6 +256,16 @@ fun MainDashboardScreen(
                 }
             }
 
+            if (state.scenario.scenarioId == "standard" && state.month == 1 && state.year == 2026) {
+                DashboardSection(title = "Your First Month", subtitle = "A quick route through the core governing loop") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FirstMonthStep("1", "Review the budget and protect essential supply", GameDestination.Economy, onNavigate)
+                        FirstMonthStep("2", "Check public support and the election outlook", GameDestination.Demographics, onNavigate)
+                        FirstMonthStep("3", "Choose a research priority, then advance one month", GameDestination.Science, onNavigate)
+                    }
+                }
+            }
+
             if (situations.isNotEmpty()) {
                 DashboardSection(
                     title = "Presidential Agenda",
@@ -267,6 +279,59 @@ fun MainDashboardScreen(
                             )
                         }
                     }
+                }
+            }
+
+            val campaignObjectives = campaignObjectives(state)
+            if (campaignObjectives.isNotEmpty()) {
+                DashboardSection(
+                    title = "Campaign Objectives",
+                    subtitle = "${state.scenario.title} · ${campaignObjectives.count { it.second }} / ${campaignObjectives.size} complete",
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        campaignObjectives.forEach { (label, complete) ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = if (complete) Icons.Default.CheckCircle else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = if (complete) "Complete" else "In progress",
+                                    tint = if (complete) NssEmerald else NssAccent,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Text(
+                                    text = label,
+                                    color = if (complete) NssMutedForeground else NssForeground,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(start = 8.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            val fiscalRunway = if (state.netIncome < 0L) {
+                (state.vitals.budget.coerceAtLeast(0L) / -state.netIncome).toInt()
+            } else null
+            DashboardSection(
+                title = "Fiscal Outlook",
+                subtitle = if (state.netIncome < 0L) "The current deficit is drawing down reserves" else "Current monthly balance is sustainable",
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard).clickable { onNavigate(GameDestination.Economy) }.padding(14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text("Monthly balance", color = NssMutedForeground, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(formatCompactMoney(state.netIncome), color = if (state.netIncome >= 0) NssEmerald else NssRed, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                        if (fiscalRunway != null) {
+                            Text("About $fiscalRunway month(s) of reserves at this rate", color = NssRed, fontSize = 11.sp)
+                        } else {
+                            Text("Revenue ${formatCompactMoney(state.economy.totalRevenue(state.vitals.population) + state.tradeExportBonus + state.production.lastGoodsRevenue + state.society.tourismIncome)} · Costs ${formatCompactMoney(state.economy.totalExpenses + (state.military.monthlyUpkeep * state.cabinet.combinedEffects().militaryUpkeepMultiplier).toLong() + state.legal.totalUpkeep + state.internalSecurity.monthlyUpkeep)}", color = NssMutedForeground, fontSize = 10.sp)
+                        }
+                    }
+                    Text("REVIEW BUDGET  ›", color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Black)
                 }
             }
 
@@ -376,6 +441,41 @@ fun MainDashboardScreen(
 private fun budgetPct(state: GameState): Float {
     val budget = state.vitals.budget.coerceAtLeast(1L)
     return (budget.toFloat() / (budget + budget.coerceAtLeast(1L)) * 100f).coerceIn(20f, 100f)
+}
+
+private fun campaignObjectives(state: GameState): List<Pair<String, Boolean>> {
+    val labels = ScenarioCatalog.byId(state.scenario.scenarioId).objectives
+    val averageRelations = state.diplomacy.rivals.map { it.relationshipScore }.average().takeIf { it.isFinite() } ?: 0.0
+    val stable = state.internalSecurity.instabilityScore < 30f
+    val wonElection = state.legacy.electionsWon > 0
+    val complete = when (state.scenario.scenarioId) {
+        "powder_keg" -> listOf(state.vitals.budget >= 3_000_000_000L, averageRelations >= 0.0, wonElection)
+        "empty_granaries" -> listOf(!state.production.foodShortage, state.vitals.approval >= 50f, state.economy.farms >= 12)
+        "palace_intrigue" -> listOf(state.cabinet.cohesion >= 60f, state.press.credibility >= 55f, state.internalSecurity.coupRisk < 30f)
+        "iron_curtain" -> listOf(averageRelations >= 0.0, stable, state.scenario.victoryYearOverride?.let { state.year >= it } ?: false)
+        "reform_or_die" -> listOf(state.opposition.noConfidenceHeat < 25f, state.demographics.oppositionMomentum < 25f, wonElection)
+        else -> listOf(state.netIncome >= 0L, state.vitals.approval >= 55f && stable, state.legacy.scores.overall >= 70)
+    }
+    return labels.mapIndexed { index, label -> label to (complete.getOrNull(index) ?: false) }
+}
+
+@Composable
+private fun FirstMonthStep(
+    number: String,
+    instruction: String,
+    destination: GameDestination,
+    onNavigate: (GameDestination) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard)
+            .clickable { onNavigate(destination) }.padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(number, color = NssAccent, fontSize = 14.sp, fontWeight = FontWeight.Black)
+        Text(instruction, color = NssForeground, fontSize = 11.sp, modifier = Modifier.padding(start = 10.dp))
+        Spacer(modifier = Modifier.weight(1f))
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Open ${destination.title}", tint = NssMutedForeground)
+    }
 }
 
 private fun scienceMinistryBadge(state: GameState): String? {
