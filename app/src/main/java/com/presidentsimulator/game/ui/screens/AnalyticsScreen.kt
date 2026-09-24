@@ -82,7 +82,7 @@ fun AnalyticsScreen(
             statPills = listOf(
                 "Records" to "${history.size}",
                 "Years" to "${(history.size / 12).coerceAtLeast(0)}",
-                "Election" to state.nextElectionYear.toString(),
+                "Election" to if (state.nextElectionYear > 0) state.nextElectionYear.toString() else "Conclave",
             ),
             gradientColors = NssGradients.Sky,
         )
@@ -403,7 +403,7 @@ private fun LegacyLedgerPanel(state: GameState) {
     val scores = legacy.scores
     NssPanel(modifier = Modifier.fillMaxWidth()) {
         Text(
-            "PRESIDENTIAL LEGACY",
+            "NATIONAL LEGACY",
             fontWeight = FontWeight.Black,
             fontSize = 12.sp,
             color = NssPrimary,

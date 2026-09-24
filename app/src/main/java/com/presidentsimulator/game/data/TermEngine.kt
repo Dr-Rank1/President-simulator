@@ -28,15 +28,26 @@ data class TermState(
     val atTermLimit: Boolean
         get() = termsServed >= termLimit
 
-    fun summaryLine(): String =
-        "Term $termsServed/$termLimit · " +
+    fun summaryLine(governmentSystem: GovernmentSystem = GovernmentSystem.PRESIDENTIAL): String {
+        if (!governmentSystem.hasExecutiveTermLimit) {
+            return if (governmentSystem == GovernmentSystem.THEOCRATIC_MONARCHY) {
+                "No fixed popular term · succession by conclave."
+            } else {
+                "No fixed executive term limit · accountable through ${if (governmentSystem.hasConfidenceVotes) "legislative confidence and elections" else "party leadership and elections"}."
+            }
+        }
+        return "Term $termsServed/$termLimit · " +
             if (canRunAgain) "eligible" else "cannot run" +
             if (softDefeatHeat >= 20f) " · pressure ${softDefeatHeat.roundToInt()}" else ""
+    }
 }
 
 object TermEngine {
 
     fun onElectionVictory(state: GameState): GameState {
+        if (!state.legal.governmentSystem.hasExecutiveTermLimit) {
+            return state.copy(term = state.term.copy(lastTermNote = "Mandate renewed through the ${state.legal.governmentSystem.displayName.lowercase()} election."))
+        }
         val terms = state.term.copy(termsServed = state.term.termsServed + 1)
         val atLimit = terms.termsServed >= terms.termLimit
         return state.copy(
@@ -63,13 +74,13 @@ object TermEngine {
         // Soft defeat pressure from prolonged failure
         if (state.vitals.approval < 28f) heat += 2.5f
         if (state.internalSecurity.coupRisk >= 70f) heat += 3f
-        if (state.opposition.noConfidenceHeat >= 70f) heat += 2f
+        if (state.legal.governmentSystem.hasConfidenceVotes && state.opposition.noConfidenceHeat >= 70f) heat += 2f
         if (state.legacy.scores.overall < 35) heat += 1.5f
         if (state.vitals.approval >= 55f && state.internalSecurity.coupRisk < 40f) {
             heat = (heat - 1.2f).coerceAtLeast(0f)
         }
 
-        if (term.atTermLimit && !term.canRunAgain && term.successorNamed.isBlank()) {
+        if (state.legal.governmentSystem.hasExecutiveTermLimit && term.atTermLimit && !term.canRunAgain && term.successorNamed.isBlank()) {
             heat += 1.5f
             track = SoftDefeatTrack.TERM_LIMIT
             note = "Term-limited with no successor — lame-duck pressure rises."
@@ -116,6 +127,7 @@ object TermEngine {
     }
 
     fun extendTermLimit(state: GameState): GameState {
+        if (!state.legal.governmentSystem.hasExecutiveTermLimit) return state
         val cost = 8_000_000_000L
         if (state.vitals.budget < cost) return state
         if (state.legal.ideology == Ideology.DEMOCRACY && state.opposition.hasMajority.not()) {

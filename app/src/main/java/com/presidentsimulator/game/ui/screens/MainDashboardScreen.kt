@@ -65,6 +65,7 @@ import com.presidentsimulator.game.data.AgendaBuilder
 import com.presidentsimulator.game.data.AgendaItem
 import com.presidentsimulator.game.data.AgendaPriority
 import com.presidentsimulator.game.data.GameState
+import com.presidentsimulator.game.data.RivalNation
 import com.presidentsimulator.game.data.ScenarioCatalog
 import com.presidentsimulator.game.data.summaryLine
 import com.presidentsimulator.game.ui.components.CardHeaderBottomScrim
@@ -270,7 +271,7 @@ fun MainDashboardScreen(
 
             if (state.diplomacy.rivals.isNotEmpty()) {
                 DashboardSection(
-                    title = "Regional Power Map",
+                    title = "World Relations Map",
                     subtitle = state.diplomacy.activeWar?.let { "ACTIVE FRONT · ${state.diplomacy.rivalById(it.targetCountryId)?.name ?: "Rival"}" }
                         ?: "Diplomatic ties · tap a neighbor to act",
                 ) {
@@ -280,7 +281,7 @@ fun MainDashboardScreen(
 
             if (situations.isNotEmpty()) {
                 DashboardSection(
-                    title = "Presidential Agenda",
+                    title = "Government Agenda",
                     subtitle = "${situations.size} file(s) · streak ${state.agenda.criticalAddressedStreak}",
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -491,7 +492,13 @@ private fun campaignObjectives(state: GameState): List<Pair<String, Boolean>> {
 
 @Composable
 private fun RegionalPowerMap(state: GameState, onOpenDiplomacy: () -> Unit) {
-    val neighbors = state.diplomacy.rivals.take(4)
+    val neighbors = state.diplomacy.rivals
+        .sortedWith(
+            compareByDescending<RivalNation> { state.diplomacy.activeWar?.targetCountryId == it.id }
+                .thenByDescending { kotlin.math.abs(it.relationshipScore) }
+                .thenByDescending { it.economicPower },
+        )
+        .take(4)
     Box(
         modifier = Modifier.fillMaxWidth().height(184.dp).clip(NssCardShape).background(Color(0xFF111827)),
     ) {

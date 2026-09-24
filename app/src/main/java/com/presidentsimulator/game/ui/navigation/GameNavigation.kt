@@ -223,7 +223,7 @@ fun GameNavigation(
                 "The war with $rivalName remains the immediate priority. Review the front and decide whether to press or negotiate."
             } ?: when {
                 state.netIncome < 0L -> "The treasury is losing about ${kotlin.math.abs(state.netIncome) / 1_000_000_000L}B each month. Consider a fiscal adjustment before reserves tighten."
-                state.nextElectionYear - state.year <= 1 -> "The next election is approaching. Check the latest cohort polling and identify a group you need to win back."
+                state.nextElectionYear > 0 && state.nextElectionYear - state.year <= 1 -> "The next election is approaching. Check the latest cohort polling and identify a group you need to win back."
                 else -> "The government enters ${state.dateLabel} with ${state.vitals.approval.toInt()}% approval. Choose one priority and follow its effects through the next turn."
             },
             storyline = state.storyArc.activeArcId?.let { "${state.storyArc.lastStoryNote} · chapter ${state.storyArc.chapter} of 3" },
@@ -366,7 +366,7 @@ private fun CampaignEndDialog(
             NssPanel(modifier = Modifier.fillMaxWidth()) {
                 val scores = campaign.legacy.scores
                 val finalScore = (scores.overall * campaign.scenario.scoreMultiplier).roundToInt()
-                Text("PRESIDENTIAL LEGACY · ${scores.grade.uppercase()}", fontSize = 10.sp, fontWeight = FontWeight.Black, color = accent, letterSpacing = 1.5.sp)
+                Text("NATIONAL LEADERSHIP LEGACY · ${scores.grade.uppercase()}", fontSize = 10.sp, fontWeight = FontWeight.Black, color = accent, letterSpacing = 1.5.sp)
                 Text("Campaign score  $finalScore", fontSize = 20.sp, fontWeight = FontWeight.Black, color = NssForeground, modifier = Modifier.padding(top = 4.dp))
                 Text("${scores.overall} base × ${campaign.scenario.scoreMultiplier} challenge modifier", fontSize = 10.sp, color = NssMutedForeground)
                 listOf(
@@ -424,5 +424,5 @@ private fun campaignHonors(state: GameState, victory: Boolean): List<String> = b
     if (state.legacy.peakApproval >= 80f) add("People's Mandate · reached ${state.legacy.peakApproval.toInt()}% approval")
     if (state.storyArc.completedArcIds.isNotEmpty()) add("Crisis Storyteller · closed ${state.storyArc.completedArcIds.size} political story arc(s)")
     if (victory && state.scenario.challengeId != "standard") add("Challenge cleared · ${state.scenario.challengeId.replace('_', ' ')}")
-    if (victory && state.legacy.scores.overall >= 80) add("Historic President · legacy score above 80")
+    if (victory && state.legacy.scores.overall >= 80) add("Historic Leader · legacy score above 80")
 }

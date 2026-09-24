@@ -5,6 +5,25 @@ import kotlinx.serialization.Serializable
 /** Legacy save id — migrated to [PlayerNation.id] on load. */
 const val LEGACY_PLAYER_COUNTRY_ID = "player"
 
+/** Political-system classification used to seed a country's governing rules. */
+@Serializable
+enum class GovernmentSystem(
+    val displayName: String,
+    val executiveTitle: String,
+    val description: String,
+    val electionIntervalYears: Int,
+    val hasExecutiveTermLimit: Boolean,
+    val hasConfidenceVotes: Boolean,
+) {
+    PRESIDENTIAL("Presidential system", "President", "The executive is elected separately from the legislature and serves a fixed term.", 4, true, false),
+    PARLIAMENTARY("Parliamentary system", "Prime Minister", "The government depends on legislative confidence; coalition building and party support are central.", 4, false, true),
+    PRESIDENTIAL_PARLIAMENTARY("Presidential–parliamentary system", "President / Prime Minister", "Executive authority is shared between a president and a government accountable to parliament.", 5, true, true),
+    MONARCHY("Monarchy", "Prime Minister / Monarch", "A monarch is the head of state; the national legislature and elected government remain part of play.", 4, false, true),
+    COMMUNIST("Communist one-party system", "Party Leader", "A dominant ruling party shapes appointments, legislation, and political competition.", 5, false, false),
+    TRANSITIONAL("Transitional system", "Transitional Executive", "Institutions are in transition, making stability, legitimacy, and a credible political timetable urgent.", 2, true, true),
+    THEOCRATIC_MONARCHY("Elective theocratic monarchy", "Pope", "The head of state is elected by the College of Cardinals and also serves as sovereign.", 0, false, false),
+}
+
 @Serializable
 data class PlayerNation(
     val id: String = "veltra",
@@ -12,6 +31,9 @@ data class PlayerNation(
     val flagEmoji: String = "🏛",
     val governmentLabel: String = "Republic",
     val nationalPerk: NationalPerk = NationalPerk.TRADE_HUB,
+    val countryCode: String = "",
+    val region: String = "",
+    val statusNote: String = "",
 ) {
     fun matchesCountryId(countryId: String): Boolean =
         countryId == id || countryId == LEGACY_PLAYER_COUNTRY_ID

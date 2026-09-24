@@ -930,6 +930,7 @@ object EventRepository {
     }
 
     private fun monthsUntilElection(state: GameState): Int {
+        if (state.nextElectionYear <= 0) return Int.MAX_VALUE
         val monthsLeft = (state.nextElectionYear - state.year) * 12 + (12 - state.month)
         return monthsLeft.coerceAtLeast(0)
     }

@@ -1,5 +1,7 @@
 package com.presidentsimulator.game.data
 
+import kotlin.math.pow
+
 /**
  * World roster — every nation here can be selected as the player's country.
  * Unselected nations become AI rivals at game start.
@@ -20,6 +22,14 @@ object PlayableNationCatalog {
         val ideology: Ideology = Ideology.DEMOCRACY,
         val leaderImageUrl: String,
         val nationalPerk: String,
+        val countryCode: String = "",
+        val officialName: String = "",
+        val region: String = "Fictional",
+        val governmentSystem: GovernmentSystem = GovernmentSystem.PRESIDENTIAL,
+        val populationYear: Int = 0,
+        val gdpUsd: Long = 0L,
+        val gdpYear: Int = 0,
+        val statusNote: String = "",
     ) {
         fun toPlayerNation(): PlayerNation = PlayerNation(
             id = id,
@@ -27,9 +37,12 @@ object PlayableNationCatalog {
             flagEmoji = flagEmoji,
             governmentLabel = governmentLabel,
             nationalPerk = NationalPerkEffects.forNationId(id),
+            countryCode = countryCode,
+            region = region,
+            statusNote = statusNote,
         )
 
-        fun toRivalNation(playerCountryId: String): RivalNation {
+        fun toRivalNation(playerCountryId: String, playerGdpUsd: Long = 0L): RivalNation {
             val (trade, nap) = WorldDiplomacy.treaties(playerCountryId, id)
             return RivalNation(
                 id = id,
@@ -37,16 +50,22 @@ object PlayableNationCatalog {
                 flagEmoji = flagEmoji,
                 relationshipScore = WorldDiplomacy.relationship(playerCountryId, id),
                 militaryStrength = militaryStrength,
-                economicPower = economicPower,
+                economicPower = if (playerGdpUsd > 0L) {
+                    val rivalGdp = gdpUsd.takeIf { it > 0L } ?: (economicPower * 1_000_000_000_000.0).toLong()
+                    (rivalGdp.toDouble() / playerGdpUsd).coerceIn(0.001, 10_000.0)
+                } else economicPower,
                 hasTradeTreaty = trade,
                 hasNonAggressionPact = nap,
             )
         }
 
         fun toInitialGameState(): GameState {
+            val playerGdpUsd = gdpUsd.takeIf { it > 0L } ?: if (countryCode.isNotBlank()) {
+                (vitals.population * 500L).coerceAtLeast(1_000_000_000L)
+            } else 0L
             val rivals = all()
                 .filter { it.id != id }
-                .map { it.toRivalNation(id) }
+                .map { it.toRivalNation(id, playerGdpUsd) }
             return GameState(
                 month = 1,
                 year = 2026,
@@ -56,23 +75,24 @@ object PlayableNationCatalog {
                 military = military,
                 diplomacy = DiplomacyState(rivals = rivals),
                 production = production,
-                legal = LegalState(ideology = ideology),
+                legal = LegalState(ideology = ideology, governmentSystem = governmentSystem),
                 demographics = DemographicsState(
                     workingClass = 55f,
                     businessElite = 58f,
                     military = 52f,
                     academics = 54f,
                 ),
-                nextElectionYear = 2030,
+                nextElectionYear = if (governmentSystem.electionIntervalYears > 0) 2026 + governmentSystem.electionIntervalYears else 0,
                 cabinet = CabinetEngine.seedInitial(),
                 opposition = OppositionEngine.seedInitial(ideology),
+                term = TermState(termLimit = if (governmentSystem.hasExecutiveTermLimit) 2 else Int.MAX_VALUE),
             )
         }
     }
 
-    fun all(): List<NationDefinition> = NATIONS
+    fun all(): List<NationDefinition> = NATIONS + RealCountryCatalog.all.map(::fromRealProfile)
 
-    fun byId(id: String): NationDefinition? = NATIONS.find { it.id == id }
+    fun byId(id: String): NationDefinition? = all().find { it.id == id }
 
     fun initialState(countryId: String): GameState =
         byId(countryId)?.toInitialGameState() ?: NATIONS.first().toInitialGameState()
@@ -195,6 +215,85 @@ object PlayableNationCatalog {
         ),
     )
 
+    private fun fromRealProfile(profile: RealCountryProfile): NationDefinition {
+        val population = profile.population.coerceAtLeast(1L)
+        // Keep all nations playable at the game's common monthly action scale. Missing GDP
+        // remains marked unavailable in the dossier; this floor is only a gameplay baseline.
+        val gdp = profile.gdpUsd.takeIf { it > 0L } ?: (population * 500L).coerceAtLeast(1_000_000_000L)
+        val populationMillions = population / 1_000_000.0
+        val gdpTrillions = gdp / 1_000_000_000_000.0
+        val factories = (kotlin.math.sqrt(gdp / 40_000_000_000.0) * 4.0).toInt().coerceIn(1, 180)
+        val farms = (populationMillions / 1.6).toInt().coerceIn(1, 400)
+        val housing = (populationMillions / 1.25).toInt().coerceIn(1, 400)
+        val scale = kotlin.math.sqrt(gdpTrillions.coerceAtLeast(0.001))
+        val ideology = if (profile.governmentSystem == GovernmentSystem.COMMUNIST) Ideology.COMMUNISM else Ideology.DEMOCRACY
+        val commonName = when (profile.code) {
+            "CG" -> "Republic of the Congo"
+            "CD" -> "Democratic Republic of the Congo"
+            "KP" -> "North Korea"
+            "KR" -> "South Korea"
+            "MK" -> "North Macedonia"
+            "PS" -> "State of Palestine"
+            "US" -> "United States"
+            "GB" -> "United Kingdom"
+            "VN" -> "Vietnam"
+            "VA" -> "Vatican City"
+            "TW" -> "Taiwan"
+            "GM" -> "The Gambia"
+            "CI" -> "Côte d’Ivoire"
+            "CZ" -> "Czechia"
+            "RU" -> "Russia"
+            else -> profile.name
+        }
+        return NationDefinition(
+            id = profile.code.lowercase(),
+            name = commonName,
+            flagEmoji = profile.flagEmoji,
+            governmentLabel = profile.governmentLabel,
+            vitals = VitalsState(
+                budget = (gdp * 0.025).toLong().coerceAtLeast(1_000_000_000L),
+                approval = 52f,
+                population = population,
+            ),
+            economy = EconomyState(
+                taxRate = 0.22f,
+                exports = (gdp / 100L).coerceAtLeast(20_000_000L),
+                imports = (gdp / 120L).coerceAtLeast(20_000_000L),
+                factories = factories,
+                farms = farms,
+                housing = housing,
+            ),
+            military = MilitaryState(
+                personnel = (population * 0.0035).toLong().coerceIn(1_000L, 1_500_000L),
+                tanks = (population / 90_000L).toInt().coerceIn(0, 5_000),
+                jets = (population / 600_000L).toInt().coerceIn(0, 900),
+                ships = (population / 1_100_000L).toInt().coerceIn(0, 400),
+                defcon = if (profile.governmentSystem == GovernmentSystem.TRANSITIONAL) 3 else 4,
+            ),
+            production = ProductionState(
+                energy = (population / 10_000_000L * 400L).coerceAtLeast(100L),
+                food = (population / 10_000L).coerceAtLeast(100L),
+                materials = (scale * 2_000L).toLong().coerceIn(100L, 100_000L),
+                goods = (scale * 1_000L).toLong().coerceIn(100L, 100_000L),
+                powerPlants = (factories * 0.8).toInt().coerceAtLeast(1),
+                mines = (factories * 0.6).toInt().coerceAtLeast(1),
+            ),
+            militaryStrength = (400.0 * populationMillions.coerceAtLeast(0.01).let { it.pow(0.35) } * gdpTrillions.coerceAtLeast(0.001).pow(0.25)).coerceIn(30.0, 1_800.0),
+            economicPower = gdp.toDouble() / 1_000_000_000_000.0,
+            ideology = ideology,
+            leaderImageUrl = "",
+            nationalPerk = NationalPerk.GENERALIST.label,
+            countryCode = profile.code,
+            officialName = profile.officialName,
+            region = profile.region,
+            governmentSystem = profile.governmentSystem,
+            populationYear = profile.populationYear,
+            gdpUsd = profile.gdpUsd,
+            gdpYear = profile.gdpYear,
+            statusNote = profile.statusNote,
+        )
+    }
+
     /** Leader portrait URLs from the zip UI reference (`IMG.leader_*`). */
     private object NationLeaders {
         const val VELTRA = "https://images.unsplash.com/photo-1556157382-97eda2d62296?w=400&h=400&fit=crop&auto=format"
@@ -233,7 +332,8 @@ object PlayableNationCatalog {
         )
 
         fun relationship(playerId: String, rivalId: String): Int =
-            explicit[Bilateral.of(playerId, rivalId)]?.score ?: pseudoNeutral(playerId, rivalId)
+            explicit[Bilateral.of(playerId, rivalId)]?.score ?:
+                if (playerId.length == 2 || rivalId.length == 2) 0 else pseudoNeutral(playerId, rivalId)
 
         fun treaties(playerId: String, rivalId: String): Pair<Boolean, Boolean> {
             val rel = explicit[Bilateral.of(playerId, rivalId)]
