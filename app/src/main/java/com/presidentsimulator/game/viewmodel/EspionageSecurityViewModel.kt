@@ -6,6 +6,7 @@ import com.presidentsimulator.game.data.GameOverState
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.MissionStatus
 import com.presidentsimulator.game.data.MissionType
+import com.presidentsimulator.game.data.MandateEngine
 import com.presidentsimulator.game.data.SecurityProtocol
 import com.presidentsimulator.game.data.TechCatalog
 import java.util.UUID
@@ -497,17 +498,20 @@ class EspionageSecurityViewModel(
         )
     }
 
-    private fun triggerCoup(state: GameState): GameState = state.copy(
-        gameOver = GameOverState(
-            isGameOver = true,
-            reason = "Game Over: Coup d'État — the government has been overthrown.",
-        ),
-        internalSecurity = state.internalSecurity.copy(
-            instabilityScore = 100f,
-            coupRisk = 100f,
-        ),
-        vitals = state.vitals.copy(approval = 0f),
-    )
+    private fun triggerCoup(state: GameState): GameState {
+        val collapsed = state.copy(
+            gameOver = GameOverState(
+                isGameOver = true,
+                reason = "Game Over: Coup d'État — the government has been overthrown.",
+            ),
+            internalSecurity = state.internalSecurity.copy(
+                instabilityScore = 100f,
+                coupRisk = 100f,
+            ),
+            vitals = state.vitals.copy(approval = 0f),
+        )
+        return MandateEngine.closeTerm(collapsed)
+    }
 
     companion object {
         const val INSTABILITY_COUP_THRESHOLD = 75f

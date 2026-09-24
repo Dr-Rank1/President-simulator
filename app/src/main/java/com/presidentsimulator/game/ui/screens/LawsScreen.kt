@@ -128,6 +128,11 @@ fun LawsScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                item {
+                    if (state.legal.policyInsights.observations.isNotEmpty() || state.legal.policyInsights.reports.isNotEmpty()) {
+                        PolicyInsightsPanel(state)
+                    }
+                }
                 item { IdeologyPanel(state = state, viewModel = viewModel) }
                 item { SocietyMinistriesPanel(state = state, viewModel = viewModel) }
             }
@@ -143,6 +148,8 @@ fun LawsScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item { OppositionChamberPanel(state = state, viewModel = viewModel) }
+                if (state.legal.pendingLaws.isNotEmpty()) item { PendingLawsPanel(state = state, viewModel = viewModel) }
+                if (state.legal.policyInsights.observations.isNotEmpty() || state.legal.policyInsights.reports.isNotEmpty()) item { PolicyInsightsPanel(state) }
             }
         } else {
             LazyColumn(
@@ -155,6 +162,9 @@ fun LawsScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
+                if (state.legal.policyInsights.observations.isNotEmpty() || state.legal.policyInsights.reports.isNotEmpty()) {
+                    item { PolicyInsightsPanel(state) }
+                }
                 item { IdeologyPanel(state = state, viewModel = viewModel) }
                 if (state.legal.pendingLaws.isNotEmpty()) {
                     item { PendingLawsPanel(state = state, viewModel = viewModel) }
@@ -168,6 +178,13 @@ fun LawsScreen(
                         category = selected.category ?: LawCategory.SOCIAL,
                         isActive = isActive,
                         parliamentSupport = parliamentSupport,
+                        supportModel = when (law.category) {
+                            LawCategory.SOCIAL -> "workers + academics"
+                            LawCategory.ECONOMIC -> "business + workers"
+                            LawCategory.MILITARY -> "military + business"
+                        },
+                        coalitionRead = policyCoalitionRead(state, law),
+                        compromiseStrength = state.legal.policyStrengths[law.id] ?: 1f,
                         pendingLabel = pending?.let {
                             if (it.enabling) "PENDING ENACT · ${it.ticksRemaining} mo"
                             else "PENDING REPEAL · ${it.ticksRemaining} mo"
@@ -406,6 +423,18 @@ private fun PendingLawsPanel(
                     fontSize = 13.sp,
                     color = NssForeground,
                 )
+                if (pending.enabling) {
+                    val support = LawCatalog.byId(pending.lawId)?.let { ParliamentarySupport.score(state, it) } ?: 0f
+                    Text("Vote support ${support.roundToInt()}% · ${pending.compromises}/3 compromises · each compromise adds 8 support and trims the law’s effects by 15%.",
+                        fontSize = 10.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+                    Text(
+                        text = if (pending.compromises >= ProductionLawViewModel.MAX_BILL_COMPROMISES) "MAX COMPROMISES REACHED" else "OFFER COMPROMISE · ${ProductionLawViewModel.BILL_COMPROMISE_COST.toBudgetString()}",
+                        modifier = Modifier.padding(top = 6.dp).clip(NssCardShape).background(if (pending.compromises >= ProductionLawViewModel.MAX_BILL_COMPROMISES || state.vitals.budget < ProductionLawViewModel.BILL_COMPROMISE_COST) NssMutedForeground.copy(alpha = 0.25f) else NssPrimary)
+                            .clickable(enabled = pending.compromises < ProductionLawViewModel.MAX_BILL_COMPROMISES && state.vitals.budget >= ProductionLawViewModel.BILL_COMPROMISE_COST) { viewModel.negotiatePendingLaw(pending.lawId) }
+                            .padding(horizontal = 10.dp, vertical = 7.dp),
+                        color = NssOnPhoto, fontWeight = FontWeight.Bold, fontSize = 9.sp,
+                    )
+                }
                 Row(
                     modifier = Modifier.padding(top = 6.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -433,6 +462,25 @@ private fun PendingLawsPanel(
                         fontSize = 11.sp,
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PolicyInsightsPanel(state: com.presidentsimulator.game.data.GameState) {
+    NssPanel(modifier = Modifier.fillMaxWidth()) {
+        Text("POLICY IMPACT REVIEW", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 1.5.sp)
+        Text("Observed changes after laws take effect. Other events also influence these measures, so this is a trend report rather than proof of cause.",
+            fontSize = 10.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
+        state.legal.policyInsights.observations.forEach { observation ->
+            val lawName = LawCatalog.byId(observation.lawId)?.name ?: observation.lawId
+            Text("Monitoring · $lawName · since ${observation.startedMonth}/${observation.startedYear} · ${observation.monthsObserved}/12 months", fontSize = 10.sp, color = NssAccent, modifier = Modifier.padding(top = 3.dp))
+        }
+        state.legal.policyInsights.reports.takeLast(3).asReversed().forEach { report ->
+            Column(modifier = Modifier.fillMaxWidth().padding(top = 7.dp)) {
+                Text("${report.lawName} · ${report.monthsObserved}-month review · ${report.month}/${report.year}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = NssForeground)
+                Text(report.summary(), fontSize = 10.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 2.dp))
             }
         }
     }
@@ -542,6 +590,9 @@ private fun PolicyLawRow(
     category: LawCategory,
     isActive: Boolean,
     parliamentSupport: Float,
+    supportModel: String,
+    coalitionRead: String,
+    compromiseStrength: Float,
     pendingLabel: String?,
     effectSummary: String,
     enabled: Boolean,
@@ -589,6 +640,10 @@ private fun PolicyLawRow(
                     color = if (parliamentSupport >= law.approvalThreshold) NssEmerald else NssAccent,
                     modifier = Modifier.padding(top = 2.dp),
                 )
+                Text("Current $supportModel bloc read · $coalitionRead", fontSize = 9.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+                if (isActive && compromiseStrength < 0.999f) {
+                    Text("Compromised bill · ${(compromiseStrength * 100).roundToInt()}% policy strength", fontSize = 9.sp, color = NssAccent, modifier = Modifier.padding(top = 3.dp))
+                }
                 Text("Upkeep ${law.upkeepCost.toBudgetString()}/mo", fontSize = 10.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 2.dp))
             }
             Switch(
@@ -628,6 +683,12 @@ private fun LawToggleConfirmationDialog(
         onDismiss = onDismiss,
     )
 }
+
+private fun policyCoalitionRead(state: com.presidentsimulator.game.data.GameState, law: Law): String = when (law.category) {
+    LawCategory.SOCIAL -> "workers ${state.demographics.workingClass.roundToInt()}% · academics ${state.demographics.academics.roundToInt()}%"
+    LawCategory.ECONOMIC -> "business ${state.demographics.businessElite.roundToInt()}% · workers ${state.demographics.workingClass.roundToInt()}%"
+    LawCategory.MILITARY -> "military ${state.demographics.military.roundToInt()}% · business ${state.demographics.businessElite.roundToInt()}%"
+} + " · ${if (state.opposition.hasMajority) "government majority" else "minority government"}"
 
 private fun buildLawEffectSummary(law: Law): String = buildList {
     if (law.approvalModifier != 0f) add("Approval ${if (law.approvalModifier > 0) "+" else ""}${law.approvalModifier.roundToInt()}")

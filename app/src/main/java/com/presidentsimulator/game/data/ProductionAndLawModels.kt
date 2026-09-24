@@ -89,6 +89,9 @@ data class PendingLaw(
     val lawId: String,
     val enabling: Boolean,
     val ticksRemaining: Int,
+    /** Legislator support bought through public compromises; each costs policy strength. */
+    val supportBonus: Float = 0f,
+    val compromises: Int = 0,
 )
 
 @Serializable
@@ -96,10 +99,22 @@ data class LegalState(
     val ideology: Ideology = Ideology.DEMOCRACY,
     val governmentSystem: GovernmentSystem = GovernmentSystem.PRESIDENTIAL,
     val activeLawIds: List<String> = emptyList(),
+    val policyStrengths: Map<String, Float> = emptyMap(),
     val pendingLaws: List<PendingLaw> = emptyList(),
+    val policyInsights: PolicyInsightsState = PolicyInsightsState(),
 ) {
     val activeLaws: List<Law>
-        get() = activeLawIds.mapNotNull { LawCatalog.byId(it) }
+        get() = activeLawIds.mapNotNull { id -> LawCatalog.byId(id)?.let { law ->
+            val strength = policyStrengths[id]?.coerceIn(0.55f, 1f) ?: 1f
+            if (strength >= 0.999f) law else law.copy(
+                approvalModifier = law.approvalModifier * strength,
+                productionModifier = 1f + (law.productionModifier - 1f) * strength,
+                foodDemandModifier = 1f + (law.foodDemandModifier - 1f) * strength,
+                energyDemandModifier = 1f + (law.energyDemandModifier - 1f) * strength,
+                militaryRecruitModifier = 1f + (law.militaryRecruitModifier - 1f) * strength,
+                upkeepCost = (law.upkeepCost * strength).toLong(),
+            )
+        } }
 
     val totalUpkeep: Long
         get() = activeLaws.sumOf { it.upkeepCost }

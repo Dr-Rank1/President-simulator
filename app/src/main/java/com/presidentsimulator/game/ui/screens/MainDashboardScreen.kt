@@ -65,6 +65,8 @@ import com.presidentsimulator.game.data.AgendaBuilder
 import com.presidentsimulator.game.data.AgendaItem
 import com.presidentsimulator.game.data.AgendaPriority
 import com.presidentsimulator.game.data.GameState
+import com.presidentsimulator.game.data.MandateEngine
+import com.presidentsimulator.game.data.MandateGoal
 import com.presidentsimulator.game.data.RivalNation
 import com.presidentsimulator.game.data.ScenarioCatalog
 import com.presidentsimulator.game.data.summaryLine
@@ -110,6 +112,7 @@ fun MainDashboardScreen(
     onSpinHeadline: (String) -> Unit = {},
     onSuppressHeadline: (String) -> Unit = {},
     onDisasterResponse: (ResponseFocus) -> Unit = {},
+    onMakeCommitment: (MandateGoal) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val layout = rememberNssLayoutSpec()
@@ -357,6 +360,42 @@ fun MainDashboardScreen(
                                     modifier = Modifier.padding(start = 8.dp),
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            DashboardSection(
+                title = "Term Promises",
+                subtitle = "${state.mandate.commitments.size}/3 active · reviewed when this term ends",
+            ) {
+                if (state.mandate.lastReview.isNotEmpty()) {
+                    Column(modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard).padding(12.dp)) {
+                        Text("LAST TERM REVIEW", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                        state.mandate.lastReview.forEach { result ->
+                            Text("${if (result.fulfilled) "✓" else "×"} ${result.goal.title} · ${result.review}", color = if (result.fulfilled) NssEmerald else NssMutedForeground, fontSize = 10.sp, modifier = Modifier.padding(top = 5.dp))
+                        }
+                    }
+                }
+                state.mandate.commitments.forEach { commitment ->
+                    Column(modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard).padding(12.dp)) {
+                        Text(commitment.goal.title.uppercase(), color = NssOnPhoto, fontSize = 10.sp, fontWeight = FontWeight.Black)
+                        Text(MandateEngine.currentSignal(state, commitment), color = NssAccent, fontSize = 10.sp, modifier = Modifier.padding(top = 4.dp))
+                    }
+                }
+                if (state.mandate.commitments.size < 3) {
+                    val availableGoals = MandateGoal.entries.filter { goal -> state.mandate.commitments.none { it.goal == goal } }
+                    Text("Choose a promise. Each is judged at the end of the term.", color = NssMutedForeground, fontSize = 10.sp)
+                    availableGoals.chunked(2).forEach { rowGoals ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            rowGoals.forEach { goal ->
+                                Column(modifier = Modifier.weight(1f).clip(NssCardShape).background(NssPrimary.copy(alpha = 0.55f))
+                                    .clickable { onMakeCommitment(goal) }.padding(10.dp)) {
+                                    Text(goal.title, color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    Text(goal.description, color = NssMutedForeground, fontSize = 9.sp, modifier = Modifier.padding(top = 3.dp))
+                                }
+                            }
+                            if (rowGoals.size == 1) Spacer(modifier = Modifier.weight(1f))
                         }
                     }
                 }

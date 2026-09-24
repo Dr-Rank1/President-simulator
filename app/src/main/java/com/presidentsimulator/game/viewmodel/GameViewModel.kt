@@ -14,6 +14,8 @@ import com.presidentsimulator.game.data.SpeechEngine
 import com.presidentsimulator.game.data.SpeechTheme
 import com.presidentsimulator.game.data.TermEngine
 import com.presidentsimulator.game.data.LegacyLedger
+import com.presidentsimulator.game.data.MandateEngine
+import com.presidentsimulator.game.data.MandateGoal
 import com.presidentsimulator.game.data.OppositionEngine
 import com.presidentsimulator.game.data.PressDesk
 import com.presidentsimulator.game.data.ResponseFocus
@@ -692,6 +694,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         _state.update { OppositionEngine.concedePlatform(it) }
     }
 
+    fun makeMandateCommitment(goal: MandateGoal) {
+        if (_currentActiveEvent.value != null || _state.value.gameOver.isGameOver) return
+        _state.update { MandateEngine.makeCommitment(it, goal) }
+    }
+
     fun allocateDisasterResponse(focus: ResponseFocus) {
         if (_currentActiveEvent.value != null) return
         _state.update { DisasterEngine.allocateResponse(it, focus) }
@@ -752,6 +759,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun enactLaw(lawId: String) {
         if (_currentActiveEvent.value != null) return
         _state.update { productionLawEngine.enactLaw(it, lawId) }
+    }
+
+    fun negotiatePendingLaw(lawId: String) {
+        if (_currentActiveEvent.value != null) return
+        _state.update { productionLawEngine.negotiatePendingLaw(it, lawId) }
     }
 
     fun repealLaw(lawId: String) {
