@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -35,6 +37,7 @@ import com.presidentsimulator.game.audio.GameAudioBridge
 import com.presidentsimulator.game.audio.GameAudioCrisisEffect
 import com.presidentsimulator.game.audio.GameAudioManager
 import com.presidentsimulator.game.audio.playClick
+import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.ui.GovernanceUNScreen
 import com.presidentsimulator.game.ui.components.ElectionNightDialog
 import com.presidentsimulator.game.ui.components.EventCrisisDialog
@@ -69,6 +72,7 @@ import com.presidentsimulator.game.ui.screens.ScienceScreen
 import com.presidentsimulator.game.ui.screens.SecurityScreen
 import com.presidentsimulator.game.ui.screens.SettingsAudioScreen
 import com.presidentsimulator.game.viewmodel.GameViewModel
+import kotlin.math.roundToInt
 
 @Composable
 fun GameNavigation(
@@ -114,9 +118,9 @@ fun GameNavigation(
                     audio.playClick()
                     showCountrySelect = false
                 },
-                onSelectCountry = { countryId, scenarioId ->
+                onSelectCountry = { countryId, scenarioId, challengeId ->
                     audio.playClick()
-                    viewModel.startNewGame(countryId, scenarioId)
+                    viewModel.startNewGame(countryId, scenarioId, challengeId)
                     showCountrySelect = false
                 },
             )
@@ -214,6 +218,15 @@ fun GameNavigation(
             agenda = state.agenda,
             year = state.year,
             month = state.month,
+            outlook = state.diplomacy.activeWar?.let { war ->
+                val rivalName = state.diplomacy.rivalById(war.targetCountryId)?.name ?: "your rival"
+                "The war with $rivalName remains the immediate priority. Review the front and decide whether to press or negotiate."
+            } ?: when {
+                state.netIncome < 0L -> "The treasury is losing about ${kotlin.math.abs(state.netIncome) / 1_000_000_000L}B each month. Consider a fiscal adjustment before reserves tighten."
+                state.nextElectionYear - state.year <= 1 -> "The next election is approaching. Check the latest cohort polling and identify a group you need to win back."
+                else -> "The government enters ${state.dateLabel} with ${state.vitals.approval.toInt()}% approval. Choose one priority and follow its effects through the next turn."
+            },
+            storyline = state.storyArc.activeArcId?.let { "${state.storyArc.lastStoryNote} · chapter ${state.storyArc.chapter} of 3" },
             onDismiss = {
                 audio.playClick()
                 viewModel.acknowledgeBriefing()
@@ -230,6 +243,7 @@ fun GameNavigation(
         CampaignEndDialog(
             isVictory = isVictory,
             reason = state.gameOver.reason,
+            campaign = state,
             onLoadSave = { viewModel.loadLastAutomatedSave() },
             onReturnToLaunch = { viewModel.returnToLaunch() },
         )
@@ -314,6 +328,7 @@ fun GameNavigation(
 private fun CampaignEndDialog(
     isVictory: Boolean,
     reason: String,
+    campaign: GameState,
     onLoadSave: () -> Unit,
     onReturnToLaunch: () -> Unit,
 ) {
@@ -347,6 +362,28 @@ private fun CampaignEndDialog(
             NssPanel(modifier = Modifier.fillMaxWidth()) {
                 Text(reason, fontSize = 13.sp, color = NssMutedForeground, lineHeight = 18.sp)
             }
+            Spacer(modifier = Modifier.height(10.dp))
+            NssPanel(modifier = Modifier.fillMaxWidth()) {
+                val scores = campaign.legacy.scores
+                val finalScore = (scores.overall * campaign.scenario.scoreMultiplier).roundToInt()
+                Text("PRESIDENTIAL LEGACY · ${scores.grade.uppercase()}", fontSize = 10.sp, fontWeight = FontWeight.Black, color = accent, letterSpacing = 1.5.sp)
+                Text("Campaign score  $finalScore", fontSize = 20.sp, fontWeight = FontWeight.Black, color = NssForeground, modifier = Modifier.padding(top = 4.dp))
+                Text("${scores.overall} base × ${campaign.scenario.scoreMultiplier} challenge modifier", fontSize = 10.sp, color = NssMutedForeground)
+                listOf(
+                    "Prosperity" to scores.prosperity,
+                    "Security" to scores.security,
+                    "Diplomacy" to scores.diplomacy,
+                    "Society" to scores.society,
+                    "Mandate" to scores.mandate,
+                ).forEach { (pillar, value) ->
+                    Text("$pillar  ·  $value", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+                }
+                val honors = campaignHonors(campaign, isVictory)
+                if (honors.isNotEmpty()) {
+                    Text("HONORS", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
+                    honors.forEach { honor -> Text("✦  $honor", fontSize = 11.sp, color = NssForeground, modifier = Modifier.padding(top = 3.dp)) }
+                }
+            }
             Text(
                 text = "Load Last Save",
                 modifier = Modifier
@@ -377,4 +414,15 @@ private fun CampaignEndDialog(
             )
         }
     }
+}
+
+private fun campaignHonors(state: GameState, victory: Boolean): List<String> = buildList {
+    if (state.legacy.electionsWon >= 2) add("Long Mandate · won ${state.legacy.electionsWon} elections")
+    if (state.legacy.warsWon >= 1 && state.legacy.warsLost == 0) add("Unbeaten Commander · no wars lost")
+    if (state.legacy.disastersHandled >= 3) add("Steady Hand · contained ${state.legacy.disastersHandled} disasters")
+    if (state.legacy.lawsEnacted >= 5) add("Reformer · enacted ${state.legacy.lawsEnacted} laws")
+    if (state.legacy.peakApproval >= 80f) add("People's Mandate · reached ${state.legacy.peakApproval.toInt()}% approval")
+    if (state.storyArc.completedArcIds.isNotEmpty()) add("Crisis Storyteller · closed ${state.storyArc.completedArcIds.size} political story arc(s)")
+    if (victory && state.scenario.challengeId != "standard") add("Challenge cleared · ${state.scenario.challengeId.replace('_', ' ')}")
+    if (victory && state.legacy.scores.overall >= 80) add("Historic President · legacy score above 80")
 }

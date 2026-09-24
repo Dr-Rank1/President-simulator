@@ -85,6 +85,8 @@ The visual design is based on the **Nation State Simulator UI Design** reference
 
 The monthly simulation order is documented in `MonthlySimulationPipeline.kt`: production and fiscal settlement, foreign affairs and security, domestic political systems, long-term progression, and finally history and agenda generation.
 
+Campaigns also support optional challenge rules that modify the starting conditions and final score multiplier. Political story arcs unfold over multiple months, with choices affecting the press, cabinet, opposition, and legacy record. The dashboard includes a regional relationship map and active story progress; morning briefings surface the current storyline and a state-aware chief-of-staff outlook. Campaign end reports show the five legacy pillars and honors earned.
+
 ## License
 
 Private project — see repository owner for terms.

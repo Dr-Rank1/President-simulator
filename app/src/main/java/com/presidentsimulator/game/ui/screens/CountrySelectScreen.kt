@@ -60,13 +60,16 @@ import com.presidentsimulator.game.ui.theme.NssPrimary
 fun CountrySelectScreen(
     nations: List<PlayableNationCatalog.NationDefinition>,
     onBack: () -> Unit,
-    onSelectCountry: (countryId: String, scenarioId: String) -> Unit,
+    onSelectCountry: (countryId: String, scenarioId: String, challengeId: String) -> Unit,
 ) {
     var selectedIndex by remember(nations) { mutableIntStateOf(0) }
     var scenarioIndex by remember { mutableIntStateOf(0) }
+    var challengeIndex by remember { mutableIntStateOf(0) }
     val nation = nations.getOrElse(selectedIndex) { nations.first() }
     val scenarios = remember { ScenarioCatalog.ALL }
     val scenario = scenarios.getOrElse(scenarioIndex) { scenarios.first() }
+    val challenges = remember { ScenarioCatalog.CHALLENGES }
+    val challenge = challenges.getOrElse(challengeIndex) { challenges.first() }
     val layout = rememberNssLayoutSpec()
 
     Column(
@@ -291,12 +294,38 @@ fun CountrySelectScreen(
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
+            Text("OPTIONAL CHALLENGE RULE", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.5.sp)
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                challenges.forEachIndexed { index, option ->
+                    val selected = index == challengeIndex
+                    Text(
+                        text = option.title,
+                        modifier = Modifier.clip(NssCardShape)
+                            .background(if (selected) NssAccent.copy(alpha = 0.28f) else NssPrimary.copy(alpha = 0.28f))
+                            .border(1.dp, if (selected) NssAccent else Color.Transparent, NssCardShape)
+                            .clickable { challengeIndex = index }
+                            .padding(horizontal = 10.dp, vertical = 7.dp),
+                        color = NssOnPhoto,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+            Text(
+                "${challenge.description}  ·  ${challenge.scoreMultiplier}× legacy score",
+                fontSize = 10.sp,
+                color = NssMutedForeground,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(NssCardShape)
                     .background(Brush.horizontalGradient(listOf(NssAccent, Color(0xFFD97706))))
-                    .clickable { onSelectCountry(nation.id, scenario.id) }
+                    .clickable { onSelectCountry(nation.id, scenario.id, challenge.id) }
                     .padding(vertical = 16.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,

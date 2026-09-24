@@ -7,6 +7,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -52,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -266,6 +268,16 @@ fun MainDashboardScreen(
                 }
             }
 
+            if (state.diplomacy.rivals.isNotEmpty()) {
+                DashboardSection(
+                    title = "Regional Power Map",
+                    subtitle = state.diplomacy.activeWar?.let { "ACTIVE FRONT · ${state.diplomacy.rivalById(it.targetCountryId)?.name ?: "Rival"}" }
+                        ?: "Diplomatic ties · tap a neighbor to act",
+                ) {
+                    RegionalPowerMap(state = state, onOpenDiplomacy = { onNavigate(GameDestination.Diplomacy) })
+                }
+            }
+
             if (situations.isNotEmpty()) {
                 DashboardSection(
                     title = "Presidential Agenda",
@@ -305,6 +317,24 @@ fun MainDashboardScreen(
                                     modifier = Modifier.padding(start = 8.dp),
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            state.storyArc.activeArcId?.let {
+                DashboardSection(
+                    title = "National Storyline",
+                    subtitle = "Chapter ${state.storyArc.chapter} of 3",
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard).padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("◆", color = NssAccent, fontSize = 20.sp)
+                        Column(modifier = Modifier.padding(start = 10.dp)) {
+                            Text(state.storyArc.lastStoryNote, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("Your earlier decisions shape the next chapter and the final legacy entry.", color = NssMutedForeground, fontSize = 10.sp)
                         }
                     }
                 }
@@ -457,6 +487,87 @@ private fun campaignObjectives(state: GameState): List<Pair<String, Boolean>> {
         else -> listOf(state.netIncome >= 0L, state.vitals.approval >= 55f && stable, state.legacy.scores.overall >= 70)
     }
     return labels.mapIndexed { index, label -> label to (complete.getOrNull(index) ?: false) }
+}
+
+@Composable
+private fun RegionalPowerMap(state: GameState, onOpenDiplomacy: () -> Unit) {
+    val neighbors = state.diplomacy.rivals.take(4)
+    Box(
+        modifier = Modifier.fillMaxWidth().height(184.dp).clip(NssCardShape).background(Color(0xFF111827)),
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val center = Offset(size.width / 2f, size.height / 2f)
+            val anchors = listOf(
+                Offset(size.width * 0.25f, size.height * 0.18f),
+                Offset(size.width * 0.75f, size.height * 0.18f),
+                Offset(size.width * 0.25f, size.height * 0.82f),
+                Offset(size.width * 0.75f, size.height * 0.82f),
+            )
+            neighbors.forEachIndexed { index, rival ->
+                drawLine(
+                    color = when {
+                        state.diplomacy.activeWar?.targetCountryId == rival.id -> NssRed.copy(alpha = 0.85f)
+                        rival.relationshipScore >= 35 -> NssEmerald.copy(alpha = 0.65f)
+                        rival.relationshipScore <= -35 -> NssRed.copy(alpha = 0.65f)
+                        else -> NssAccent.copy(alpha = 0.45f)
+                    },
+                    start = center,
+                    end = anchors[index],
+                    strokeWidth = 3.dp.toPx(),
+                )
+            }
+        }
+        PowerMapNode(
+            title = state.playerNation.name,
+            detail = "YOUR GOVERNMENT",
+            emblem = state.playerNation.flagEmoji,
+            accent = NssAccent,
+            modifier = Modifier.align(Alignment.Center).fillMaxWidth(0.36f),
+            onClick = onOpenDiplomacy,
+        )
+        val placements = listOf(Alignment.TopStart, Alignment.TopEnd, Alignment.BottomStart, Alignment.BottomEnd)
+        neighbors.forEachIndexed { index, rival ->
+            val isAtWar = state.diplomacy.activeWar?.targetCountryId == rival.id
+            val status = when {
+                isAtWar -> "ACTIVE FRONT"
+                rival.hasEmbargo -> "EMBARGO"
+                rival.hasTradeTreaty -> "TRADE PARTNER"
+                rival.hasNonAggressionPact -> "PACT"
+                else -> "${rival.relationshipScore} RELATION"
+            }
+            PowerMapNode(
+                title = rival.name,
+                detail = status,
+                emblem = rival.flagEmoji,
+                accent = if (isAtWar) NssRed else if (rival.relationshipScore >= 35) NssEmerald else NssAccent,
+                modifier = Modifier.align(placements[index]).fillMaxWidth(0.44f),
+                onClick = onOpenDiplomacy,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PowerMapNode(
+    title: String,
+    detail: String,
+    emblem: String,
+    accent: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = modifier.clip(NssCardShape).background(Color(0xEE1C2738))
+            .border(1.dp, accent.copy(alpha = 0.65f), NssCardShape)
+            .clickable(onClick = onClick).padding(horizontal = 8.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(emblem, fontSize = 16.sp)
+        Column(modifier = Modifier.padding(start = 6.dp)) {
+            Text(title, color = NssOnPhoto, fontWeight = FontWeight.Bold, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(detail, color = accent, fontWeight = FontWeight.Black, fontSize = 7.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
 }
 
 @Composable

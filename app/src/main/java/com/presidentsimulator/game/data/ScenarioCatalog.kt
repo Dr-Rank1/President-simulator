@@ -3,6 +3,13 @@ package com.presidentsimulator.game.data
 import kotlin.random.Random
 
 object ScenarioCatalog {
+    val CHALLENGES = listOf(
+        CampaignChallenge("standard", "Classic Rules", "Play with the scenario's normal starting conditions.", 1f),
+        CampaignChallenge("austerity", "Austerity Mandate", "Begin with a smaller treasury and weaker public support.", 1.2f),
+        CampaignChallenge("hostile_press", "Hostile Press", "Begin under intense media scrutiny and low government credibility.", 1.2f),
+        CampaignChallenge("snap_election", "Snap Election", "Face an election next year with a modest approval penalty.", 1.25f),
+    )
+
     val ALL = listOf(
         ScenarioPack(
             id = "standard",
@@ -51,7 +58,12 @@ object ScenarioCatalog {
 
     fun byId(id: String): ScenarioPack = ALL.find { it.id == id } ?: ALL.first()
 
-    fun apply(state: GameState, scenarioId: String, seed: Int = Random.Default.nextInt()): GameState {
+    fun apply(
+        state: GameState,
+        scenarioId: String,
+        seed: Int = Random.Default.nextInt(),
+        challengeId: String = "standard",
+    ): GameState {
         val pack = byId(scenarioId)
         val rng = Random(seed)
         var next = state.copy(
@@ -166,7 +178,32 @@ object ScenarioCatalog {
             else -> next
         }
 
+        val challenge = CHALLENGES.find { it.id == challengeId } ?: CHALLENGES.first()
+        next = when (challenge.id) {
+            "austerity" -> next.copy(
+                vitals = next.vitals.copy(
+                    budget = (next.vitals.budget * 0.68f).toLong(),
+                    approval = (next.vitals.approval - 5f).coerceAtLeast(10f),
+                ),
+                scenario = next.scenario.copy(notes = next.scenario.notes + "Austerity challenge active"),
+            )
+            "hostile_press" -> next.copy(
+                press = next.press.copy(
+                    mediaSentiment = (next.press.mediaSentiment - 18f).coerceAtLeast(5f),
+                    credibility = (next.press.credibility - 15f).coerceAtLeast(5f),
+                    leakRisk = (next.press.leakRisk + 10f).coerceAtMost(100f),
+                ),
+                scenario = next.scenario.copy(notes = next.scenario.notes + "Hostile press challenge active"),
+            )
+            "snap_election" -> next.copy(
+                nextElectionYear = next.year + 1,
+                vitals = next.vitals.copy(approval = (next.vitals.approval - 4f).coerceAtLeast(10f)),
+                scenario = next.scenario.copy(notes = next.scenario.notes + "Snap election challenge active"),
+            )
+            else -> next
+        }
         return next.copy(
+            scenario = next.scenario.copy(challengeId = challenge.id, scoreMultiplier = challenge.scoreMultiplier),
             legacy = next.legacy.copy(
                 lastLegacyNote = "Scenario: ${pack.title}",
                 entries = listOf(

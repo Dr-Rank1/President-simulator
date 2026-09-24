@@ -45,6 +45,8 @@ fun MorningBriefingDialog(
     agenda: AgendaState,
     year: Int,
     month: Int,
+    outlook: String? = null,
+    storyline: String? = null,
     onDismiss: () -> Unit,
     onJumpToAction: (AgendaItem) -> Unit,
 ) {
@@ -88,6 +90,20 @@ fun MorningBriefingDialog(
                     color = NssMutedForeground,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
                 )
+            }
+
+            if (outlook != null || storyline != null) {
+                NssPanel(modifier = Modifier.fillMaxWidth()) {
+                    outlook?.let {
+                        Text("CHIEF OF STAFF OUTLOOK", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp)
+                        Text(it, fontSize = 11.sp, color = NssForeground, modifier = Modifier.padding(top = 4.dp))
+                    }
+                    storyline?.let {
+                        Text("ONGOING STORY", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssPrimary, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
+                        Text(it, fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
             }
 
             Row(

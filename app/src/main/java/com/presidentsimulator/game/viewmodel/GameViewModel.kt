@@ -43,6 +43,7 @@ import com.presidentsimulator.game.data.CovertMission
 import com.presidentsimulator.game.data.MissionStatus
 import com.presidentsimulator.game.data.PlayableNationCatalog
 import com.presidentsimulator.game.data.TechCatalog
+import com.presidentsimulator.game.data.StoryArcEngine
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -205,6 +206,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             maybeTriggerEvent()
             if (_currentActiveEvent.value != null) {
                 pauseTimeAdvance()
+                // Persist the blocking event as well as the state changes that created it.
+                saveGameProgress()
             }
         }
     }
@@ -236,6 +239,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             }
             lines += "Approval fell ${"%.1f".format(after.vitals.approval - before.vitals.approval)} points" +
                 if (drivers.isEmpty()) ". Review cohort changes in Demographics." else ": ${drivers.joinToString()}."
+        }
+        val completedStories = after.storyArc.completedArcIds - before.storyArc.completedArcIds.toSet()
+        completedStories.forEach {
+            lines += "Political story resolved: ${after.storyArc.lastStoryNote}. Its ending is recorded in the presidential legacy."
+        }
+        if (before.storyArc.activeArcId == null && after.storyArc.activeArcId != null) {
+            lines += "A new political story begins: ${after.storyArc.lastStoryNote}. Your decisions will shape what follows."
         }
         if (after.production.energyShortage) {
             lines += "Energy shortage — industrial output penalized to 30%."
@@ -512,7 +522,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             val restored = analyticsEngine.importGameStateFromJson(jsonString)
             _state.value = restored
             _currentActiveEvent.value = restored.crisis.pendingEventId
-                ?.let { EventRepository.byId(it) }
+                ?.let { pendingId -> StoryArcEngine.nextEvent(restored) ?: EventRepository.byId(pendingId) }
             _turnSummary.value = null
             _missionResults.value = emptyList()
             pauseTimeAdvance()
@@ -717,8 +727,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun playableNations(): List<PlayableNationCatalog.NationDefinition> =
         PlayableNationCatalog.all()
 
-    fun startNewGame(countryId: String = "veltra", scenarioId: String = "standard") {
-        val seeded = ScenarioCatalog.apply(GameState.initial(countryId), scenarioId)
+    fun startNewGame(countryId: String = "veltra", scenarioId: String = "standard", challengeId: String = "standard") {
+        val seeded = ScenarioCatalog.apply(GameState.initial(countryId), scenarioId, challengeId = challengeId)
         _state.value = seeded
         _currentActiveEvent.value = null
         _turnSummary.value = null
@@ -934,9 +944,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (choice !in active.choices) return
 
         _state.update { current ->
-            val applied = choice.consequence.applyTo(
-                current.copy(crisis = current.crisis.copy(pendingEventId = null, eventCooldownMonths = EVENT_COOLDOWN_MONTHS)),
+            val cooldown = if (StoryArcEngine.isStoryEvent(active.id)) current.crisis.eventCooldownMonths else EVENT_COOLDOWN_MONTHS
+            val appliedChoice = choice.consequence.applyTo(
+                current.copy(crisis = current.crisis.copy(pendingEventId = null, eventCooldownMonths = cooldown)),
             )
+            val applied = StoryArcEngine.resolve(appliedChoice, active.id, active.choices.indexOf(choice))
             applied.copy(crisis = lingeringFrom(choice.consequence, active.title, applied.crisis))
         }
         _currentActiveEvent.value = null
@@ -946,10 +958,15 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (_currentActiveEvent.value != null) return
         val pendingId = _state.value.crisis.pendingEventId
         if (pendingId != null) {
-            _currentActiveEvent.value = EventRepository.byId(pendingId)
+            _currentActiveEvent.value = StoryArcEngine.nextEvent(_state.value) ?: EventRepository.byId(pendingId)
             return
         }
         if (_state.value.crisis.blocksNewEvents || _state.value.crisis.eventCooldownMonths > 0) return
+        StoryArcEngine.nextEvent(_state.value)?.let { storyEvent ->
+            _currentActiveEvent.value = storyEvent
+            _state.update { it.copy(crisis = it.crisis.copy(pendingEventId = storyEvent.id)) }
+            return
+        }
         if (random.nextFloat() >= EVENT_CHANCE_PER_TICK) return
         val event = EventRepository.weightedEvent(_state.value, random)
         _currentActiveEvent.value = event
