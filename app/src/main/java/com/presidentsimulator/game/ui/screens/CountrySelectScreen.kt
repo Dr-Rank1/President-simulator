@@ -21,10 +21,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,16 +34,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import coil.compose.AsyncImage
 import com.presidentsimulator.game.data.PlayableNationCatalog
 import com.presidentsimulator.game.data.ScenarioCatalog
 import com.presidentsimulator.game.ui.components.rememberNssLayoutSpec
@@ -65,7 +67,18 @@ fun CountrySelectScreen(
     var selectedIndex by remember(nations) { mutableIntStateOf(0) }
     var scenarioIndex by remember { mutableIntStateOf(0) }
     var challengeIndex by remember { mutableIntStateOf(0) }
+    var countryQuery by remember { mutableStateOf("") }
+    var regionFilter by remember { mutableStateOf("All regions") }
     val nation = nations.getOrElse(selectedIndex) { nations.first() }
+    val regionOptions = remember(nations) { listOf("All regions") + nations.map { it.region }.distinct().sorted() }
+    val visibleNations = remember(nations, countryQuery, regionFilter) {
+        nations.filter { item ->
+            val matchesRegion = regionFilter == "All regions" || item.region == regionFilter
+            val matchesQuery = countryQuery.isBlank() || listOf(item.name, item.officialName, item.countryCode, item.governmentLabel)
+                .any { it.contains(countryQuery.trim(), ignoreCase = true) }
+            matchesRegion && matchesQuery
+        }
+    }
     val scenarios = remember { ScenarioCatalog.ALL }
     val scenario = scenarios.getOrElse(scenarioIndex) { scenarios.first() }
     val challenges = remember { ScenarioCatalog.CHALLENGES }
@@ -111,6 +124,32 @@ fun CountrySelectScreen(
                 .padding(horizontal = Dimens.SpacingMedium),
             verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMedium),
         ) {
+            Text("${nations.size} PLAYABLE NATIONS · SEARCH OR FILTER BY REGION", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.2.sp)
+            OutlinedTextField(
+                value = countryQuery,
+                onValueChange = { countryQuery = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text("Find a country or government system") },
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(7.dp),
+            ) {
+                regionOptions.forEach { region ->
+                    Text(
+                        text = region,
+                        modifier = Modifier
+                            .clip(NssCardShape)
+                            .background(if (region == regionFilter) NssAccent.copy(alpha = 0.28f) else NssPrimary.copy(alpha = 0.2f))
+                            .clickable { regionFilter = region }
+                            .padding(horizontal = 10.dp, vertical = 7.dp),
+                        color = if (region == regionFilter) NssAccent else NssMutedForeground,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -131,8 +170,9 @@ fun CountrySelectScreen(
                             Brush.verticalGradient(
                                 listOf(Color.Transparent, Color(0xE61C1810)),
                             ),
-                        ),
+                    ),
                 )
+                Text(nation.flagEmoji, modifier = Modifier.align(Alignment.TopStart).padding(Dimens.SpacingMedium), fontSize = 30.sp)
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
@@ -152,6 +192,25 @@ fun CountrySelectScreen(
                         fontSize = if (layout.isCompactHeight) 26.sp else 32.sp,
                         color = NssOnPhoto,
                     )
+                }
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth().clip(NssCardShape)
+                    .background(NssPrimary.copy(alpha = 0.2f))
+                    .border(1.dp, NssPrimary.copy(alpha = 0.55f), NssCardShape)
+                    .padding(Dimens.SpacingMedium),
+            ) {
+                Text("${nation.governmentSystem.displayName.uppercase()} · ${nation.governmentSystem.executiveTitle.uppercase()}", color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                Text(nation.governmentSystem.description, color = NssMutedForeground, fontSize = 11.sp, modifier = Modifier.padding(top = 5.dp))
+                if (nation.countryCode.isNotBlank()) {
+                    Text("Population · ${nation.vitals.population.toCompactCount()}${nation.populationYear.takeIf { it > 0 }?.let { " · $it estimate" } ?: ""}", color = NssOnPhoto, fontSize = 10.sp, modifier = Modifier.padding(top = 8.dp))
+                    if (nation.gdpUsd > 0L) {
+                        Text("Nominal GDP · ${nation.gdpUsd.toCompactUsd()} · World Bank ${nation.gdpYear}", color = NssOnPhoto, fontSize = 10.sp, modifier = Modifier.padding(top = 3.dp))
+                    } else {
+                        Text("Nominal GDP data unavailable · balanced game baseline used", color = NssMutedForeground, fontSize = 10.sp, modifier = Modifier.padding(top = 3.dp))
+                    }
+                    if (nation.statusNote.isNotBlank()) Text(nation.statusNote, color = NssMutedForeground, fontSize = 9.sp, modifier = Modifier.padding(top = 4.dp))
                 }
             }
 
@@ -184,50 +243,26 @@ fun CountrySelectScreen(
                 }
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                nations.forEachIndexed { index, item ->
-                    val selected = index == selectedIndex
-                    Box(
-                        modifier = Modifier
-                            .size(width = 72.dp, height = 80.dp)
-                            .clip(NssCardShape)
-                            .border(
-                                width = if (selected) 3.dp else 1.dp,
-                                color = if (selected) NssAccent else Color(0x33FFFFFF),
-                                shape = NssCardShape,
-                            )
-                            .clickable { selectedIndex = index },
-                    ) {
-                        AsyncImage(
-                            model = item.leaderImageUrl,
-                            contentDescription = item.name,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.matchParentSize(),
-                        )
+            if (visibleNations.isEmpty()) {
+                Text("No country matches this search and region filter.", color = NssMutedForeground, fontSize = 11.sp)
+            } else {
+                Text("COUNTRY RESULTS · ${visibleNations.size}", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.2.sp)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(visibleNations, key = { it.id }) { item ->
+                        val index = nations.indexOfFirst { it.id == item.id }
+                        val selected = index == selectedIndex
                         Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(Color.Transparent, Color(0xCC000000)),
-                                    ),
-                                ),
-                        )
-                        Text(
-                            text = item.name.uppercase(),
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 6.dp),
-                            color = NssOnPhoto,
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight.Black,
-                            textAlign = TextAlign.Center,
-                        )
+                            modifier = Modifier.size(width = 108.dp, height = 86.dp)
+                                .clip(NssCardShape)
+                                .background(if (selected) NssPrimary.copy(alpha = 0.75f) else NssBackground.copy(alpha = 0.65f))
+                                .border(if (selected) 2.dp else 1.dp, if (selected) NssAccent else Color(0x33FFFFFF), NssCardShape)
+                                .clickable { if (index >= 0) selectedIndex = index },
+                        ) {
+                            Column(modifier = Modifier.align(Alignment.Center).padding(5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(item.flagEmoji, fontSize = 20.sp, textAlign = TextAlign.Center)
+                                Text(item.countryCode.ifBlank { item.name }.uppercase(), color = NssOnPhoto, fontSize = 8.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, maxLines = 2)
+                            }
+                        }
                     }
                 }
             }
@@ -346,4 +381,18 @@ fun CountrySelectScreen(
             }
         }
     }
+}
+
+private fun Long.toCompactCount(): String = when {
+    this >= 1_000_000_000L -> "${this / 1_000_000_000L}B"
+    this >= 1_000_000L -> "${this / 1_000_000L}M"
+    this >= 1_000L -> "${this / 1_000L}K"
+    else -> toString()
+}
+
+private fun Long.toCompactUsd(): String = when {
+    this >= 1_000_000_000_000L -> "$${this / 1_000_000_000_000L}T"
+    this >= 1_000_000_000L -> "$${this / 1_000_000_000L}B"
+    this >= 1_000_000L -> "$${this / 1_000_000L}M"
+    else -> "$${this}"
 }

@@ -145,7 +145,7 @@ class DemographicsCampaignViewModel(
         if (state.gameOver.isGameOver) return state
         if (state.demographics.election.hasPendingNight) return state
 
-        if (state.month == 1 && state.year >= state.nextElectionYear) {
+        if (state.nextElectionYear > 0 && state.month == 1 && state.year >= state.nextElectionYear) {
             if (!state.term.canRunAgain) {
                 val track = if (state.term.successorNamed.isNotBlank()) {
                     SoftDefeatTrack.SUCCESSION
@@ -275,7 +275,7 @@ class DemographicsCampaignViewModel(
         val night = state.demographics.election.pendingNight ?: return state
         return if (night.victory) {
             val won = state.copy(
-                nextElectionYear = state.year + ELECTION_TERM_YEARS,
+                nextElectionYear = state.year + state.legal.governmentSystem.electionIntervalYears.coerceAtLeast(1),
                 demographics = state.demographics.copy(
                     oppositionMomentum = 0f,
                     election = ElectionSeasonState(),
@@ -308,6 +308,7 @@ class DemographicsCampaignViewModel(
         monthsUntilElection(state) in 1..ELECTION_SEASON_MONTHS
 
     fun monthsUntilElection(state: GameState): Int {
+        if (state.nextElectionYear <= 0) return Int.MAX_VALUE
         val monthsLeft = (state.nextElectionYear - state.year) * 12 + (12 - state.month)
         return monthsLeft.coerceAtLeast(0)
     }

@@ -94,6 +94,7 @@ data class PendingLaw(
 @Serializable
 data class LegalState(
     val ideology: Ideology = Ideology.DEMOCRACY,
+    val governmentSystem: GovernmentSystem = GovernmentSystem.PRESIDENTIAL,
     val activeLawIds: List<String> = emptyList(),
     val pendingLaws: List<PendingLaw> = emptyList(),
 ) {

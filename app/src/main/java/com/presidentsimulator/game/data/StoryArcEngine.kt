@@ -27,7 +27,8 @@ object StoryArcEngine {
         val nextArc = when {
             CABINET_SCANDAL !in current.completedArcIds &&
                 (state.cabinet.scandalsThisTerm > 0 || state.press.openScandalCount > 0) -> CABINET_SCANDAL
-            CONFIDENCE_VOTE !in current.completedArcIds &&
+            state.legal.governmentSystem.hasConfidenceVotes &&
+                CONFIDENCE_VOTE !in current.completedArcIds &&
                 (state.opposition.noConfidenceHeat >= 45f ||
                     (!state.opposition.hasMajority && (state.opposition.mainOpposition?.hostility ?: 0f) >= 75f)) -> CONFIDENCE_VOTE
             else -> null

@@ -13,6 +13,7 @@ enum class NationalPerk(val label: String) {
     MARITIME_COMMERCE("+20% maritime trade income"),
     INDUSTRIAL_FORGE("+10% materials output"),
     GREEN_RESILIENCE("+18% farm output & food buffer"),
+    GENERALIST("Balanced national profile"),
 }
 
 object NationalPerkEffects {
@@ -25,7 +26,7 @@ object NationalPerkEffects {
         "aurumcoast" -> NationalPerk.MARITIME_COMMERCE
         "kryos" -> NationalPerk.INDUSTRIAL_FORGE
         "verdehaan" -> NationalPerk.GREEN_RESILIENCE
-        else -> NationalPerk.TRADE_HUB
+        else -> NationalPerk.GENERALIST
     }
 
     fun tradeIncomeMultiplier(perk: NationalPerk): Float = when (perk) {

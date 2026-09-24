@@ -106,7 +106,7 @@ fun LawsScreen(
             statPills = listOf(
                 "Active" to "${state.legal.activeLawIds.size}",
                 "Upkeep" to state.legal.totalUpkeep.toBudgetString(),
-                "Election" to state.nextElectionYear.toString(),
+                "Election" to if (state.nextElectionYear > 0) state.nextElectionYear.toString() else "Conclave",
             ),
             gradientColors = NssGradients.Indigo,
         )

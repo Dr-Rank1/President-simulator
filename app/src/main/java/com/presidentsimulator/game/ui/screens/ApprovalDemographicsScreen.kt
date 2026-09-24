@@ -133,7 +133,7 @@ fun ApprovalDemographicsScreen(
             imageUrl = NssCardImages.BANNER_DOMESTIC,
             statPills = listOf(
                 "Overall" to "${state.vitals.approval.roundToInt()}%",
-                "Election" to state.nextElectionYear.toString(),
+                "Election" to if (state.nextElectionYear > 0) state.nextElectionYear.toString() else "Conclave",
                 "Blocs" to "${demographics.size}",
             ),
             gradientColors = NssGradients.Indigo,
@@ -150,11 +150,14 @@ fun ApprovalDemographicsScreen(
             NssPanel(modifier = Modifier.fillMaxWidth()) {
                 val electionSeason = viewModel.isElectionSeason()
                 val monthsLeft = remember(state) {
-                    (state.nextElectionYear - state.year) * 12 + (12 - state.month)
-                }.coerceAtLeast(0)
+                    if (state.nextElectionYear <= 0) Int.MAX_VALUE
+                    else ((state.nextElectionYear - state.year) * 12 + (12 - state.month)).coerceAtLeast(0)
+                }
                 Text("CAMPAIGN ACTIONS", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
                 Text(
-                    text = if (electionSeason) {
+                    text = if (state.nextElectionYear <= 0) {
+                        "There is no routine national election. Leadership changes through conclave."
+                    } else if (electionSeason) {
                         "Election season — ${monthsLeft}mo to ${state.nextElectionYear}. Actions cost 25% more but hit harder."
                     } else {
                         "Spend political capital before the ${state.nextElectionYear} election."
@@ -323,7 +326,7 @@ private fun SpeechAndTermPanel(
     NssPanel(modifier = Modifier.fillMaxWidth()) {
         Text("TERM & SUCCESSION", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
         Text(
-            term.summaryLine(),
+            term.summaryLine(state.legal.governmentSystem),
             fontSize = 12.sp,
             color = NssForeground,
             modifier = Modifier.padding(top = 6.dp),
@@ -338,7 +341,7 @@ private fun SpeechAndTermPanel(
         if (term.successorNamed.isNotBlank()) {
             Text("Successor: ${term.successorNamed}", fontSize = 12.sp, color = NssEmerald, modifier = Modifier.padding(top = 6.dp))
         }
-        Text(
+        if (state.legal.governmentSystem.hasExecutiveTermLimit) Text(
             "Name successor (Alex Rivera)",
             modifier = Modifier
                 .fillMaxWidth()
@@ -353,7 +356,7 @@ private fun SpeechAndTermPanel(
             textAlign = TextAlign.Center,
         )
         val canExtend = state.vitals.budget >= 8_000_000_000L
-        Text(
+        if (state.legal.governmentSystem.hasExecutiveTermLimit) Text(
             "Extend term limit (8.0B)",
             modifier = Modifier
                 .fillMaxWidth()

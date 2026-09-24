@@ -75,7 +75,7 @@ fun GlobalHud(
     val treasuryWarn = state.netIncome < 0
     val stabilityWarn = stability < 60f
     val monthsToElection = monthsUntilElection(state)
-    val electionWarn = monthsToElection in 0..12
+    val electionWarn = state.nextElectionYear > 0 && monthsToElection in 0..12
     val quarter = ((state.month - 1) / 3) + 1
 
     val pulseTransition = rememberInfiniteTransition(label = "alertPulse")
@@ -296,6 +296,7 @@ private fun TimeSpeedControl(
 }
 
 fun monthsUntilElection(state: GameState): Int {
+    if (state.nextElectionYear <= 0) return Int.MAX_VALUE
     val current = state.year * 12 + (state.month - 1)
     val election = state.nextElectionYear * 12
     return (election - current).coerceAtLeast(0)
