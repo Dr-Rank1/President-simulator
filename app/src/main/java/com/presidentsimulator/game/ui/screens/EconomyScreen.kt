@@ -168,7 +168,7 @@ fun EconomyScreen(
                 "SECTORS" -> SectorsTab(state, gdp, sectors, viewModel, audio)
                 "INDUSTRY" -> IndustryTab(state = state, viewModel = viewModel, audio = audio)
                 "POLICY" -> PolicyTab(state = state, viewModel = viewModel)
-                "BUDGET" -> BudgetTab(state = state)
+                "BUDGET" -> BudgetTab(state = state, viewModel = viewModel)
                 else -> TradeTab(state = state, viewModel = viewModel, audio = audio)
             }
         }
@@ -525,7 +525,63 @@ private fun PolicyTab(state: GameState, viewModel: GameViewModel) {
 }
 
 @Composable
-private fun BudgetTab(state: GameState) {
+private fun BudgetTab(state: GameState, viewModel: GameViewModel) {
+    val revenue = state.economy.totalRevenue(state.vitals.population) + state.tradeExportBonus +
+        state.production.lastGoodsRevenue + state.society.tourismIncome
+    val costs = state.economy.totalExpenses + (state.military.monthlyUpkeep * state.cabinet.combinedEffects().militaryUpkeepMultiplier).toLong() + state.legal.totalUpkeep +
+        state.internalSecurity.monthlyUpkeep + state.society.totalMinistryUpkeep + state.finance.monthlyInterestCost
+    val borrowingLimit = state.finance.borrowingLimit(revenue)
+    NssPanel(modifier = Modifier.fillMaxWidth()) {
+        Text("FISCAL POSITION", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Spacer(Modifier.height(8.dp))
+        LedgerLine("Treasury reserves", formatMa2Money(state.vitals.budget), if (state.vitals.budget >= 0L) NssEmerald else NssRed, bold = true)
+        LedgerLine("Monthly revenue", formatMa2Money(revenue), NssEmerald)
+        LedgerLine("Recurring costs + interest", formatMa2Money(costs), NssOrange)
+        LedgerLine("Monthly balance", formatMa2Money(state.netIncome), if (state.netIncome >= 0L) NssEmerald else NssRed, bold = true)
+        LedgerLine("Debt service this month", formatMa2Money(state.finance.monthlyInterestCost), NssRed)
+    }
+
+    NssPanel(modifier = Modifier.fillMaxWidth()) {
+        Text("PUBLIC DEBT & CREDIT", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Spacer(Modifier.height(8.dp))
+        LedgerLine("Outstanding debt", formatMa2Money(state.finance.publicDebt), NssOrange, bold = true)
+        LedgerLine("Credit score", "${state.finance.creditScore}/100", if (state.finance.creditScore >= 60) NssEmerald else NssRed)
+        LedgerLine("Annual interest rate", "${(state.finance.annualInterestRate * 100f).roundToInt()}%", NssViolet)
+        LedgerLine("Credit ceiling", formatMa2Money(borrowingLimit), NssMutedForeground)
+        LedgerLine("Unpaid obligations", formatMa2Money(state.finance.arrears), if (state.finance.arrears == 0L) NssEmerald else NssRed)
+        if (state.finance.consecutiveDeficitMonths > 0) {
+            Text("Deficit streak: ${state.finance.consecutiveDeficitMonths} month(s). New deficits consume the remaining credit line; uncovered bills become arrears and weaken credit.", color = NssRed, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
+        } else {
+            Text("Deficits are financed automatically up to a credit ceiling based on annual revenue and creditworthiness. Surpluses repay debt gradually.", color = NssMutedForeground, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
+        }
+        Button(
+            onClick = viewModel::repayPublicDebt,
+            enabled = state.finance.publicDebt > 0L && state.vitals.budget > costs * 2L,
+            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = NssPrimary),
+        ) { Text("Make a safe extra repayment", color = NssOnPhoto, fontWeight = FontWeight.Bold) }
+        Text("Extra repayment preserves a two-month operating reserve.", color = NssMutedForeground, fontSize = 10.sp)
+    }
+
+    NssPanel(modifier = Modifier.fillMaxWidth()) {
+        Text("REVENUE SOURCES / MONTH", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        LedgerLine("Tax receipts", formatMa2Money(state.economy.taxRevenue(state.vitals.population)), NssEmerald)
+        LedgerLine("Exports + trade treaties", formatMa2Money(state.economy.effectiveExports + state.tradeExportBonus), NssEmerald)
+        LedgerLine("Industrial goods", formatMa2Money(state.production.lastGoodsRevenue), NssEmerald)
+        LedgerLine("Tourism", formatMa2Money(state.society.tourismIncome), NssEmerald)
+    }
+
+    NssPanel(modifier = Modifier.fillMaxWidth()) {
+        Text("FISCAL LEDGER", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        if (state.finance.ledger.isEmpty()) {
+            Text("No debt transactions recorded. Monthly operations are settled at the start of each turn.", color = NssMutedForeground, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+        } else {
+            state.finance.ledger.takeLast(8).asReversed().forEach { entry ->
+                LedgerLine("${entry.label} · ${entry.month}/${entry.year}", formatMa2Money(entry.amount), if (entry.amount >= 0L) NssOrange else NssRed)
+            }
+        }
+    }
+
     val budgetLines = listOf(
         BudgetLine("Social Services", state.society.totalMinistryUpkeep, NssEmerald, NssCardImages.SERVICES, NssGradients.Emerald),
         BudgetLine("Defense", state.military.monthlyUpkeep, NssPrimary, NssCardImages.DEFENSE_IND, NssGradients.Defense),
