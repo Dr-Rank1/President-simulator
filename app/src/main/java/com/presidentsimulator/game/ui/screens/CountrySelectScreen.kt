@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,16 +70,27 @@ fun CountrySelectScreen(
     var challengeIndex by remember { mutableIntStateOf(0) }
     var countryQuery by remember { mutableStateOf("") }
     var regionFilter by remember { mutableStateOf("All regions") }
+    var systemFilter by remember { mutableStateOf("All systems") }
+    val context = LocalContext.current
+    val favoritePreferences = remember(context) { context.getSharedPreferences("country_picker", 0) }
+    var favoriteIds by remember(context) { mutableStateOf(favoritePreferences.getStringSet("favorites", emptySet()).orEmpty()) }
+    var favoritesOnly by remember { mutableStateOf(false) }
+    var compareMode by remember { mutableStateOf(false) }
+    var compareCountryId by remember { mutableStateOf<String?>(null) }
     val nation = nations.getOrElse(selectedIndex) { nations.first() }
     val regionOptions = remember(nations) { listOf("All regions") + nations.map { it.region }.distinct().sorted() }
-    val visibleNations = remember(nations, countryQuery, regionFilter) {
+    val systems = remember(nations) { listOf("All systems") + nations.map { it.governmentSystem.displayName }.distinct().sorted() }
+    val visibleNations = remember(nations, countryQuery, regionFilter, systemFilter, favoriteIds, favoritesOnly) {
         nations.filter { item ->
             val matchesRegion = regionFilter == "All regions" || item.region == regionFilter
+            val matchesSystem = systemFilter == "All systems" || item.governmentSystem.displayName == systemFilter
+            val matchesFavorite = !favoritesOnly || item.id in favoriteIds
             val matchesQuery = countryQuery.isBlank() || listOf(item.name, item.officialName, item.countryCode, item.governmentLabel)
                 .any { it.contains(countryQuery.trim(), ignoreCase = true) }
-            matchesRegion && matchesQuery
+            matchesRegion && matchesSystem && matchesFavorite && matchesQuery
         }
     }
+    val compareNation = compareCountryId?.let { id -> nations.firstOrNull { it.id == id } }
     val scenarios = remember { ScenarioCatalog.ALL }
     val scenario = scenarios.getOrElse(scenarioIndex) { scenarios.first() }
     val challenges = remember { ScenarioCatalog.CHALLENGES }
@@ -150,6 +162,21 @@ fun CountrySelectScreen(
                     )
                 }
             }
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(7.dp),
+            ) {
+                systems.forEach { system ->
+                    Text(system, modifier = Modifier.clip(NssCardShape)
+                        .background(if (system == systemFilter) NssAccent.copy(alpha = 0.28f) else NssPrimary.copy(alpha = 0.2f))
+                        .clickable { systemFilter = system }.padding(horizontal = 10.dp, vertical = 7.dp),
+                        color = if (system == systemFilter) NssAccent else NssMutedForeground, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+                Text(if (favoritesOnly) "★ Favorites" else "☆ Favorites (${favoriteIds.size})",
+                    modifier = Modifier.clip(NssCardShape).background(if (favoritesOnly) NssAccent.copy(alpha = 0.28f) else NssPrimary.copy(alpha = 0.2f))
+                        .clickable { favoritesOnly = !favoritesOnly }.padding(horizontal = 10.dp, vertical = 7.dp),
+                    color = if (favoritesOnly) NssAccent else NssMutedForeground, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -212,6 +239,37 @@ fun CountrySelectScreen(
                     }
                     if (nation.statusNote.isNotBlank()) Text(nation.statusNote, color = NssMutedForeground, fontSize = 9.sp, modifier = Modifier.padding(top = 4.dp))
                 }
+                Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val isFavorite = nation.id in favoriteIds
+                    Text(if (isFavorite) "★ SAVED" else "☆ SAVE COUNTRY",
+                        modifier = Modifier.clip(NssCardShape).background(NssPrimary.copy(alpha = 0.35f)).clickable {
+                            val updated = if (isFavorite) favoriteIds - nation.id else favoriteIds + nation.id
+                            favoriteIds = updated
+                            favoritePreferences.edit().putStringSet("favorites", updated).apply()
+                        }.padding(horizontal = 10.dp, vertical = 7.dp), color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                    Text(if (compareMode) "PICK A COUNTRY TO COMPARE" else "COMPARE WITH…",
+                        modifier = Modifier.clip(NssCardShape).background(NssAccent.copy(alpha = 0.2f)).clickable { compareMode = !compareMode }
+                            .padding(horizontal = 10.dp, vertical = 7.dp), color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                    if (compareNation != null) Text("CLEAR COMPARISON",
+                        modifier = Modifier.clip(NssCardShape).background(NssPrimary.copy(alpha = 0.35f)).clickable { compareCountryId = null }
+                            .padding(horizontal = 10.dp, vertical = 7.dp), color = NssMutedForeground, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            if (compareNation != null) {
+                Column(modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssPrimary.copy(alpha = 0.2f))
+                    .border(1.dp, NssPrimary.copy(alpha = 0.55f), NssCardShape).padding(Dimens.SpacingMedium),
+                    verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    Text("COUNTRY COMPARISON", color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("${nation.flagEmoji} ${nation.name}", color = NssOnPhoto, fontSize = 10.sp, modifier = Modifier.weight(1f))
+                        Text("${compareNation.flagEmoji} ${compareNation.name}", color = NssOnPhoto, fontSize = 10.sp, modifier = Modifier.weight(1f))
+                    }
+                    CompareLine("Government", nation.governmentSystem.displayName, compareNation.governmentSystem.displayName)
+                    CompareLine("Region", nation.region, compareNation.region)
+                    CompareLine("Population", nation.vitals.population.toCompactCount(), compareNation.vitals.population.toCompactCount())
+                    CompareLine("GDP", nation.gdpUsd.takeIf { it > 0L }?.toCompactUsd() ?: "Unavailable", compareNation.gdpUsd.takeIf { it > 0L }?.toCompactUsd() ?: "Unavailable")
+                }
             }
 
             Column(
@@ -256,12 +314,18 @@ fun CountrySelectScreen(
                                 .clip(NssCardShape)
                                 .background(if (selected) NssPrimary.copy(alpha = 0.75f) else NssBackground.copy(alpha = 0.65f))
                                 .border(if (selected) 2.dp else 1.dp, if (selected) NssAccent else Color(0x33FFFFFF), NssCardShape)
-                                .clickable { if (index >= 0) selectedIndex = index },
+                                .clickable {
+                                    if (compareMode) {
+                                        if (item.id != nation.id) compareCountryId = item.id
+                                        compareMode = false
+                                    } else if (index >= 0) selectedIndex = index
+                                },
                         ) {
                             Column(modifier = Modifier.align(Alignment.Center).padding(5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(item.flagEmoji, fontSize = 20.sp, textAlign = TextAlign.Center)
                                 Text(item.countryCode.ifBlank { item.name }.uppercase(), color = NssOnPhoto, fontSize = 8.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, maxLines = 2)
                             }
+                            if (item.id in favoriteIds) Text("★", modifier = Modifier.align(Alignment.TopEnd).padding(5.dp), color = NssAccent, fontSize = 16.sp)
                         }
                     }
                 }
@@ -388,6 +452,15 @@ private fun Long.toCompactCount(): String = when {
     this >= 1_000_000L -> "${this / 1_000_000L}M"
     this >= 1_000L -> "${this / 1_000L}K"
     else -> toString()
+}
+
+@Composable
+private fun CompareLine(label: String, left: String, right: String) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(left, color = NssOnPhoto, fontSize = 10.sp, modifier = Modifier.weight(1f))
+        Text(label.uppercase(), color = NssMutedForeground, fontSize = 8.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, modifier = Modifier.weight(0.8f))
+        Text(right, color = NssOnPhoto, fontSize = 10.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+    }
 }
 
 private fun Long.toCompactUsd(): String = when {
