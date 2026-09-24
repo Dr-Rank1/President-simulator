@@ -227,7 +227,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 after.production.lastGoodsRevenue + after.society.tourismIncome
             val costs = after.economy.totalExpenses +
                 (after.military.monthlyUpkeep * after.cabinet.combinedEffects().militaryUpkeepMultiplier).toLong() +
-                after.legal.totalUpkeep + after.internalSecurity.monthlyUpkeep
+                after.legal.totalUpkeep + after.internalSecurity.monthlyUpkeep + after.society.totalMinistryUpkeep +
+                after.finance.monthlyInterestCost
             lines += "Treasury moved ${(after.vitals.budget - before.vitals.budget).toBudgetString()}; current month: ${revenue.toBudgetString()} revenue against ${costs.toBudgetString()} in recurring costs."
         }
         if (after.vitals.approval < before.vitals.approval) {
@@ -1084,6 +1085,31 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                     approval = (current.vitals.approval + approvalDelta).coerceIn(0f, 100f),
                 ),
                 economy = current.economy.copy(taxRate = clamped),
+            )
+        }
+    }
+
+    /** Voluntary repayment is capped to preserve a two-month operating reserve. */
+    fun repayPublicDebt() {
+        _state.update { current ->
+            val monthlyCosts = current.economy.totalExpenses +
+                (current.military.monthlyUpkeep * current.cabinet.combinedEffects().militaryUpkeepMultiplier).toLong() +
+                current.legal.totalUpkeep + current.internalSecurity.monthlyUpkeep + current.society.totalMinistryUpkeep +
+                current.finance.monthlyInterestCost
+            val protectedReserve = (monthlyCosts.coerceAtLeast(0L) * 2L).coerceAtMost(current.vitals.budget.coerceAtLeast(0L))
+            val available = (current.vitals.budget - protectedReserve).coerceAtLeast(0L)
+            val payment = (current.finance.publicDebt / 10L).coerceAtLeast(1L)
+                .coerceAtMost(available).coerceAtMost(current.finance.publicDebt)
+            if (payment <= 0L) return@update current
+            current.copy(
+                vitals = current.vitals.copy(budget = current.vitals.budget - payment),
+                finance = current.finance.copy(
+                    publicDebt = current.finance.publicDebt - payment,
+                    creditScore = (current.finance.creditScore + 1).coerceAtMost(100),
+                    ledger = (current.finance.ledger + com.presidentsimulator.game.data.FiscalEntry(
+                        "Voluntary debt repayment", -payment, current.month, current.year,
+                    )).takeLast(24),
+                ),
             )
         }
     }

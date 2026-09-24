@@ -54,6 +54,8 @@ data class GameState(
     val term: TermState = TermState(),
     /** Current-term public promises and their last end-of-term review. */
     val mandate: MandateState = MandateState(),
+    /** Debt, credit conditions, and a short auditable record of fiscal settlements. */
+    val finance: FinanceState = FinanceState(),
 ) {
     val dateLabel: String
         get() = "${monthName(month)} $year"
@@ -73,6 +75,8 @@ data class GameState(
             tradeExportBonus +
             production.lastGoodsRevenue +
             society.tourismIncome -
+            society.totalMinistryUpkeep -
+            finance.monthlyInterestCost -
             economy.totalExpenses -
             (military.monthlyUpkeep * cabinet.combinedEffects().militaryUpkeepMultiplier).toLong() -
             legal.totalUpkeep -
@@ -118,6 +122,36 @@ data class GameState(
         )
     }
 }
+
+@Serializable
+data class FinanceState(
+    val publicDebt: Long = 0L,
+    val creditScore: Int = 70,
+    val arrears: Long = 0L,
+    val consecutiveDeficitMonths: Int = 0,
+    val ledger: List<FiscalEntry> = emptyList(),
+) {
+    /** Risk premium rises as credit weakens; annual rates stay within 3.5%–18%. */
+    val annualInterestRate: Float
+        get() = (0.035f + ((70 - creditScore).coerceAtLeast(0) * 0.0015f)).coerceIn(0.035f, 0.18f)
+
+    fun borrowingLimit(monthlyRevenue: Long): Long =
+        (monthlyRevenue.coerceAtLeast(0L).toDouble() * 12.0 *
+            (0.45 + creditScore.coerceIn(0, 100) / 100.0))
+            .toLong()
+            .coerceAtLeast(0L)
+
+    val monthlyInterestCost: Long
+        get() = (publicDebt.coerceAtLeast(0L) * annualInterestRate / 12f).toLong()
+}
+
+@Serializable
+data class FiscalEntry(
+    val label: String,
+    val amount: Long,
+    val month: Int,
+    val year: Int,
+)
 
 @Serializable
 data class VitalsState(

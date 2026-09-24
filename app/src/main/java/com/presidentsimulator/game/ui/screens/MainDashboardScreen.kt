@@ -401,20 +401,32 @@ fun MainDashboardScreen(
                 }
             }
 
-            state.storyArc.activeArcId?.let {
-                DashboardSection(
-                    title = "National Storyline",
-                    subtitle = "Chapter ${state.storyArc.chapter} of 3",
+            DashboardSection(
+                title = "National Storyline",
+                subtitle = state.storyArc.activeArcId?.let { "Chapter ${state.storyArc.chapter} of 3" }
+                    ?: "${state.storyArc.completedArcIds.size} story arc(s) completed",
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard)
+                        .clickable { onNavigate(GameDestination.Analytics) }.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard).padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text("◆", color = NssAccent, fontSize = 20.sp)
-                        Column(modifier = Modifier.padding(start = 10.dp)) {
-                            Text(state.storyArc.lastStoryNote, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                            Text("Your earlier decisions shape the next chapter and the final legacy entry.", color = NssMutedForeground, fontSize = 10.sp)
+                    Text("◆", color = NssAccent, fontSize = 20.sp)
+                    Column(modifier = Modifier.padding(start = 10.dp)) {
+                        val storyStatus = when {
+                            state.storyArc.activeArcId != null -> state.storyArc.lastStoryNote
+                            state.storyArc.lastStoryNote.isNotBlank() -> state.storyArc.lastStoryNote
+                            else -> "No national story is unfolding"
                         }
+                        Text(storyStatus, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        val nextChapter = if (state.storyArc.activeArcId != null && state.storyArc.monthsUntilNextChapter > 0) {
+                            "Next chapter in ${state.storyArc.monthsUntilNextChapter} month(s). "
+                        } else ""
+                        Text(
+                            "${nextChapter}Choices shape the campaign record · ${state.legacy.recentEntries.size} legacy entries",
+                            color = NssMutedForeground,
+                            fontSize = 10.sp,
+                        )
                     }
                 }
             }
@@ -437,7 +449,7 @@ fun MainDashboardScreen(
                         if (fiscalRunway != null) {
                             Text("About $fiscalRunway month(s) of reserves at this rate", color = NssRed, fontSize = 11.sp)
                         } else {
-                            Text("Revenue ${formatCompactMoney(state.economy.totalRevenue(state.vitals.population) + state.tradeExportBonus + state.production.lastGoodsRevenue + state.society.tourismIncome)} · Costs ${formatCompactMoney(state.economy.totalExpenses + (state.military.monthlyUpkeep * state.cabinet.combinedEffects().militaryUpkeepMultiplier).toLong() + state.legal.totalUpkeep + state.internalSecurity.monthlyUpkeep)}", color = NssMutedForeground, fontSize = 10.sp)
+                            Text("Revenue ${formatCompactMoney(state.economy.totalRevenue(state.vitals.population) + state.tradeExportBonus + state.production.lastGoodsRevenue + state.society.tourismIncome)} · Costs ${formatCompactMoney(state.economy.totalExpenses + (state.military.monthlyUpkeep * state.cabinet.combinedEffects().militaryUpkeepMultiplier).toLong() + state.legal.totalUpkeep + state.internalSecurity.monthlyUpkeep + state.society.totalMinistryUpkeep + state.finance.monthlyInterestCost)}", color = NssMutedForeground, fontSize = 10.sp)
                         }
                     }
                     Text("REVIEW BUDGET  ›", color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Black)
@@ -455,16 +467,14 @@ fun MainDashboardScreen(
                 )
             }
 
-            if (state.disaster.hasActive || state.disaster.readiness < 40f) {
-                DashboardSection(
-                    title = "Disaster Command",
-                    subtitle = state.disaster.summaryLine(),
-                ) {
-                    DisasterResponseSection(
-                        state = state,
-                        onAllocate = onDisasterResponse,
-                    )
-                }
+            DashboardSection(
+                title = "Disaster Command",
+                subtitle = state.disaster.summaryLine(),
+            ) {
+                DisasterResponseSection(
+                    state = state,
+                    onAllocate = onDisasterResponse,
+                )
             }
 
             DashboardSection(title = "Ministries") {

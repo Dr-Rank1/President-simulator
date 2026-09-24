@@ -4,6 +4,7 @@ import com.presidentsimulator.game.data.AgendaBuilder
 import com.presidentsimulator.game.data.CabinetEngine
 import com.presidentsimulator.game.data.DisasterEngine
 import com.presidentsimulator.game.data.GameState
+import com.presidentsimulator.game.data.FiscalEngine
 import com.presidentsimulator.game.data.LegacyLedger
 import com.presidentsimulator.game.data.MandateEngine
 import com.presidentsimulator.game.data.OppositionEngine
@@ -37,12 +38,9 @@ internal class MonthlySimulationPipeline(
 
         // 1. Production and fiscal settlement.
         next = productionLaw.processProductionTick(next)
-        next = next.copy(
-            vitals = next.vitals.copy(
-                budget = next.vitals.budget + next.netIncome,
-                population = applyPopulationChange(next),
-            ),
-        )
+        next = FiscalEngine.settleMonth(next).let { settled ->
+            settled.copy(vitals = settled.vitals.copy(population = applyPopulationChange(settled)))
+        }
 
         // 2. Foreign affairs, active war, internal security, then crisis aftermath.
         next = diplomacy.simulateGeopolitics(next)
