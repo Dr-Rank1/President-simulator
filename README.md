@@ -1,92 +1,63 @@
 # President Simulator
 
-A UI-heavy, menu-driven grand strategy management simulator for Android. Built with **Kotlin**, **Jetpack Compose**, and **MVVM** (`StateFlow`).
-
-Manage a nation's budget, ministries, military, diplomacy, laws, research, espionage, trade, and global governance through a dense command-center dashboard — inspired by *Modern Age 2* (Oxiwyle) and styled after the **Nation State Simulator** UI design reference.
+President Simulator is an Android grand strategy game built with Kotlin and Jetpack Compose. Lead a nation through monthly turns by balancing the economy, public support, security, diplomacy, and political stability.
 
 ## Features
 
-- **Landscape-only** gameplay optimized for tablets and phones in horizontal mode
-- **Dark geopolitical dashboard** — vitals HUD, sidebar ministry navigation, hero banners, image-rich cards
-- **Monthly simulation tick** with manual advance, pause, and auto-play
-- **Ministries**: Economy, Defense, Foreign Affairs, Domestic Policy, Intelligence, Science, UN, and more
-- **Bulk actions** — build infrastructure, recruit troops, and purchase hardware with `1x | 10x | Max` controls
-- **Event & crisis engine** — random events pause the game loop until resolved
-- **Save / load** — full game state serialized to JSON via `SharedPreferences`
-- **Audio** — background music with crossfade and sound effects
-
-## Architecture
-
-| Layer | Responsibility |
-| --- | --- |
-| `data/` | Immutable `GameState` snapshot and domain models (economy, military, diplomacy, production, laws, research, espionage, trade, governance) |
-| `viewmodel/` | `GameViewModel` owns `StateFlow<GameState>`, monthly tick, and all player actions |
-| `ui/` | Compose screens, NSS design components, navigation shell, and theme |
-| `audio/` | `GameAudioManager` for BGM and SFX |
-
-Simulation advances **one month per tick** via the HUD time controls or **auto-play**.
+- **National leadership:** Manage the treasury, taxes, production, infrastructure, research, laws, trade, and military.
+- **Political systems:** Appoint a cabinet, respond to scandals, negotiate with opposition parties, manage press coverage, and maintain public support.
+- **Diplomacy and security:** Build relations with rival nations, negotiate agreements, respond to threats, conduct intelligence operations, and manage wars.
+- **Campaign scenarios:** Choose from scenarios with distinct objectives and starting conditions, then track progress from the dashboard.
+- **Challenge rules:** Select optional rules such as Austerity Mandate, Hostile Press, or Snap Election. Challenges modify the starting situation and the campaign score multiplier.
+- **Political story arcs:** Make choices across multi-month stories, including cabinet scandals and confidence votes. Decisions affect the press, cabinet cohesion, opposition pressure, and the legacy record.
+- **Campaign briefings and reports:** Review a state-aware chief-of-staff outlook, active story progress, legacy pillar scores, and earned honors.
+- **Regional relationship map:** See the nation's relationships with neighboring powers from the dashboard.
+- **Monthly simulation:** Advance turns manually or use the time controls. Crises can pause the simulation until a decision is made.
+- **Save and audio settings:** Save and restore campaign state, with background music and sound effects controls.
 
 ## Requirements
 
-- Android Studio Ladybug or newer
+- Android Studio with Android SDK 35
 - JDK 17
-- Android SDK 35 (API 26+ device/emulator)
-- `local.properties` with `sdk.dir` pointing to your Android SDK
+- Android device or emulator running Android 8.0 (API 26) or newer
+- A configured Android SDK path (Android Studio can create `local.properties` automatically)
 
-## Build & Install
+## Build and run
+
+Open the project in Android Studio, allow Gradle sync to finish, and run the `app` configuration on a device or emulator.
+
+The repository includes the Gradle wrapper JAR and Windows batch launcher. On Windows, build the debug APK with:
+
+```powershell
+.\gradlew.bat assembleDebug
+```
+
+On Linux or macOS, run the wrapper through the checked-in JAR:
 
 ```bash
-# From project root
-./gradlew assembleDebug
-
-# Install to a connected device
-./gradlew installDebug
+java -classpath gradle/wrapper/gradle-wrapper.jar \
+  org.gradle.wrapper.GradleWrapperMain assembleDebug
 ```
 
-Or open the project in Android Studio, sync Gradle, and run the **app** configuration.
+To run the unit tests, replace `assembleDebug` with `testDebugUnitTest`. The debug APK is written to `app/build/outputs/apk/debug/`.
 
-## Controls
+## Project structure
 
-| Control | Action |
-| --- | --- |
-| **Pause / Play / Fast-forward** | Top HUD — pause auto-tick, resume, or advance one month |
-| **Sidebar** | Switch between ministries (Economy, Defense, Foreign Affairs, etc.) |
-| **Ministry tabs** | Each ministry has tabbed sub-panels (e.g. Sectors, Policy, Budget, Trade) |
-| **Cards & sliders** | Adjust policies, invest in sectors, recruit units, manage diplomacy |
-| **Alerts panel** | Live warnings shown in the sidebar (wars, shortages, coup risk) |
-
-## Project Structure
-
-```
+```text
 app/src/main/java/com/presidentsimulator/game/
-├── MainActivity.kt              # Entry point (landscape)
-├── data/                        # GameState and domain models
-├── viewmodel/                   # GameViewModel and feature extensions
-├── audio/                       # BGM / SFX engine
-└── ui/
-    ├── navigation/              # GameNavigation shell
-    ├── components/              # GlobalHud, NssComponents, cards, dialogs
-    ├── screens/                 # Ministry screens
-    └── theme/                   # NSS dark color scheme and typography
+├── data/          # Game state, scenario definitions, and simulation systems
+├── viewmodel/     # Campaign state, player actions, and monthly turn pipeline
+├── ui/
+│   ├── components/ # Shared HUD elements, cards, and dialogs
+│   ├── navigation/ # App navigation and campaign flow
+│   ├── screens/    # Dashboard and ministry screens
+│   └── theme/      # Colors, dimensions, icons, and Compose theme
+└── audio/          # Background music and sound effects
+
+app/src/test/       # Unit tests for campaign systems
+app-overview/       # Architecture and codebase reference notes
 ```
-
-## UI Design Reference
-
-The visual design is based on the **Nation State Simulator UI Design** reference (Figma/React). The Android app replicates the dark command-center aesthetic using Jetpack Compose — gradient banners, sector/unit/nation cards, monospace vitals, and bordered panels.
-
-## Campaign and Turn Flow
-
-- Each scenario lists its campaign objectives during setup and tracks objective progress on the command dashboard.
-- The Standard Mandate includes a first-month guide for budget, public support, and research decisions.
-- The dashboard estimates monthly fiscal balance and, during a deficit, how many months current reserves could cover.
-- Monthly bulletins report fiscal movement and likely approval pressures alongside major political and world events.
-- Resolved random crises have a short cooldown before another random event can interrupt the campaign. Persistent disasters and other active consequences continue on their own timeline.
-- The persistent **More** navigation menu links to Science, Domestic Policy, the UN, Cabinet, Demographics, Analytics, and Settings.
-
-The monthly simulation order is documented in `MonthlySimulationPipeline.kt`: production and fiscal settlement, foreign affairs and security, domestic political systems, long-term progression, and finally history and agenda generation.
-
-Campaigns also support optional challenge rules that modify the starting conditions and final score multiplier. Political story arcs unfold over multiple months, with choices affecting the press, cabinet, opposition, and legacy record. The dashboard includes a regional relationship map and active story progress; morning briefings surface the current storyline and a state-aware chief-of-staff outlook. Campaign end reports show the five legacy pillars and honors earned.
 
 ## License
 
-Private project — see repository owner for terms.
+Private project. Contact the repository owner for licensing terms and permissions.
