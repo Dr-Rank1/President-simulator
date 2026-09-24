@@ -1,15 +1,33 @@
-*.iml
-.gradle
+# Gradle and Android build output
+.gradle/
+**/build/
 /local.properties
-/.idea
-.DS_Store
-/build
-/app/build
-/captures
-.externalNativeBuild
-.cxx
-*.apk
-*.ap_
-*.aab
+/captures/
+/.externalNativeBuild/
+/.cxx/
 
-build_install.log
+# Android Studio and IntelliJ
+.idea/
+*.iml
+
+# Kotlin tooling state
+.kotlin/
+
+# Packaged build artifacts
+*.apk
+*.aab
+*.ap_
+
+# Local signing credentials
+*.jks
+*.keystore
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Operating system files
+.DS_Store
+Thumbs.db
