@@ -275,6 +275,22 @@ fun CountrySelectScreen(
                 color = NssMutedForeground,
                 modifier = Modifier.padding(bottom = 12.dp),
             )
+            Text(
+                if (scenario.id == "standard") "FIRST CAMPAIGN RECOMMENDED" else "MISSION OBJECTIVES",
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Black,
+                color = NssAccent,
+                letterSpacing = 1.5.sp,
+            )
+            scenario.objectives.forEachIndexed { index, objective ->
+                Text(
+                    text = "${index + 1}. $objective",
+                    fontSize = 11.sp,
+                    color = NssOnPhoto.copy(alpha = 0.85f),
+                    modifier = Modifier.padding(top = 3.dp),
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

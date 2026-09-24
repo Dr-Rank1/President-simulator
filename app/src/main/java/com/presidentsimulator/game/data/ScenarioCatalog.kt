@@ -9,24 +9,28 @@ object ScenarioCatalog {
             title = "Standard Mandate",
             tagline = "Balanced start — write your own legacy.",
             difficulty = ScenarioDifficulty.STANDARD,
+            objectives = listOf("Build a stable mandate", "Win the next election", "Leave a lasting national legacy"),
         ),
         ScenarioPack(
             id = "powder_keg",
             title = "Powder Keg",
             tagline = "Hostile neighbors, thin treasury, election in 18 months.",
             difficulty = ScenarioDifficulty.HARD,
+            objectives = listOf("Restore the treasury", "Reduce tensions with neighboring states", "Survive the early election"),
         ),
         ScenarioPack(
             id = "empty_granaries",
             title = "Empty Granaries",
             tagline = "Food crisis on day one — feed the nation or fall.",
             difficulty = ScenarioDifficulty.HARD,
+            objectives = listOf("End the food shortage", "Restore approval", "Build a resilient food supply"),
         ),
         ScenarioPack(
             id = "palace_intrigue",
             title = "Palace Intrigue",
             tagline = "Corrupt cabinet, hostile press, restless officers.",
             difficulty = ScenarioDifficulty.HARD,
+            objectives = listOf("Restore cabinet cohesion", "Rebuild public trust", "Keep coup risk under control"),
         ),
         ScenarioPack(
             id = "iron_curtain",
@@ -34,12 +38,14 @@ object ScenarioCatalog {
             tagline = "Autocratic grip, embargoed trade, UN spotlight.",
             difficulty = ScenarioDifficulty.NIGHTMARE,
             recommendedNationId = "kryos",
+            objectives = listOf("Break the diplomatic isolation", "Keep the regime stable", "Reach the national victory year"),
         ),
         ScenarioPack(
             id = "reform_or_die",
             title = "Reform or Die",
             tagline = "Minority government, surging opposition, ticking clock.",
             difficulty = ScenarioDifficulty.NIGHTMARE,
+            objectives = listOf("Pass legislation with a minority government", "Contain opposition momentum", "Win the early election"),
         ),
     )
 

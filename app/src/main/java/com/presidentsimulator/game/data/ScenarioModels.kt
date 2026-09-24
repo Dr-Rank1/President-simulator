@@ -16,6 +16,7 @@ data class ScenarioPack(
     val tagline: String,
     val difficulty: ScenarioDifficulty,
     val recommendedNationId: String? = null,
+    val objectives: List<String> = emptyList(),
 )
 
 @Serializable
