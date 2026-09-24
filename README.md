@@ -74,6 +74,17 @@ app/src/main/java/com/presidentsimulator/game/
 
 The visual design is based on the **Nation State Simulator UI Design** reference (Figma/React). The Android app replicates the dark command-center aesthetic using Jetpack Compose — gradient banners, sector/unit/nation cards, monospace vitals, and bordered panels.
 
+## Campaign and Turn Flow
+
+- Each scenario lists its campaign objectives during setup and tracks objective progress on the command dashboard.
+- The Standard Mandate includes a first-month guide for budget, public support, and research decisions.
+- The dashboard estimates monthly fiscal balance and, during a deficit, how many months current reserves could cover.
+- Monthly bulletins report fiscal movement and likely approval pressures alongside major political and world events.
+- Resolved random crises have a short cooldown before another random event can interrupt the campaign. Persistent disasters and other active consequences continue on their own timeline.
+- The persistent **More** navigation menu links to Science, Domestic Policy, the UN, Cabinet, Demographics, Analytics, and Settings.
+
+The monthly simulation order is documented in `MonthlySimulationPipeline.kt`: production and fiscal settlement, foreign affairs and security, domestic political systems, long-term progression, and finally history and agenda generation.
+
 ## License
 
 Private project — see repository owner for terms.
