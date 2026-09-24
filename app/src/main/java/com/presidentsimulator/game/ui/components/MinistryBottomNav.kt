@@ -55,6 +55,7 @@ import com.presidentsimulator.game.ui.theme.NssAccent
 import com.presidentsimulator.game.ui.theme.NssOnPhoto
 import com.presidentsimulator.game.ui.theme.NssPrimary
 import com.presidentsimulator.game.ui.theme.NssRed
+import com.presidentsimulator.game.ui.theme.NssMutedForeground
 
 data class BottomNavItem(
     val destination: GameDestination,
@@ -67,15 +68,15 @@ val bottomNavItems = listOf(
     BottomNavItem(GameDestination.Economy, "Economy", Icons.Default.AttachMoney),
     BottomNavItem(GameDestination.Military, "Defense", Icons.Default.Shield),
     BottomNavItem(GameDestination.Diplomacy, "Foreign", Icons.Default.Public),
-    BottomNavItem(GameDestination.SecretService, "Intel", Icons.Default.Visibility),
+    BottomNavItem(GameDestination.LawsSociety, "Policy", Icons.Default.Gavel),
 )
 
 private val moreNavItems = listOf(
-    BottomNavItem(GameDestination.Science, "Science", Icons.Default.Science),
-    BottomNavItem(GameDestination.LawsSociety, "Domestic Policy", Icons.Default.Gavel),
-    BottomNavItem(GameDestination.Governance, "United Nations", Icons.Default.Public),
     BottomNavItem(GameDestination.Cabinet, "Cabinet", Icons.Default.AccountBalance),
-    BottomNavItem(GameDestination.Demographics, "Demographics", Icons.Default.Groups),
+    BottomNavItem(GameDestination.Demographics, "Public Support & Elections", Icons.Default.Groups),
+    BottomNavItem(GameDestination.SecretService, "Intelligence", Icons.Default.Visibility),
+    BottomNavItem(GameDestination.Science, "Research", Icons.Default.Science),
+    BottomNavItem(GameDestination.Governance, "United Nations", Icons.Default.Public),
     BottomNavItem(GameDestination.Analytics, "Analytics", Icons.Default.Analytics),
     BottomNavItem(GameDestination.AudioSettings, "Settings", Icons.Default.Settings),
 )
@@ -108,6 +109,8 @@ fun MinistryBottomNav(
     modifier: Modifier = Modifier,
 ) {
     var moreExpanded by remember { mutableStateOf(false) }
+    val moreSelected = moreNavItems.any { it.destination.route == currentRoute }
+    val moreAlerts = moreNavItems.sumOf { bottomNavAlertCount(state, it.destination) }.coerceAtMost(9)
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -156,17 +159,7 @@ fun MinistryBottomNav(
                     verticalArrangement = Arrangement.spacedBy(Dimens.SpacingXSmall),
                 ) {
                     Box {
-                        if (selected) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter)
-                                    .offset(y = (-8).dp)
-                                    .fillMaxWidth(0.5f)
-                                    .height(2.dp)
-                                    .background(NssAccent),
-                            )
-                        }
-                        Icon(
+                Icon(
                             imageVector = item.icon,
                             contentDescription = item.label,
                             tint = if (selected) NssOnPhoto else NssOnPhoto.copy(alpha = 0.5f),
@@ -206,13 +199,25 @@ fun MinistryBottomNav(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(Dimens.SpacingXSmall),
             ) {
-                Icon(Icons.Default.MoreHoriz, contentDescription = "More ministries", tint = NssOnPhoto.copy(alpha = 0.75f), modifier = Modifier.size(20.dp))
-                Text("More", color = NssOnPhoto.copy(alpha = 0.75f), fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+                Icon(Icons.Default.MoreHoriz, contentDescription = "More ministries", tint = if (moreSelected) NssOnPhoto else NssMutedForeground, modifier = Modifier.size(20.dp))
+                Text("More", color = if (moreSelected) NssOnPhoto else NssMutedForeground, fontSize = 9.sp, fontWeight = if (moreSelected) FontWeight.Bold else FontWeight.SemiBold)
+            }
+            if (moreSelected) Box(modifier = Modifier.align(Alignment.TopCenter).width(32.dp).height(3.dp)
+                .clip(RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp)).background(NssAccent))
+            if (moreAlerts > 0) Box(modifier = Modifier.align(Alignment.TopEnd).padding(top = 5.dp, end = 12.dp).size(15.dp)
+                .clip(CircleShape).background(NssRed), contentAlignment = Alignment.Center) {
+                Text(moreAlerts.toString(), color = NssOnPhoto, fontSize = 8.sp, fontWeight = FontWeight.Black)
             }
             DropdownMenu(expanded = moreExpanded, onDismissRequest = { moreExpanded = false }) {
                 moreNavItems.forEach { item ->
+                    val alerts = bottomNavAlertCount(state, item.destination)
                     DropdownMenuItem(
-                        text = { Text(item.label) },
+                        text = {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(item.label)
+                                if (alerts > 0) Text(alerts.coerceAtMost(9).toString(), color = NssRed, fontWeight = FontWeight.Black)
+                            }
+                        },
                         leadingIcon = { Icon(item.icon, contentDescription = null) },
                         onClick = {
                             moreExpanded = false

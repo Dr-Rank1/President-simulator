@@ -1,5 +1,6 @@
 package com.presidentsimulator.game.ui.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -101,6 +102,11 @@ fun GameNavigation(
         if (showLaunch) showCountrySelect = false
     }
 
+    BackHandler(enabled = showLaunch && showCountrySelect) {
+        audio.playClick()
+        showCountrySelect = false
+    }
+
     val navigate: (GameDestination) -> Unit = { destination ->
         audio.playClick()
         navController.navigate(destination.route) {
@@ -183,6 +189,14 @@ fun GameNavigation(
     }
 
     val pendingMission = missionResults.firstOrNull()
+    BackHandler(
+        enabled = !showLaunch && !gameOver && currentRoute != null && currentRoute != GameDestination.Dashboard.route &&
+            activeEvent == null && electionNight == null && warOutcome == null && pendingMission == null &&
+            turnSummary == null && !state.agenda.needsBriefing,
+    ) {
+        audio.playClick()
+        navController.popBackStack(GameDestination.Dashboard.route, inclusive = false)
+    }
     if (activeEvent == null && electionNight == null && warOutcome == null && pendingMission != null) {
         MissionResultDialog(
             mission = pendingMission,
