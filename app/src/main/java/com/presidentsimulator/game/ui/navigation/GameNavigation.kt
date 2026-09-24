@@ -293,6 +293,7 @@ fun GameNavigation(
                     onSpinHeadline = { viewModel.spinPressHeadline(it) },
                     onSuppressHeadline = { viewModel.suppressPressHeadline(it) },
                     onDisasterResponse = { viewModel.allocateDisasterResponse(it) },
+                    onMakeCommitment = { viewModel.makeMandateCommitment(it) },
                 )
             }
             composable(GameDestination.Economy.route) {
@@ -396,6 +397,12 @@ private fun CampaignEndDialog(
                 if (honors.isNotEmpty()) {
                     Text("HONORS", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
                     honors.forEach { honor -> Text("✦  $honor", fontSize = 11.sp, color = NssForeground, modifier = Modifier.padding(top = 3.dp)) }
+                }
+                if (campaign.mandate.lastReview.isNotEmpty()) {
+                    Text("TERM PROMISE REVIEW", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
+                    campaign.mandate.lastReview.forEach { result ->
+                        Text("${if (result.fulfilled) "✓" else "×"} ${result.goal.title} · ${result.review}", fontSize = 10.sp, color = if (result.fulfilled) NssEmerald else NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+                    }
                 }
             }
             Text(

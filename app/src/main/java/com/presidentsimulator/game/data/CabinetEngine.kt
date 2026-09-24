@@ -40,6 +40,44 @@ object CabinetEngine {
             .let { refreshCandidates(it, random) }
     }
 
+    /** Ministers react to laws that align with their portfolio and stated political traits. */
+    fun reactToPolicy(state: GameState, law: Law): GameState {
+        if (state.cabinet.ministers.isEmpty()) return state
+        var totalDelta = 0f
+        val ministers = state.cabinet.ministers.map { minister ->
+            val portfolioAlignment = when (minister.portfolio) {
+                CabinetPortfolio.ECONOMY, CabinetPortfolio.INDUSTRY -> law.category == LawCategory.ECONOMIC
+                CabinetPortfolio.DEFENSE -> law.category == LawCategory.MILITARY
+                CabinetPortfolio.HEALTH, CabinetPortfolio.EDUCATION, CabinetPortfolio.CULTURE -> law.category == LawCategory.SOCIAL
+                CabinetPortfolio.FOREIGN -> law.category != LawCategory.MILITARY
+                CabinetPortfolio.INTERIOR -> law.category == LawCategory.MILITARY || law.category == LawCategory.SOCIAL
+                CabinetPortfolio.SCIENCE -> law.category != LawCategory.MILITARY
+            }
+            val traitAlignment = when (law.category) {
+                LawCategory.SOCIAL -> MinisterTrait.REFORMER in minister.traits || MinisterTrait.POPULIST in minister.traits
+                LawCategory.ECONOMIC -> MinisterTrait.TECHNOCRAT in minister.traits || MinisterTrait.CORRUPT in minister.traits
+                LawCategory.MILITARY -> MinisterTrait.HAWK in minister.traits
+            }
+            val opposedTrait = (law.category == LawCategory.SOCIAL && MinisterTrait.HAWK in minister.traits) ||
+                (law.category == LawCategory.MILITARY && MinisterTrait.IDEALIST in minister.traits)
+            val delta = when {
+                opposedTrait -> -4f
+                portfolioAlignment && traitAlignment -> 4f
+                portfolioAlignment -> 2f
+                else -> -1f
+            }
+            totalDelta += delta
+            minister.copy(loyalty = (minister.loyalty + delta).coerceIn(5f, 100f))
+        }
+        val meanDelta = totalDelta / ministers.size
+        val cabinet = state.cabinet.copy(
+            ministers = ministers,
+            cohesion = (state.cabinet.cohesion + meanDelta * 0.45f).coerceIn(0f, 100f),
+            lastCabinetNote = "Cabinet reviewed ${law.name}; ministers reacted according to portfolio and political alignment.",
+        ).appendLog("Cabinet reaction to ${law.name}: alignment ${if (meanDelta >= 0f) "+" else ""}${meanDelta.roundToInt()}")
+        return state.copy(cabinet = cabinet)
+    }
+
     fun processMonth(state: GameState, random: Random = Random.Default): GameState {
         if (state.gameOver.isGameOver) return state
         var cabinet = state.cabinet

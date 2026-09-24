@@ -5,8 +5,10 @@ import com.presidentsimulator.game.data.CabinetEngine
 import com.presidentsimulator.game.data.DisasterEngine
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.LegacyLedger
+import com.presidentsimulator.game.data.MandateEngine
 import com.presidentsimulator.game.data.OppositionEngine
 import com.presidentsimulator.game.data.PressDesk
+import com.presidentsimulator.game.data.PolicyImpactEngine
 import com.presidentsimulator.game.data.SpeechEngine
 import com.presidentsimulator.game.data.StoryArcEngine
 import com.presidentsimulator.game.data.TermEngine
@@ -61,6 +63,7 @@ internal class MonthlySimulationPipeline(
         // 4. Long-term progression, institutions, trade, and global governance.
         next = advancement.processSocietyTick(next)
         next = productionLaw.processLawsTick(next)
+        next = PolicyImpactEngine.processMonth(next)
         next = trade.processTradeTick(next)
         next = governance.processGovernanceTick(next)
         next = demographics.processDemographicsTick(next)
@@ -70,6 +73,7 @@ internal class MonthlySimulationPipeline(
         next = analytics.recordHistoricalSnapshot(next)
         next = LegacyLedger.processMonth(current, next)
         next = next.copy(agenda = AgendaBuilder.applyMonthlyAgenda(next.agenda, next))
+        next = MandateEngine.processMonth(next)
         return StoryArcEngine.onMonth(next)
     }
 

@@ -1,6 +1,7 @@
 package com.presidentsimulator.game.viewmodel
 
 import com.presidentsimulator.game.data.GameState
+import com.presidentsimulator.game.data.CabinetEngine
 import com.presidentsimulator.game.data.Ideology
 import com.presidentsimulator.game.data.InfrastructureType
 import com.presidentsimulator.game.data.Law
@@ -9,6 +10,7 @@ import com.presidentsimulator.game.data.ProductionState
 import com.presidentsimulator.game.data.NationalPerkEffects
 import com.presidentsimulator.game.data.ParliamentarySupport
 import com.presidentsimulator.game.data.PendingLaw
+import com.presidentsimulator.game.data.PolicyImpactEngine
 import com.presidentsimulator.game.data.SectorInvestment
 import com.presidentsimulator.game.data.awardSectorXp
 import kotlin.math.roundToLong
@@ -221,13 +223,13 @@ class ProductionLawViewModel {
             activeLawIds = nextState.legal.activeLawIds + lawId,
         )
 
-        return nextState.copy(
+        return beginPolicyMonitoring(state, nextState.copy(
             vitals = nextState.vitals.copy(
                 approval = (nextState.vitals.approval + law.approvalModifier * 0.25f)
                     .coerceIn(0f, 100f),
             ),
             legal = legal,
-        )
+        ), lawId, law)
     }
 
     /**
@@ -237,6 +239,7 @@ class ProductionLawViewModel {
         val law = LawCatalog.byId(lawId) ?: return state
         if (!state.legal.isActive(lawId)) return state
         if (state.legal.pendingLaws.any { it.lawId == lawId }) return state
+        val activeLaw = state.legal.activeLaws.firstOrNull { it.id == lawId } ?: law
 
         if (!ParliamentarySupport.passesImmediately(state, law)) {
             val months = ParliamentarySupport.pendingMonths(state, law)
@@ -246,16 +249,36 @@ class ProductionLawViewModel {
             return state.copy(legal = legal)
         }
 
-        val legal = state.legal.copy(
-            activeLawIds = state.legal.activeLawIds.filterNot { it == lawId },
-        )
-
-        return state.copy(
-            vitals = state.vitals.copy(
-                approval = (state.vitals.approval - law.approvalModifier * 0.15f)
-                    .coerceIn(0f, 100f),
+        val reviewed = PolicyImpactEngine.end(state, lawId)
+        return reviewed.copy(
+            vitals = reviewed.vitals.copy(approval = (reviewed.vitals.approval - activeLaw.approvalModifier * 0.15f).coerceIn(0f, 100f)),
+            legal = reviewed.legal.copy(
+                activeLawIds = reviewed.legal.activeLawIds.filterNot { it == lawId },
+                policyStrengths = reviewed.legal.policyStrengths - lawId,
             ),
-            legal = legal,
+        )
+    }
+
+    /** Negotiate support for one queued bill; each compromise strengthens the vote but waters down the law. */
+    fun negotiatePendingLaw(state: GameState, lawId: String): GameState {
+        if (state.gameOver.isGameOver || state.vitals.budget < BILL_COMPROMISE_COST) return state
+        val pending = state.legal.pendingLaws.firstOrNull { it.lawId == lawId && it.enabling } ?: return state
+        if (pending.compromises >= MAX_BILL_COMPROMISES) return state
+        val nextPending = pending.copy(
+            supportBonus = (pending.supportBonus + BILL_SUPPORT_PER_COMPROMISE).coerceAtMost(24f),
+            compromises = pending.compromises + 1,
+        )
+        val mainOpposition = state.opposition.mainOpposition
+        val opposition = state.opposition.copy(
+            parties = state.opposition.parties.map { party ->
+                if (party.isRuling) party else party.copy(hostility = (party.hostility - 5f).coerceAtLeast(5f))
+            },
+            lastPlayerCounter = "Compromise offered on ${LawCatalog.byId(lawId)?.name ?: "a bill"}.",
+        ).appendLog("Offered a compromise on ${LawCatalog.byId(lawId)?.name ?: lawId}${mainOpposition?.let { " with ${it.name}" }.orEmpty()}")
+        return state.copy(
+            vitals = state.vitals.copy(budget = state.vitals.budget - BILL_COMPROMISE_COST),
+            legal = state.legal.copy(pendingLaws = state.legal.pendingLaws.map { if (it.lawId == lawId) nextPending else it }),
+            opposition = opposition,
         )
     }
 
@@ -286,23 +309,26 @@ class ProductionLawViewModel {
         )
         val without = state.legal.pendingLaws.filterNot { it.lawId == pending.lawId }
         return if (pending.enabling) {
-            state.copy(
+            val enactedLaw = compromiseLaw(law, pending)
+            beginPolicyMonitoring(state, state.copy(
                 vitals = state.vitals.copy(
-                    approval = (state.vitals.approval + law.approvalModifier * 0.25f).coerceIn(0f, 100f),
+                    approval = (state.vitals.approval + enactedLaw.approvalModifier * 0.25f).coerceIn(0f, 100f),
                 ),
                 legal = state.legal.copy(
                     pendingLaws = without,
                     activeLawIds = state.legal.activeLawIds + pending.lawId,
+                    policyStrengths = state.legal.policyStrengths + (pending.lawId to strengthAfterCompromise(pending)),
                 ),
-            )
+            ), pending.lawId, enactedLaw)
         } else {
-            state.copy(
-                vitals = state.vitals.copy(
-                    approval = (state.vitals.approval - law.approvalModifier * 0.15f).coerceIn(0f, 100f),
-                ),
-                legal = state.legal.copy(
+            val activeLaw = state.legal.activeLaws.firstOrNull { it.id == pending.lawId } ?: law
+            val reviewed = PolicyImpactEngine.end(state, pending.lawId)
+            reviewed.copy(
+                vitals = reviewed.vitals.copy(approval = (reviewed.vitals.approval - activeLaw.approvalModifier * 0.15f).coerceIn(0f, 100f)),
+                legal = reviewed.legal.copy(
                     pendingLaws = without,
-                    activeLawIds = state.legal.activeLawIds.filterNot { it == pending.lawId },
+                    activeLawIds = reviewed.legal.activeLawIds.filterNot { it == pending.lawId },
+                    policyStrengths = reviewed.legal.policyStrengths - pending.lawId,
                 ),
             )
         }
@@ -328,26 +354,27 @@ class ProductionLawViewModel {
                 // Enact or repeal
                 val law = LawCatalog.byId(pending.lawId) ?: return@forEach
                 if (pending.enabling) {
+                    val enactedLaw = compromiseLaw(law, pending)
                     val legal = nextState.legal.copy(
-                        activeLawIds = nextState.legal.activeLawIds + pending.lawId
+                        activeLawIds = nextState.legal.activeLawIds + pending.lawId,
+                        policyStrengths = nextState.legal.policyStrengths + (pending.lawId to strengthAfterCompromise(pending)),
                     )
-                    nextState = nextState.copy(
+                    nextState = beginPolicyMonitoring(nextState, nextState.copy(
                         vitals = nextState.vitals.copy(
-                            approval = (nextState.vitals.approval + law.approvalModifier * 0.25f)
+                            approval = (nextState.vitals.approval + enactedLaw.approvalModifier * 0.25f)
                                 .coerceIn(0f, 100f),
                         ),
                         legal = legal
-                    )
+                    ), pending.lawId, enactedLaw)
                 } else {
-                    val legal = nextState.legal.copy(
-                        activeLawIds = nextState.legal.activeLawIds.filterNot { it == pending.lawId }
-                    )
-                    nextState = nextState.copy(
-                        vitals = nextState.vitals.copy(
-                            approval = (nextState.vitals.approval - law.approvalModifier * 0.15f)
-                                .coerceIn(0f, 100f),
+                    val activeLaw = nextState.legal.activeLaws.firstOrNull { it.id == pending.lawId } ?: law
+                    val reviewed = PolicyImpactEngine.end(nextState, pending.lawId)
+                    nextState = reviewed.copy(
+                        vitals = reviewed.vitals.copy(approval = (reviewed.vitals.approval - activeLaw.approvalModifier * 0.15f).coerceIn(0f, 100f)),
+                        legal = reviewed.legal.copy(
+                            activeLawIds = reviewed.legal.activeLawIds.filterNot { it == pending.lawId },
+                            policyStrengths = reviewed.legal.policyStrengths - pending.lawId,
                         ),
-                        legal = legal
                     )
                 }
             } else {
@@ -395,6 +422,9 @@ class ProductionLawViewModel {
     companion object {
         const val IDEOLOGY_SHIFT_COST = 8_000_000_000L
         const val RUSH_LAW_COST = 4_000_000_000L
+        const val BILL_COMPROMISE_COST = 1_500_000_000L
+        const val MAX_BILL_COMPROMISES = 3
+        const val BILL_SUPPORT_PER_COMPROMISE = 8f
         const val ENERGY_PER_PLANT = 120L
         const val ENERGY_PER_PLANT_IDLE = 5L
         const val ENERGY_PER_FACTORY = 18L
@@ -416,6 +446,27 @@ class ProductionLawViewModel {
             !state.legal.isActive(law.id) &&
                 state.legal.pendingLaws.none { it.lawId == law.id } &&
                 state.vitals.budget >= law.activationCost
+    }
+
+    private fun strengthAfterCompromise(pending: PendingLaw): Float =
+        (1f - pending.compromises * 0.15f).coerceAtLeast(0.55f)
+
+    private fun compromiseLaw(law: Law, pending: PendingLaw): Law {
+        val strength = strengthAfterCompromise(pending)
+        return if (strength >= 0.999f) law else law.copy(
+            approvalModifier = law.approvalModifier * strength,
+            productionModifier = 1f + (law.productionModifier - 1f) * strength,
+            foodDemandModifier = 1f + (law.foodDemandModifier - 1f) * strength,
+            energyDemandModifier = 1f + (law.energyDemandModifier - 1f) * strength,
+            militaryRecruitModifier = 1f + (law.militaryRecruitModifier - 1f) * strength,
+            upkeepCost = (law.upkeepCost * strength).toLong(),
+        )
+    }
+
+    private fun beginPolicyMonitoring(beforeEnactment: GameState, afterEnactment: GameState, lawId: String, law: Law): GameState {
+        val monitoring = PolicyImpactEngine.begin(beforeEnactment, lawId).legal.policyInsights
+        val trackedState = afterEnactment.copy(legal = afterEnactment.legal.copy(policyInsights = monitoring))
+        return CabinetEngine.reactToPolicy(trackedState, law)
     }
 }
 

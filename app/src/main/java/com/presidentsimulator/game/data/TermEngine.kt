@@ -183,7 +183,7 @@ object TermEngine {
         val victory = track == SoftDefeatTrack.SUCCESSION ||
             (track == SoftDefeatTrack.TERM_LIMIT && state.term.successorNamed.isNotBlank() &&
                 state.legacy.scores.overall >= 55)
-        return state.copy(
+        return MandateEngine.closeTerm(state).copy(
             term = state.term.copy(softDefeatHeat = heat, lastTermNote = reason),
             gameOver = GameOverState(
                 isGameOver = true,

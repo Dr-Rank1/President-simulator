@@ -7,6 +7,7 @@ import com.presidentsimulator.game.data.GameOverState
 import com.presidentsimulator.game.data.SoftDefeatTrack
 import com.presidentsimulator.game.data.TermEngine
 import com.presidentsimulator.game.data.LegacyLedger
+import com.presidentsimulator.game.data.MandateEngine
 import com.presidentsimulator.game.data.GameState
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -167,7 +168,7 @@ class DemographicsCampaignViewModel(
             state.vitals.approval >= VICTORY_APPROVAL &&
             state.internalSecurity.instabilityScore <= VICTORY_MAX_INSTABILITY
         ) {
-            return state.copy(
+            return MandateEngine.closeTerm(state).copy(
                 gameOver = GameOverState(
                     isGameOver = true,
                     isVictory = true,
@@ -183,7 +184,7 @@ class DemographicsCampaignViewModel(
             state.vitals.approval >= 60f &&
             state.year >= HEGEMONY_MIN_YEAR
         ) {
-            return state.copy(
+            return MandateEngine.closeTerm(state).copy(
                 gameOver = GameOverState(
                     isGameOver = true,
                     isVictory = true,
@@ -274,7 +275,7 @@ class DemographicsCampaignViewModel(
     fun confirmElectionNight(state: GameState): GameState {
         val night = state.demographics.election.pendingNight ?: return state
         return if (night.victory) {
-            val won = state.copy(
+            val won = MandateEngine.closeTerm(state).copy(
                 nextElectionYear = state.year + state.legal.governmentSystem.electionIntervalYears.coerceAtLeast(1),
                 demographics = state.demographics.copy(
                     oppositionMomentum = 0f,
@@ -286,7 +287,7 @@ class DemographicsCampaignViewModel(
             val withLegacy = LegacyLedger.recordElectionVictory(won, night.challengerName)
             TermEngine.onElectionVictory(withLegacy)
         } else {
-            val lost = state.copy(
+            val lost = MandateEngine.closeTerm(state).copy(
                 demographics = state.demographics.copy(
                     election = state.demographics.election.copy(pendingNight = null),
                 ),

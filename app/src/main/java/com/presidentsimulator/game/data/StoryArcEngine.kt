@@ -11,12 +11,15 @@ data class StoryArcState(
     val openingChoice: String = "",
     val completedArcIds: List<String> = emptyList(),
     val lastStoryNote: String = "",
+    /** The law or policy that triggered an active policy-fallout story. */
+    val sourceReference: String = "",
 )
 
 /** Saved, branching three-chapter political stories built from existing campaign systems. */
 object StoryArcEngine {
     private const val CABINET_SCANDAL = "cabinet_scandal"
     private const val CONFIDENCE_VOTE = "confidence_vote"
+    private const val POLICY_BACKLASH = "policy_backlash"
 
     fun onMonth(state: GameState): GameState {
         val current = state.storyArc
@@ -31,6 +34,9 @@ object StoryArcEngine {
                 CONFIDENCE_VOTE !in current.completedArcIds &&
                 (state.opposition.noConfidenceHeat >= 45f ||
                     (!state.opposition.hasMajority && (state.opposition.mainOpposition?.hostility ?: 0f) >= 75f)) -> CONFIDENCE_VOTE
+            POLICY_BACKLASH !in current.completedArcIds && state.legal.policyInsights.reports.lastOrNull()?.let { report ->
+                report.approvalChange <= -8f || report.monthlyBalanceChange <= -5_000_000_000L || report.workersChange <= -5f
+            } == true -> POLICY_BACKLASH
             else -> null
         } ?: return state
 
@@ -40,6 +46,7 @@ object StoryArcEngine {
                 chapter = 1,
                 monthsUntilNextChapter = 0,
                 openingChoice = "",
+                sourceReference = if (nextArc == POLICY_BACKLASH) state.legal.policyInsights.reports.lastOrNull()?.lawId.orEmpty() else "",
                 lastStoryNote = arcTitle(nextArc),
             ),
         )
@@ -48,11 +55,11 @@ object StoryArcEngine {
     fun nextEvent(state: GameState): GameEvent? {
         val arc = state.storyArc
         if (arc.activeArcId == null || arc.monthsUntilNextChapter > 0) return null
-        return event(arc.activeArcId, arc.chapter, arc.openingChoice)
+        return event(arc.activeArcId, arc.chapter, arc.openingChoice, arc.sourceReference)
     }
 
     fun eventById(id: String): GameEvent? {
-        val match = Regex("^story_(cabinet_scandal|confidence_vote)_([1-3])$").matchEntire(id) ?: return null
+        val match = Regex("^story_(cabinet_scandal|confidence_vote|policy_backlash)_([1-3])$").matchEntire(id) ?: return null
         return event(match.groupValues[1], match.groupValues[2].toInt(), "")
     }
 
@@ -73,6 +80,7 @@ object StoryArcEngine {
                 openingChoice = openingChoice,
                 lastStoryNote = when (arc.activeArcId) {
                     CABINET_SCANDAL -> if (openingChoice == "open") "The inquiry widens" else "The cover-up draws scrutiny"
+                    POLICY_BACKLASH -> if (openingChoice == "open") "Reviewers trace the rollout" else "The cabinet closes ranks"
                     else -> if (openingChoice == "open") "Negotiations continue" else "The whip count tightens"
                 },
             )
@@ -83,6 +91,7 @@ object StoryArcEngine {
         val title = arcTitle(arcId)
         val successful = when (arcId) {
             CABINET_SCANDAL -> state.press.credibility >= 48f && state.cabinet.cohesion >= 40f
+            POLICY_BACKLASH -> state.vitals.approval >= 45f && state.press.credibility >= 42f && state.cabinet.cohesion >= 35f
             else -> state.opposition.noConfidenceHeat < 45f && state.vitals.approval >= 45f
         }
         val entry = LegacyEntry(
@@ -102,6 +111,7 @@ object StoryArcEngine {
                 monthsUntilNextChapter = 0,
                 completedArcIds = (arc.completedArcIds + arcId).distinct(),
                 lastStoryNote = entry.title,
+                sourceReference = "",
             ),
             legacy = state.legacy.copy(
                 scores = state.legacy.scores.adjust(LegacyPillar.MANDATE, if (successful) 4 else -2),
@@ -114,10 +124,11 @@ object StoryArcEngine {
     private fun arcTitle(id: String): String = when (id) {
         CABINET_SCANDAL -> "Cabinet Leak"
         CONFIDENCE_VOTE -> "Confidence Crisis"
+        POLICY_BACKLASH -> "Reform Fallout"
         else -> "National Story"
     }
 
-    private fun event(arcId: String, chapter: Int, branch: String): GameEvent? = when (arcId to chapter) {
+    private fun event(arcId: String, chapter: Int, branch: String, sourceReference: String = ""): GameEvent? = when (arcId to chapter) {
         CABINET_SCANDAL to 1 -> GameEvent(
             id = "story_${CABINET_SCANDAL}_1",
             title = "A Source Steps Forward",
@@ -170,6 +181,36 @@ object StoryArcEngine {
             choices = listOf(
                 EventChoice("Face the vote in public", EventConsequence(approvalChange = 3f, mediaSentimentChange = 4f, oppositionHeatChange = -9f, cabinetCohesionChange = 3f)),
                 EventChoice("Delay the vote and negotiate overnight", EventConsequence(budgetChange = -1_500_000_000L, approvalChange = -2f, oppositionHeatChange = -4f, cabinetCohesionChange = -2f)),
+            ),
+        )
+        POLICY_BACKLASH to 1 -> {
+            val lawName = LawCatalog.byId(sourceReference)?.name ?: "A recent reform"
+            GameEvent(
+                id = "story_${POLICY_BACKLASH}_1",
+                title = "The ${lawName} Fallout",
+                description = "The latest policy review shows a sharp decline in approval, the monthly balance, or worker support since $lawName took effect. Your cabinet wants to know whether to review the rollout or defend the policy.",
+                choices = listOf(
+                    EventChoice("Publish the review and open a public inquiry", EventConsequence(budgetChange = -1_000_000_000L, approvalChange = 2f, mediaSentimentChange = 3f, pressCredibilityChange = 6f, cabinetCohesionChange = -2f)),
+                    EventChoice("Defend the policy and blame outside shocks", EventConsequence(approvalChange = -2f, mediaSentimentChange = -3f, pressCredibilityChange = -5f, cabinetCohesionChange = 2f)),
+                ),
+            )
+        }
+        POLICY_BACKLASH to 2 -> GameEvent(
+            id = "story_${POLICY_BACKLASH}_2",
+            title = if (branch == "open") "The Rollout Hearing" else "Backbench Doubts",
+            description = if (branch == "open") "The inquiry finds implementation gaps. Opposition members offer votes for targeted changes, while your ministers warn that a rushed retreat could cost more." else "Members of your own coalition are asking for evidence. The opposition is turning the policy's measured effects into a campaign issue.",
+            choices = listOf(
+                EventChoice("Fund a targeted correction", EventConsequence(budgetChange = -1_500_000_000L, approvalChange = 2f, oppositionHeatChange = -4f, cabinetCohesionChange = -2f)),
+                EventChoice("Keep the rollout unchanged", EventConsequence(approvalChange = -2f, oppositionHeatChange = 4f, cabinetCohesionChange = 1f)),
+            ),
+        )
+        POLICY_BACKLASH to 3 -> GameEvent(
+            id = "story_${POLICY_BACKLASH}_3",
+            title = "Keep, Amend, or Repeal",
+            description = "The review is public and political costs are mounting. You must decide whether this reform survives in its current form.",
+            choices = listOf(
+                EventChoice("Amend the rollout and publish new targets", EventConsequence(approvalChange = 3f, pressCredibilityChange = 4f, oppositionHeatChange = -5f, cabinetCohesionChange = -2f)),
+                EventChoice("Stand by the original policy", EventConsequence(approvalChange = -3f, pressCredibilityChange = -3f, oppositionHeatChange = 6f, cabinetCohesionChange = 2f)),
             ),
         )
         else -> null

@@ -15,7 +15,8 @@ object ParliamentarySupport {
             LawCategory.MILITARY ->
                 demographics.military * 0.60f + demographics.businessElite * 0.40f
         }
-        return (cohortVoice * 0.65f + state.vitals.approval * 0.35f - state.opposition.lawSupportPenalty())
+        val negotiatedSupport = state.legal.pendingLaws.firstOrNull { it.lawId == law.id && it.enabling }?.supportBonus ?: 0f
+        return (cohortVoice * 0.65f + state.vitals.approval * 0.35f - state.opposition.lawSupportPenalty() + negotiatedSupport)
             .coerceIn(0f, 100f)
     }
 

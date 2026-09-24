@@ -52,6 +52,8 @@ data class GameState(
     val speech: SpeechState = SpeechState(),
     /** Term limits, succession, and soft-defeat pressure. */
     val term: TermState = TermState(),
+    /** Current-term public promises and their last end-of-term review. */
+    val mandate: MandateState = MandateState(),
 ) {
     val dateLabel: String
         get() = "${monthName(month)} $year"
