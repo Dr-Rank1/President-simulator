@@ -53,6 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
@@ -125,6 +126,23 @@ fun MainDashboardScreen(
     val situations = remember(state) { agendaSituations(state) }
     val quarter = ((state.month - 1) / 3) + 1
 
+    if (layout.isCompactHeight) {
+        LandscapeCommandCenter(
+            state = state,
+            situations = situations,
+            stability = stability,
+            milPower = milPower,
+            worldRank = worldRank,
+            alertCount = alertCount,
+            onNavigate = onNavigate,
+            onSpinHeadline = onSpinHeadline,
+            onSuppressHeadline = onSuppressHeadline,
+            onDisasterResponse = onDisasterResponse,
+            modifier = modifier,
+        )
+        return
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -155,7 +173,7 @@ fun MainDashboardScreen(
                 )
                 Text(
                     text = state.playerNation.name.uppercase(),
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.Black,
                     fontSize = layout.heroTitleSp,
                     color = NssOnPhoto,
@@ -182,6 +200,15 @@ fun MainDashboardScreen(
             modifier = Modifier.padding(horizontal = Dimens.ContentPadding, vertical = Dimens.ContentPadding),
             verticalArrangement = Arrangement.spacedBy(Dimens.SectionGap),
         ) {
+            if (layout.isCompactHeight && state.diplomacy.rivals.isNotEmpty()) {
+                DashboardSection(
+                    title = "Regional Situation",
+                    subtitle = "Your government and the countries shaping your foreign policy",
+                ) {
+                    RegionalPowerMap(state = state, onOpenDiplomacy = { onNavigate(GameDestination.Diplomacy) })
+                }
+            }
+
             DashboardSection(
                 title = "Strategic Overview",
                 subtitle = "Turn ${state.year}.$quarter",
@@ -328,7 +355,7 @@ fun MainDashboardScreen(
                 }
             }
 
-            if (state.diplomacy.rivals.isNotEmpty()) {
+            if (state.diplomacy.rivals.isNotEmpty() && !layout.isCompactHeight) {
                 DashboardSection(
                     title = "Diplomatic Network",
                     subtitle = state.diplomacy.activeWar?.let { "ACTIVE FRONT · ${state.diplomacy.rivalById(it.targetCountryId)?.name ?: "Rival"}" }
@@ -574,6 +601,163 @@ fun MainDashboardScreen(
     }
 }
 
+@Composable
+private fun LandscapeCommandCenter(
+    state: GameState,
+    situations: List<DashboardSituation>,
+    stability: Float,
+    milPower: Int,
+    worldRank: Int,
+    alertCount: Int,
+    onNavigate: (GameDestination) -> Unit,
+    onSpinHeadline: (String) -> Unit,
+    onSuppressHeadline: (String) -> Unit,
+    onDisasterResponse: (ResponseFocus) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxSize().background(NssBackground)
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        WorldCommandMap(
+            state = state,
+            worldRank = worldRank,
+            alertCount = alertCount,
+            modifier = Modifier.weight(1.45f).fillMaxSize(),
+            onOpen = { onNavigate(GameDestination.Diplomacy) },
+        )
+        Column(
+            modifier = Modifier.weight(1f).fillMaxSize().verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
+            Text("NATIONAL COMMAND", color = NssMutedForeground, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                CommandStat("TREASURY", formatCompactMoney(state.vitals.budget), if (state.netIncome < 0) NssRed else NssEmerald, Modifier.weight(1f))
+                CommandStat("APPROVAL", state.vitals.approval.toApprovalString(), if (state.vitals.approval < 50f) NssRed else NssEmerald, Modifier.weight(1f))
+                CommandStat("STABILITY", "${stability.roundToInt()}%", if (stability < 60f) NssRed else NssAccent, Modifier.weight(1f))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                CommandStat("MILITARY", milPower.toString(), NssPrimary, Modifier.weight(1f))
+                CommandStat("POPULATION", formatCompactMil(state.vitals.population.toInt()), NssAccent, Modifier.weight(1f))
+                CommandStat("RANK", "#$worldRank", NssEmerald, Modifier.weight(1f))
+            }
+            CommandCard("PRIORITY FILES", "${situations.size} active") {
+                if (situations.isEmpty()) Text("No urgent files. Your cabinet is clear.", color = NssMutedForeground, fontSize = 10.sp)
+                situations.take(3).forEach { item ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssBackground)
+                            .clickable { onNavigate(item.destination) }.padding(horizontal = 9.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(item.title, color = NssForeground, fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(item.description, color = NssMutedForeground, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        Text("›", color = NssAccent, fontSize = 20.sp)
+                    }
+                }
+            }
+            CommandCard("GOVERNMENT", "Open a department") {
+                val links = listOf(
+                    "Economy" to GameDestination.Economy, "Defense" to GameDestination.Military,
+                    "Diplomacy" to GameDestination.Diplomacy, "Domestic" to GameDestination.LawsSociety,
+                    "Cabinet" to GameDestination.Cabinet, "People" to GameDestination.Demographics,
+                    "Science" to GameDestination.Science, "World affairs" to GameDestination.Governance,
+                    "Analytics" to GameDestination.Analytics,
+                )
+                links.chunked(3).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        row.forEach { (label, destination) ->
+                            Text(label, modifier = Modifier.weight(1f).clip(NssCardShape)
+                                .background(NssPrimary.copy(alpha = 0.12f)).clickable { onNavigate(destination) }
+                                .padding(horizontal = 6.dp, vertical = 8.dp),
+                                color = NssPrimary, fontSize = 9.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, maxLines = 1)
+                        }
+                        repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
+            }
+            CommandCard("NATIONAL SERVICES", "Live operations") {
+                PressDeskSection(state = state, onSpin = onSpinHeadline, onSuppress = onSuppressHeadline)
+                DisasterResponseSection(state = state, onAllocate = onDisasterResponse)
+            }
+        }
+    }
+}
+
+@Composable
+private fun WorldCommandMap(
+    state: GameState,
+    worldRank: Int,
+    alertCount: Int,
+    modifier: Modifier = Modifier,
+    onOpen: () -> Unit,
+) {
+    Box(modifier.clip(NssCardShape).background(Color(0xFFDCECF3)).border(1.dp, NssBorder, NssCardShape).clickable(onClick = onOpen)) {
+        Canvas(Modifier.fillMaxSize()) {
+            val w = size.width
+            val h = size.height
+            for (i in 1..5) {
+                val x = w * i / 6f
+                drawLine(Color.White.copy(alpha = 0.42f), Offset(x, 0f), Offset(x, h), 1.dp.toPx())
+            }
+            for (i in 1..3) {
+                val y = h * i / 4f
+                drawLine(Color.White.copy(alpha = 0.42f), Offset(0f, y), Offset(w, y), 1.dp.toPx())
+            }
+            val shapes = listOf(
+                listOf(.08f to .22f, .13f to .13f, .22f to .16f, .28f to .25f, .25f to .37f, .19f to .42f, .14f to .34f, .09f to .34f),
+                listOf(.28f to .44f, .35f to .47f, .38f to .59f, .35f to .75f, .31f to .86f, .28f to .71f, .26f to .56f),
+                listOf(.45f to .25f, .49f to .20f, .55f to .23f, .58f to .31f, .54f to .37f, .49f to .35f),
+                listOf(.48f to .39f, .56f to .37f, .60f to .49f, .57f to .68f, .52f to .79f, .47f to .63f, .45f to .49f),
+                listOf(.59f to .20f, .70f to .14f, .83f to .19f, .93f to .29f, .88f to .43f, .78f to .45f, .70f to .38f, .62f to .39f),
+                listOf(.78f to .62f, .85f to .59f, .91f to .66f, .88f to .75f, .81f to .73f),
+            )
+            shapes.forEachIndexed { index, points ->
+                val path = Path().apply {
+                    moveTo(points.first().first * w, points.first().second * h)
+                    points.drop(1).forEach { lineTo(it.first * w, it.second * h) }
+                    close()
+                }
+                drawPath(path, if (index % 2 == 0) Color(0xFF9DBD9E) else Color(0xFFB1CBA9))
+                drawPath(path, Color.White.copy(alpha = .75f), style = androidx.compose.ui.graphics.drawscope.Stroke(1.4.dp.toPx()))
+            }
+            listOf(.20f to .27f, .33f to .58f, .52f to .29f, .53f to .51f, .76f to .29f, .85f to .67f).forEachIndexed { index, point ->
+                drawCircle(if (index == 3) NssAccent else Color(0xFF557C65), 4.dp.toPx(), Offset(point.first * w, point.second * h))
+            }
+        }
+        Column(Modifier.align(Alignment.TopStart).padding(12.dp)) {
+            Text("WORLD COMMAND", color = Color(0xFF274658), fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
+            Text("${state.playerNation.flagEmoji}  ${state.playerNation.name}", color = Color(0xFF173345), fontSize = 17.sp, fontWeight = FontWeight.Black)
+        }
+        Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Color(0xEE173345)).padding(horizontal = 12.dp, vertical = 8.dp)) {
+            Text("YEAR ${state.year}  ·  RANK #$worldRank  ·  ${if (alertCount == 0) "NO CRITICAL ALERTS" else "$alertCount ACTIVE ALERTS"}", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = .8.sp, maxLines = 1)
+            Text("${state.playerNation.name} is shaping the next chapter.  Tap map to open diplomacy ›", color = Color(0xFFD9E8EF), fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+@Composable
+private fun CommandStat(label: String, value: String, tint: Color, modifier: Modifier = Modifier) {
+    Column(modifier.clip(NssCardShape).background(NssGameCard).border(1.dp, NssBorder, NssCardShape).padding(horizontal = 8.dp, vertical = 7.dp)) {
+        Text(label, color = NssMutedForeground, fontSize = 8.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        Text(value, color = tint, fontSize = 13.sp, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+@Composable
+private fun CommandCard(title: String, subtitle: String, content: @Composable () -> Unit) {
+    Column(Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard).border(1.dp, NssBorder, NssCardShape).padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(title, color = NssForeground, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = .7.sp)
+            Text(subtitle, color = NssMutedForeground, fontSize = 8.sp)
+        }
+        content()
+    }
+}
+
 private fun budgetPct(state: GameState): Float {
     val budget = state.vitals.budget.coerceAtLeast(1L)
     return (budget.toFloat() / (budget + budget.coerceAtLeast(1L)) * 100f).coerceIn(20f, 100f)
@@ -606,7 +790,8 @@ private fun RegionalPowerMap(state: GameState, onOpenDiplomacy: () -> Unit) {
         )
         .take(4)
     Box(
-        modifier = Modifier.fillMaxWidth().height(184.dp).clip(NssCardShape).background(Color(0xFF111827)),
+        modifier = Modifier.fillMaxWidth().height(184.dp).clip(NssCardShape)
+            .background(Color(0xFFDCEAF2)).border(1.dp, NssBorder, NssCardShape),
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val center = Offset(size.width / 2f, size.height / 2f)
@@ -670,14 +855,14 @@ private fun PowerMapNode(
     onClick: () -> Unit,
 ) {
     Row(
-        modifier = modifier.clip(NssCardShape).background(Color(0xEE1C2738))
-            .border(1.dp, accent.copy(alpha = 0.65f), NssCardShape)
+        modifier = modifier.clip(NssCardShape).background(NssGameCard.copy(alpha = 0.96f))
+            .border(1.dp, accent.copy(alpha = 0.45f), NssCardShape)
             .clickable(onClick = onClick).padding(horizontal = 8.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(emblem, fontSize = 16.sp)
         Column(modifier = Modifier.padding(start = 6.dp)) {
-            Text(title, color = NssOnPhoto, fontWeight = FontWeight.Bold, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(title, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(detail, color = accent, fontWeight = FontWeight.Black, fontSize = 7.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }

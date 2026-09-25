@@ -6,20 +6,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -42,6 +47,7 @@ import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.ui.GovernanceUNScreen
 import com.presidentsimulator.game.ui.components.ElectionNightDialog
 import com.presidentsimulator.game.ui.components.EventCrisisDialog
+import com.presidentsimulator.game.ui.components.GameTutorialDialog
 import com.presidentsimulator.game.ui.components.GlobalHud
 import com.presidentsimulator.game.ui.components.MinistryBottomNav
 import com.presidentsimulator.game.ui.components.MissionResultDialog
@@ -97,6 +103,8 @@ fun GameNavigation(
     val context = LocalContext.current
     val audio = remember(context) { GameAudioManager.getInstance(context) }
     var showCountrySelect by remember { mutableStateOf(false) }
+    var showTutorial by rememberSaveable { mutableStateOf(false) }
+    var tutorialPage by rememberSaveable { mutableIntStateOf(0) }
 
     LaunchedEffect(showLaunch) {
         if (showLaunch) showCountrySelect = false
@@ -128,6 +136,8 @@ fun GameNavigation(
                     audio.playClick()
                     viewModel.startNewGame(countryId, scenarioId, challengeId)
                     showCountrySelect = false
+                    tutorialPage = 0
+                    showTutorial = true
                 },
             )
         } else {
@@ -221,6 +231,7 @@ fun GameNavigation(
     }
 
     if (
+        !showTutorial &&
         activeEvent == null &&
         electionNight == null &&
         warOutcome == null &&
@@ -253,6 +264,24 @@ fun GameNavigation(
         )
     }
 
+    if (showTutorial) {
+        GameTutorialDialog(
+            page = tutorialPage,
+            onNext = {
+                audio.playClick()
+                if (tutorialPage >= 3) showTutorial = false else tutorialPage += 1
+            },
+            onBack = {
+                audio.playClick()
+                tutorialPage = (tutorialPage - 1).coerceAtLeast(0)
+            },
+            onSkip = {
+                audio.playClick()
+                showTutorial = false
+            },
+        )
+    }
+
     if (gameOver) {
         CampaignEndDialog(
             isVictory = isVictory,
@@ -279,13 +308,12 @@ fun GameNavigation(
             },
         )
 
-        NavHost(
-            navController = navController,
-            startDestination = GameDestination.Dashboard.route,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxSize(),
-        ) {
+        Row(modifier = Modifier.weight(1f).fillMaxSize()) {
+            NavHost(
+                navController = navController,
+                startDestination = GameDestination.Dashboard.route,
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+            ) {
             composable(GameDestination.Dashboard.route) {
                 MainDashboardScreen(
                     state = state,
@@ -329,13 +357,15 @@ fun GameNavigation(
             composable(GameDestination.Cabinet.route) {
                 CabinetScreen(state = state, viewModel = viewModel)
             }
+            }
+            MinistryBottomNav(
+                state = state,
+                currentRoute = currentRoute,
+                onNavigate = navigate,
+                sideRail = true,
+                modifier = Modifier.width(80.dp).fillMaxHeight(),
+            )
         }
-
-        MinistryBottomNav(
-            state = state,
-            currentRoute = currentRoute,
-            onNavigate = navigate,
-        )
     }
 }
 

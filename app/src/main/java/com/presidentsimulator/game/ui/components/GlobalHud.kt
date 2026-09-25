@@ -26,9 +26,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SportsMartialArts
 import androidx.compose.material.icons.filled.Warning
@@ -54,6 +55,7 @@ import com.presidentsimulator.game.ui.theme.Dimens
 import com.presidentsimulator.game.ui.theme.NssHudMetricsBar
 import com.presidentsimulator.game.ui.theme.NssOnPhoto
 import com.presidentsimulator.game.ui.theme.NssPrimary
+import com.presidentsimulator.game.ui.theme.NssSky
 import com.presidentsimulator.game.viewmodel.TimeSpeedMode
 import kotlin.math.roundToInt
 
@@ -70,16 +72,14 @@ fun GlobalHud(
     modifier: Modifier = Modifier,
 ) {
     val layout = rememberNssLayoutSpec()
-    val stability = (100f - state.internalSecurity.instabilityScore).coerceIn(0f, 100f)
     val milPower = state.effectiveCombatStrength.roundToInt()
     val treasuryWarn = state.netIncome < 0
-    val stabilityWarn = stability < 60f
     val monthsToElection = monthsUntilElection(state)
     val electionWarn = state.nextElectionYear > 0 && monthsToElection in 0..12
     val quarter = ((state.month - 1) / 3) + 1
 
     val pulseTransition = rememberInfiniteTransition(label = "alertPulse")
-    val hudShape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+    val hudShape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
 
     Column(
         modifier = modifier
@@ -108,24 +108,19 @@ fun GlobalHud(
                         .clip(RoundedCornerShape(8.dp))
                         .background(
                             Brush.linearGradient(
-                                colors = listOf(NssAccent, Color(0xFFD97706)),
+                                colors = listOf(NssSky, NssAccent),
                             ),
                         )
                         .border(1.dp, NssOnPhoto.copy(alpha = 0.2f), RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(
-                        Icons.Default.AccountBalance,
-                        contentDescription = null,
-                        tint = NssOnPhoto,
-                        modifier = Modifier.size(16.dp),
-                    )
+                    Text(state.playerNation.flagEmoji, fontSize = 18.sp)
                 }
                 Column {
                     Text(
                         text = state.playerNation.name.uppercase(),
                         color = NssOnPhoto,
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = FontFamily.SansSerif,
                         fontWeight = FontWeight.Black,
                         fontSize = if (layout.isNarrowWidth) 12.sp else 14.sp,
                         letterSpacing = 1.sp,
@@ -178,7 +173,8 @@ fun GlobalHud(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             HudMetric(Icons.Default.AttachMoney, formatCompactMoney(state.vitals.budget), treasuryWarn, compact = layout.isNarrowWidth)
-            HudMetric(Icons.Default.Shield, "${stability.roundToInt()}%", stabilityWarn, compact = layout.isNarrowWidth)
+            HudMetric(Icons.Default.Groups, "${state.vitals.approval.roundToInt()}%", state.vitals.approval < 50f, compact = layout.isNarrowWidth)
+            HudMetric(Icons.Default.Public, formatCompactPopulation(state.vitals.population), warn = false, compact = layout.isNarrowWidth)
             if (!layout.isNarrowWidth) {
                 HudMetric(Icons.Default.SportsMartialArts, formatCompactMil(milPower), warn = false, compact = false)
             }
@@ -310,6 +306,13 @@ fun electionCountdownLabel(months: Int): String = when {
 
 fun formatCompactMil(value: Int): String = when {
     value >= 1_000 -> "${"%.1f".format(value / 1000f)}K"
+    else -> value.toString()
+}
+
+private fun formatCompactPopulation(value: Long): String = when {
+    value >= 1_000_000_000L -> "${"%.1f".format(value / 1_000_000_000.0)}B"
+    value >= 1_000_000L -> "${"%.1f".format(value / 1_000_000.0)}M"
+    value >= 1_000L -> "${value / 1_000L}K"
     else -> value.toString()
 }
 

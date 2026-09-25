@@ -13,22 +13,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/**
- * Nation State Simulator visual system: Modern UI with Navy/Gold palette
- */
+/** Map-led strategy interface with bright information cards and compact blue controls. */
 private val NssColors = lightColorScheme(
     primary = NssPrimary,
     onPrimary = StarkWhite,
-    primaryContainer = Color(0xFFD0D7E8), // lighter navy
-    onPrimaryContainer = Color(0xFF0F1D36),
+    primaryContainer = Color(0xFFD7EAF5),
+    onPrimaryContainer = Color(0xFF163D59),
     secondary = NssSecondary,
     onSecondary = NssForeground,
     secondaryContainer = NssMuted,
     onSecondaryContainer = NssForeground,
     tertiary = NssAccent,
     onTertiary = StarkWhite,
-    tertiaryContainer = Color(0xFFF3E7D5),
-    onTertiaryContainer = Color(0xFF624415),
+    tertiaryContainer = Color(0xFFDDF0E7),
+    onTertiaryContainer = Color(0xFF205B43),
     background = NssBackground,
     onBackground = NssForeground,
     surface = NssCard,
@@ -45,22 +43,22 @@ private val NssColors = lightColorScheme(
 
 private val NssTypography = Typography(
     headlineLarge = TextStyle(
-        fontFamily = FontFamily.Serif, // Cinzel equivalent
+        fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Black,
         fontSize = 32.sp,
-        letterSpacing = 2.sp,
+        letterSpacing = 0.sp,
     ),
     headlineMedium = TextStyle(
-        fontFamily = FontFamily.Serif,
+        fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Black,
         fontSize = 24.sp,
-        letterSpacing = 1.sp,
+        letterSpacing = 0.sp,
     ),
     headlineSmall = TextStyle(
-        fontFamily = FontFamily.Serif,
+        fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Black,
         fontSize = 20.sp,
-        letterSpacing = 0.5.sp,
+        letterSpacing = 0.sp,
     ),
     titleLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
@@ -129,4 +127,3 @@ fun PresidentSimulatorTheme(
         content = content,
     )
 }
-
