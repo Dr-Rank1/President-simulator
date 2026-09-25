@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,6 +46,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import com.presidentsimulator.game.data.PlayableNationCatalog
 import com.presidentsimulator.game.data.ScenarioCatalog
 import com.presidentsimulator.game.ui.components.NssCardShape
+import com.presidentsimulator.game.ui.components.rememberNssLayoutSpec
 import com.presidentsimulator.game.ui.theme.NssAccent
 import com.presidentsimulator.game.ui.theme.NssBackground
 import com.presidentsimulator.game.ui.theme.NssBorder
@@ -77,6 +79,7 @@ fun CountrySelectScreen(
         mutableStateOf(favoritePreferences.getStringSet("favorites", emptySet()).orEmpty().toSet())
     }
     var favoritesOnly by remember { mutableStateOf(false) }
+    val layout = rememberNssLayoutSpec()
 
     val nation = nations.firstOrNull { it.id == selectedNationId } ?: nations.firstOrNull()
     val visibleNations = remember(nations, countryQuery, favoritesOnly, favoriteIds) {
@@ -103,7 +106,7 @@ fun CountrySelectScreen(
             .fillMaxSize()
             .background(NssBackground)
             .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = if (layout.isLandscape) 12.dp else 20.dp, vertical = if (layout.isLandscape) 6.dp else 12.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -126,7 +129,7 @@ fun CountrySelectScreen(
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = if (layout.isLandscape) 7.dp else 16.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             repeat(3) { index ->
@@ -139,7 +142,7 @@ fun CountrySelectScreen(
 
         when (step) {
             NATION_STEP -> {
-                StepHeading("Choose your nation", "Pick the country you want to lead.")
+                StepHeading("Choose your nation", "Pick the country you want to lead.", layout.isLandscape)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         value = countryQuery,
@@ -160,35 +163,39 @@ fun CountrySelectScreen(
                     )
                 }
                 Text("${visibleNations.size} countries", color = NssMutedForeground, fontSize = 10.sp, modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(visibleNations, key = { it.id }) { item ->
-                        NationChoiceRow(
-                            nation = item,
-                            selected = item.id == selectedNationId,
-                            favorite = item.id in favoriteIds,
-                            onSelect = { selectedNationId = item.id },
-                            onToggleFavorite = {
-                                val updated = if (item.id in favoriteIds) favoriteIds - item.id else favoriteIds + item.id
-                                favoriteIds = updated
-                                favoritePreferences.edit().putStringSet("favorites", updated).apply()
-                            },
-                        )
-                    }
-                    if (visibleNations.isEmpty()) {
-                        item { Text("No countries match that search.", color = NssMutedForeground, fontSize = 12.sp, modifier = Modifier.padding(16.dp)) }
-                    }
+                val listContent: @Composable (Modifier) -> Unit = { listModifier ->
+                    NationList(
+                        nations = visibleNations,
+                        selectedNationId = selectedNationId,
+                        favoriteIds = favoriteIds,
+                        modifier = listModifier,
+                        onSelect = { selectedNationId = it },
+                        onToggleFavorite = { id ->
+                            val updated = if (id in favoriteIds) favoriteIds - id else favoriteIds + id
+                            favoriteIds = updated
+                            favoritePreferences.edit().putStringSet("favorites", updated).apply()
+                        },
+                    )
                 }
-                nation?.let {
-                    SelectedNationSummary(it)
-                    PrimaryAction("Continue to scenario") { step = SCENARIO_STEP }
+                if (layout.isLandscape) {
+                    Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        listContent(Modifier.weight(1.35f))
+                        Column(Modifier.weight(0.8f), verticalArrangement = Arrangement.Center) {
+                            nation?.let { SelectedNationSummary(it) }
+                            PrimaryAction("Continue to scenario") { step = SCENARIO_STEP }
+                        }
+                    }
+                } else {
+                    listContent(Modifier.weight(1f))
+                    nation?.let {
+                        SelectedNationSummary(it)
+                        PrimaryAction("Continue to scenario") { step = SCENARIO_STEP }
+                    }
                 }
             }
 
             SCENARIO_STEP -> {
-                StepHeading("Choose a scenario", "Choose a starting situation, from Easy to Very Harsh.")
+                StepHeading("Choose a scenario", "Choose a starting situation, from Easy to Very Harsh.", layout.isLandscape)
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -239,7 +246,7 @@ fun CountrySelectScreen(
             }
 
             else -> {
-                StepHeading("Set your challenge", "Optional modifiers add difficulty and raise your legacy score. Classic Rules keeps the selected scenario unchanged.")
+                StepHeading("Set your challenge", "Optional modifiers add difficulty and raise your legacy score. Classic Rules keeps the selected scenario unchanged.", layout.isLandscape)
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -269,10 +276,28 @@ fun CountrySelectScreen(
 }
 
 @Composable
-private fun StepHeading(title: String, subtitle: String) {
-    Column(modifier = Modifier.padding(bottom = 12.dp)) {
-        Text(title, color = NssForeground, fontSize = 25.sp, fontWeight = FontWeight.Black)
-        Text(subtitle, color = NssMutedForeground, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+private fun StepHeading(title: String, subtitle: String, landscape: Boolean) {
+    Column(modifier = Modifier.padding(bottom = if (landscape) 5.dp else 12.dp)) {
+        Text(title, color = NssForeground, fontSize = if (landscape) 20.sp else 25.sp, fontWeight = FontWeight.Black, maxLines = 1)
+        Text(subtitle, color = NssMutedForeground, fontSize = if (landscape) 10.sp else 12.sp, modifier = Modifier.padding(top = 2.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+@Composable
+private fun NationList(
+    nations: List<PlayableNationCatalog.NationDefinition>,
+    selectedNationId: String,
+    favoriteIds: Set<String>,
+    modifier: Modifier = Modifier,
+    onSelect: (String) -> Unit,
+    onToggleFavorite: (String) -> Unit,
+) {
+    LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        items(nations, key = { it.id }) { item ->
+            NationChoiceRow(item, item.id == selectedNationId, item.id in favoriteIds,
+                onSelect = { onSelect(item.id) }, onToggleFavorite = { onToggleFavorite(item.id) })
+        }
+        if (nations.isEmpty()) item { Text("No countries match that search.", color = NssMutedForeground, fontSize = 12.sp, modifier = Modifier.padding(16.dp)) }
     }
 }
 

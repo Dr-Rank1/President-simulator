@@ -189,7 +189,7 @@ fun NssScreenHeader(
 ) {
     val layout = rememberNssLayoutSpec()
     val headerHeight = layout.screenHeaderHeight
-    val titleSize = if (layout.isCompactHeight) 22.sp else 28.sp
+    val titleSize = if (layout.isLandscape || layout.isCompactHeight) 22.sp else 28.sp
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -201,38 +201,37 @@ fun NssScreenHeader(
             modifier = Modifier.matchParentSize(),
             scrimTopToBottom = ScreenHeaderScrim,
         )
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth()
-                .padding(Dimens.ContentPadding),
-        ) {
-            Text(
-                text = "MINISTRY OF",
-                style = MaterialTheme.typography.labelSmall,
-                color = NssOnPhoto.copy(alpha = 0.6f),
-                letterSpacing = 4.sp,
-                fontSize = 10.sp,
-            )
-            Text(
-                text = title.uppercase(),
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
-                fontWeight = FontWeight.Black,
-                fontSize = titleSize,
-                color = NssOnPhoto,
-                letterSpacing = 1.sp,
-                modifier = Modifier.padding(bottom = Dimens.SpacingSmall),
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSmall)) {
-                statPills.take(3).forEach { (label, value) ->
-                    Column(
-                        modifier = Modifier
-                            .clip(MaterialTheme.shapes.small)
-                            .background(NssOnPhoto.copy(alpha = 0.15f))
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                    ) {
-                        Text(text = label, fontSize = 9.sp, color = NssOnPhoto.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold)
-                        Text(text = value, fontSize = 13.sp, color = NssOnPhoto, fontWeight = FontWeight.Black)
+        if (layout.isLandscape) {
+            Row(
+                modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(horizontal = Dimens.ContentPadding, vertical = 8.dp),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column {
+                    Text("MINISTRY OF", style = MaterialTheme.typography.labelSmall, color = NssOnPhoto.copy(alpha = 0.65f), letterSpacing = 3.sp, fontSize = 8.sp)
+                    Text(title.uppercase(), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontWeight = FontWeight.Black,
+                        fontSize = titleSize, color = NssOnPhoto, letterSpacing = 1.sp, maxLines = 1)
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    statPills.take(3).forEach { (label, value) ->
+                        Column(Modifier.clip(MaterialTheme.shapes.small).background(NssOnPhoto.copy(alpha = 0.15f)).padding(horizontal = 9.dp, vertical = 4.dp)) {
+                            Text(label, fontSize = 8.sp, color = NssOnPhoto.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold, maxLines = 1)
+                            Text(value, fontSize = 11.sp, color = NssOnPhoto, fontWeight = FontWeight.Black, maxLines = 1)
+                        }
+                    }
+                }
+            }
+        } else {
+            Column(modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(Dimens.ContentPadding)) {
+                Text("MINISTRY OF", style = MaterialTheme.typography.labelSmall, color = NssOnPhoto.copy(alpha = 0.6f), letterSpacing = 4.sp, fontSize = 10.sp)
+                Text(title.uppercase(), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontWeight = FontWeight.Black,
+                    fontSize = titleSize, color = NssOnPhoto, letterSpacing = 1.sp, modifier = Modifier.padding(bottom = Dimens.SpacingSmall))
+                Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSmall)) {
+                    statPills.take(3).forEach { (label, value) ->
+                        Column(Modifier.clip(MaterialTheme.shapes.small).background(NssOnPhoto.copy(alpha = 0.15f)).padding(horizontal = 12.dp, vertical = 6.dp)) {
+                            Text(label, fontSize = 9.sp, color = NssOnPhoto.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold)
+                            Text(value, fontSize = 13.sp, color = NssOnPhoto, fontWeight = FontWeight.Black)
+                        }
                     }
                 }
             }

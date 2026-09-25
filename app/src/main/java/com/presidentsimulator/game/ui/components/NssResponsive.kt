@@ -21,6 +21,7 @@ import com.presidentsimulator.game.ui.theme.Dimens
 data class NssLayoutSpec(
     val screenWidthDp: Int,
     val screenHeightDp: Int,
+    val isLandscape: Boolean,
     val isNarrowWidth: Boolean,
     val isCompactHeight: Boolean,
     val gridColumns: Int,
@@ -37,19 +38,23 @@ fun rememberNssLayoutSpec(): NssLayoutSpec {
         val w = config.screenWidthDp
         val h = config.screenHeightDp
         val narrow = w < 380
+        val landscape = w > h
         val compactH = h < 520
         val gridColumns = when {
             narrow -> 1
-            w < 600 && compactH -> 1
+            landscape && w >= 960 -> 3
+            landscape -> 2
+            w >= 900 -> 3
             else -> 2
         }
         val heroHeight = when {
+            landscape -> 112.dp
             compactH -> 120.dp
             h < 640 -> 140.dp
             else -> Dimens.DashboardHeroHeight
         }
         val headerHeight = when {
-            compactH -> Dimens.CompactScreenHeaderHeight
+            landscape || compactH -> Dimens.CompactScreenHeaderHeight
             else -> Dimens.ScreenHeaderHeight
         }
         val heroTitle = when {
@@ -64,6 +69,7 @@ fun rememberNssLayoutSpec(): NssLayoutSpec {
         NssLayoutSpec(
             screenWidthDp = w,
             screenHeightDp = h,
+            isLandscape = landscape,
             isNarrowWidth = narrow,
             isCompactHeight = compactH,
             gridColumns = gridColumns,
