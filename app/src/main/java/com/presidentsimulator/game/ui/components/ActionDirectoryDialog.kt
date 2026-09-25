@@ -61,25 +61,25 @@ fun ActionDirectoryDialog(
         onDismissRequest = onDismiss,
         title = { Text("Find a ministry", fontWeight = FontWeight.Black) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 OutlinedTextField(value = query, onValueChange = { query = it }, modifier = Modifier.fillMaxWidth(),
                     singleLine = true, label = { Text("Search ministries or actions") })
                 currentDestination?.let { current ->
                     Text(if (showGuide) "${current.title}: ${guideFor(current)}" else "On ${current.title}? Tap for a quick guide.",
-                        Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard).clickable { showGuide = !showGuide }.padding(9.dp),
-                        color = NssMutedForeground, fontSize = 9.sp)
+                        Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard).clickable { showGuide = !showGuide }.padding(6.dp),
+                        color = NssMutedForeground, fontSize = 8.sp)
                 }
-                Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     results.forEach { entry ->
                         Row(Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard)
-                            .clickable { onNavigate(entry.destination); onDismiss() }.padding(11.dp)) {
+                            .clickable { onNavigate(entry.destination); onDismiss() }.padding(8.dp)) {
                             Column {
-                                Text(entry.label, color = NssForeground, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(entry.label, color = NssForeground, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                 Text(entry.destination.title.uppercase(), color = NssMutedForeground, fontSize = 8.sp)
                             }
                         }
                     }
-                    if (results.isEmpty()) Text("No matching ministries. Try a broader search.", color = NssMutedForeground, fontSize = 11.sp)
+                    if (results.isEmpty()) Text("No matching ministries. Try a broader search.", color = NssMutedForeground, fontSize = 8.sp)
                 }
             }
         },

@@ -27,7 +27,7 @@ import com.presidentsimulator.game.ui.components.PhotoHeaderBottomScrim
 fun EventIllustration(
     eventType: String,
     modifier: Modifier = Modifier,
-    height: Dp = 140.dp,
+    height: Dp = 105.dp,
 ) {
     val context = LocalContext.current
     val normalized = remember(eventType) {
@@ -41,7 +41,7 @@ fun EventIllustration(
         context.resources.getIdentifier(drawableName, "drawable", context.packageName)
     }
 
-    val shape = RoundedCornerShape(12.dp)
+    val shape = RoundedCornerShape(9.dp)
     if (resId != 0) {
         Image(
             painter = painterResource(id = resId),

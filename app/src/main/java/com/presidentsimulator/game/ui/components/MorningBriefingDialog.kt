@@ -63,54 +63,54 @@ fun MorningBriefingDialog(
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .clip(NssCardShape)
                 .background(NssBackground)
-                .padding(20.dp)
+                .padding(15.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
             val dateLabel = "${GameState.monthName(month)} $year"
 
             Text(
                 text = "MORNING BRIEFING",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 fontWeight = FontWeight.Black,
                 color = NssPrimary,
-                letterSpacing = 2.sp,
+                letterSpacing = 8.sp,
             )
             Text(
                 text = dateLabel,
                 fontWeight = FontWeight.Black,
-                fontSize = 24.sp,
+                fontSize = 18.sp,
                 color = NssForeground,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = 3.dp),
             )
 
             if (agenda.briefingIntro.isNotBlank()) {
                 Text(
                     text = agenda.briefingIntro,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     color = NssMutedForeground,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                    modifier = Modifier.padding(top = 6.dp, bottom = 3.dp),
                 )
             }
 
             if (outlook != null || storyline != null) {
                 NssPanel(modifier = Modifier.fillMaxWidth()) {
                     outlook?.let {
-                        Text("CHIEF OF STAFF OUTLOOK", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp)
-                        Text(it, fontSize = 11.sp, color = NssForeground, modifier = Modifier.padding(top = 4.dp))
+                        Text("CHIEF OF STAFF OUTLOOK", fontSize = 8.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 8.sp)
+                        Text(it, fontSize = 8.sp, color = NssForeground, modifier = Modifier.padding(top = 3.dp))
                     }
                     storyline?.let {
-                        Text("ONGOING STORY", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssPrimary, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
-                        Text(it, fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+                        Text("ONGOING STORY", fontSize = 8.sp, fontWeight = FontWeight.Black, color = NssPrimary, letterSpacing = 8.sp, modifier = Modifier.padding(top = 6.dp))
+                        Text(it, fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
                     }
                 }
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(7.dp))
             }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    .padding(vertical = 7.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 BriefingStatChip(
                     label = "FILES",
@@ -136,30 +136,30 @@ fun MorningBriefingDialog(
                 NssPanel(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "RESOLVED SINCE LAST BRIEFING",
-                        fontSize = 10.sp,
+                        fontSize = 8.sp,
                         fontWeight = FontWeight.Black,
                         color = NssEmerald,
-                        letterSpacing = 1.sp,
+                        letterSpacing = 8.sp,
                     )
                     agenda.resolvedLastMonth.take(3).forEach { id ->
                         Text(
                             text = "• ${id.replace('_', ' ')}",
-                            fontSize = 11.sp,
+                            fontSize = 8.sp,
                             color = NssMutedForeground,
-                            modifier = Modifier.padding(top = 4.dp),
+                            modifier = Modifier.padding(top = 3.dp),
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(7.dp))
             }
 
             Text(
                 text = "TODAY'S AGENDA",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 fontWeight = FontWeight.Black,
                 color = NssPrimary,
-                letterSpacing = 2.sp,
-                modifier = Modifier.padding(bottom = 8.dp),
+                letterSpacing = 8.sp,
+                modifier = Modifier.padding(bottom = 6.dp),
             )
 
             agenda.items.forEach { item ->
@@ -168,28 +168,28 @@ fun MorningBriefingDialog(
                     acted = agenda.isActed(item.id),
                     onJump = { onJumpToAction(item) },
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
             }
 
             Text(
                 text = "ACKNOWLEDGE BRIEFING",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp)
+                    .padding(top = 6.dp)
                     .clip(NssCardShape)
                     .background(NssPrimary)
                     .clickable(onClick = onDismiss)
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 9.dp),
                 color = NssOnPhoto,
                 fontWeight = FontWeight.Black,
-                fontSize = 13.sp,
+                fontSize = 9.sp,
                 textAlign = TextAlign.Center,
             )
             Text(
                 text = "Time stays paused until you acknowledge. Jump to a file to act immediately.",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = NssMutedForeground,
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = 6.dp),
                 textAlign = TextAlign.Center,
             )
         }
@@ -207,11 +207,11 @@ private fun BriefingStatChip(
         modifier = modifier
             .clip(NssCardShape)
             .background(color.copy(alpha = 0.12f))
-            .padding(vertical = 8.dp),
+            .padding(vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(value, fontWeight = FontWeight.Black, fontSize = 16.sp, color = color)
-        Text(label, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground, letterSpacing = 1.sp)
+        Text(value, fontWeight = FontWeight.Black, fontSize = 12.sp, color = color)
+        Text(label, fontSize = 8.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground, letterSpacing = 8.sp)
     }
 }
 
@@ -233,7 +233,7 @@ private fun AgendaItemCard(
             .clip(NssCardShape)
             .background(NssBackground)
             .border(1.dp, accent.copy(alpha = 0.45f), NssCardShape)
-            .padding(12.dp),
+            .padding(9.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -242,34 +242,34 @@ private fun AgendaItemCard(
         ) {
             NssBadge(label = item.priority.label, large = false)
             if (acted) {
-                Text("ACTED", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = NssEmerald)
+                Text("ACTED", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = NssEmerald)
             }
         }
         Text(
             text = item.title,
             fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
+            fontSize = 10.sp,
             color = NssForeground,
-            modifier = Modifier.padding(top = 6.dp),
+            modifier = Modifier.padding(top = 4.dp),
         )
         Text(
             text = item.detail,
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 3.dp),
         )
         Text(
             text = "→ ${item.recommendedAction}",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 10.dp)
+                .padding(top = 7.dp)
                 .clip(NssCardShape)
                 .background(accent)
                 .clickable(onClick = onJump)
-                .padding(vertical = 8.dp),
+                .padding(vertical = 6.dp),
             color = NssOnPhoto,
             fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             textAlign = TextAlign.Center,
         )
     }

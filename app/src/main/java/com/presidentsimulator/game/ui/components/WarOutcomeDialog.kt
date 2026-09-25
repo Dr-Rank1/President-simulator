@@ -56,27 +56,27 @@ fun WarOutcomeDialog(
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .clip(NssCardShape)
-                .border(2.dp, color.copy(alpha = 0.5f), NssCardShape)
+                .border(1.dp, color.copy(alpha = 0.5f), NssCardShape)
                 .background(NssBackground)
-                .padding(24.dp),
+                .padding(18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(64.dp))
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(title, color = color, fontWeight = FontWeight.Black, fontSize = 20.sp, letterSpacing = 2.sp)
-            Spacer(modifier = Modifier.height(8.dp))
+            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(48.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(title, color = color, fontWeight = FontWeight.Black, fontSize = 15.sp, letterSpacing = 8.sp)
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = "War with ${outcome.targetName} ended after ${outcome.monthsActive} months.",
                 color = NssForeground,
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 textAlign = TextAlign.Center,
             )
             if (outcome.warGoalLabel.isNotBlank()) {
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Objective: ${outcome.warGoalLabel}",
                     color = NssMutedForeground,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     textAlign = TextAlign.Center,
                 )
             }
@@ -84,12 +84,12 @@ fun WarOutcomeDialog(
                 Text(
                     text = outcome.settlementNote,
                     color = NssMutedForeground,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = 3.dp),
                 )
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(9.dp))
             Text(
                 text = buildString {
                     append("Casualties · ours ${outcome.playerCasualties.toCasualtyString()}")
@@ -99,10 +99,10 @@ fun WarOutcomeDialog(
                     append(" · front ${outcome.finalProgress.roundToInt()}%")
                 },
                 color = NssMutedForeground,
-                fontSize = 13.sp,
+                fontSize = 9.sp,
                 textAlign = TextAlign.Center,
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
             Text(
                 text = "ACKNOWLEDGE",
                 modifier = Modifier
@@ -110,10 +110,10 @@ fun WarOutcomeDialog(
                     .clip(NssCardShape)
                     .background(color)
                     .clickable(onClick = onDismiss)
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 9.dp),
                 color = NssOnPhoto,
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 textAlign = TextAlign.Center,
             )
         }

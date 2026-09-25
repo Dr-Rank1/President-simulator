@@ -37,7 +37,7 @@ import com.presidentsimulator.game.ui.theme.WarningOrange
 @Composable
 fun CountryFlag(
     countryCode: String,
-    size: Dp = 40.dp,
+    size: Dp = 30.dp,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -49,7 +49,7 @@ fun CountryFlag(
         context.resources.getIdentifier(drawableName, "drawable", context.packageName)
     }
 
-    val shape = RoundedCornerShape(4.dp)
+    val shape = RoundedCornerShape(3.dp)
     if (resId != 0) {
         Image(
             painter = painterResource(id = resId),
@@ -80,7 +80,7 @@ private fun FlagFallback(
     Box(
         modifier = modifier
             .size(size)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(3.dp))
             .background(background),
         contentAlignment = Alignment.Center,
     ) {

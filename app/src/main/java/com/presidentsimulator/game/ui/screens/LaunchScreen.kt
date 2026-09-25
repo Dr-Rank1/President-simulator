@@ -83,18 +83,18 @@ fun LaunchScreen(
 
         if (layout.isLandscape) {
             Row(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 36.dp, vertical = 18.dp),
-                horizontalArrangement = Arrangement.spacedBy(40.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 27.dp, vertical = 13.dp),
+                horizontalArrangement = Arrangement.spacedBy(30.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                    Text("GLOBAL COMMAND INTERFACE", fontSize = 10.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 4.sp)
-                    Spacer(Modifier.height(6.dp))
-                    Text("NATION STATE\nSIMULATOR", fontFamily = FontFamily.Serif, fontSize = 36.sp, lineHeight = 39.sp,
-                        fontWeight = FontWeight.Black, color = NssOnPhoto, letterSpacing = 2.sp)
-                    Text("Lead a nation. Shape its future.", color = NssOnPhoto.copy(alpha = .78f), fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+                    Text("GLOBAL COMMAND INTERFACE", fontSize = 8.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 8.sp)
+                    Spacer(Modifier.height(4.dp))
+                    Text("NATION STATE\nSIMULATOR", fontFamily = FontFamily.Serif, fontSize = 27.sp, lineHeight = 29.sp,
+                        fontWeight = FontWeight.Black, color = NssOnPhoto, letterSpacing = 8.sp)
+                    Text("Lead a nation. Shape its future.", color = NssOnPhoto.copy(alpha = .78f), fontSize = 9.sp, modifier = Modifier.padding(top = 6.dp))
                 }
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     LaunchActions(hasSave, onContinueGame, onNewGame, slots, onLoadSlot)
                 }
             }
@@ -104,14 +104,14 @@ fun LaunchScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text("GLOBAL COMMAND INTERFACE", fontSize = 10.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 4.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("NATION STATE", fontFamily = FontFamily.Serif, fontSize = 40.sp, fontWeight = FontWeight.Black,
-                    color = NssOnPhoto, letterSpacing = 2.sp, textAlign = TextAlign.Center)
-                Text("SIMULATOR", fontFamily = FontFamily.Serif, fontSize = 40.sp, fontWeight = FontWeight.Black,
-                    color = NssOnPhoto, letterSpacing = 2.sp, textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.height(48.dp))
-                Column(modifier = Modifier.fillMaxWidth(if (layout.isNarrowWidth) 0.92f else 0.72f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("GLOBAL COMMAND INTERFACE", fontSize = 8.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 8.sp)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text("NATION STATE", fontFamily = FontFamily.Serif, fontSize = 30.sp, fontWeight = FontWeight.Black,
+                    color = NssOnPhoto, letterSpacing = 8.sp, textAlign = TextAlign.Center)
+                Text("SIMULATOR", fontFamily = FontFamily.Serif, fontSize = 30.sp, fontWeight = FontWeight.Black,
+                    color = NssOnPhoto, letterSpacing = 8.sp, textAlign = TextAlign.Center)
+                Spacer(modifier = Modifier.height(36.dp))
+                Column(modifier = Modifier.fillMaxWidth(if (layout.isNarrowWidth) 0.92f else 0.72f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     LaunchActions(hasSave, onContinueGame, onNewGame, slots, onLoadSlot)
                 }
             }
@@ -121,10 +121,10 @@ fun LaunchScreen(
             text = "v1.4.0_BETA // SECURE CONNECTION ESTABLISHED",
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 24.dp),
-            fontSize = 9.sp,
+                .padding(bottom = 18.dp),
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            letterSpacing = 2.sp,
+            letterSpacing = 8.sp,
             fontWeight = FontWeight.Bold,
         )
     }
@@ -172,17 +172,17 @@ private fun LaunchActionButton(
                 },
             )
             .clickable(onClick = onClick)
-            .padding(vertical = 14.dp, horizontal = Dimens.SpacingMedium),
+            .padding(vertical = 10.dp, horizontal = Dimens.SpacingMedium),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, contentDescription = null, tint = if (primary) NssOnPhoto else Color(0xFFD4C8A8), modifier = Modifier.padding(end = 8.dp))
+        Icon(icon, contentDescription = null, tint = if (primary) NssOnPhoto else Color(0xFFD4C8A8), modifier = Modifier.padding(end = 6.dp))
         Text(
             text = label,
             color = if (primary) NssOnPhoto else Color(0xFFD4C8A8),
             fontWeight = FontWeight.Black,
-            fontSize = 12.sp,
-            letterSpacing = 1.sp,
+            fontSize = 9.sp,
+            letterSpacing = 8.sp,
         )
     }
 }

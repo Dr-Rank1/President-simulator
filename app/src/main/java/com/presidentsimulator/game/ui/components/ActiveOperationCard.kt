@@ -53,23 +53,23 @@ fun ActiveOperationCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(targetName, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = NssForeground)
-                Text(mission.missionType.displayName, fontSize = 11.sp, color = NssMutedForeground)
+                Text(targetName, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
+                Text(mission.missionType.displayName, fontSize = 8.sp, color = NssMutedForeground)
             }
             NssBadge(label = statusLabel)
         }
 
         if (isActive) {
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(7.dp))
             Text(
                 text = "${mission.progressTicks}/${mission.requiredTicks} ticks · $ticksRemaining mo left · " +
                     "${(mission.successProbability * 100f).roundToInt()}% success",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = NssMutedForeground,
             )
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             NssGameBar(percent = mission.progressFraction * 100f, color = NssAccent, thick = true)
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(7.dp))
             Text(
                 text = "Cancel Operation",
                 modifier = Modifier
@@ -77,14 +77,14 @@ fun ActiveOperationCard(
                     .clip(NssCardShape)
                     .background(Color(0xFFF5F5F4))
                     .clickable(onClick = onCancel)
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 6.dp),
                 color = NssForeground,
                 fontWeight = FontWeight.Bold,
-                fontSize = 11.sp,
+                fontSize = 8.sp,
                 textAlign = TextAlign.Center,
             )
         } else {
-            Text("Mission concluded.", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 8.dp))
+            Text("Mission concluded.", fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 6.dp))
         }
     }
 }

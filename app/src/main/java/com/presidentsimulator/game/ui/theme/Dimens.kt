@@ -5,14 +5,14 @@ import androidx.compose.ui.unit.dp
 /** Dense layout metrics for gritty grand-strategy feel */
 object Dimens {
     val SpacingXSmall = 2.dp
-    val SpacingSmall = 4.dp
-    val SpacingMedium = 8.dp
-    val SpacingLarge = 12.dp
-    val SpacingXLarge = 16.dp
+    val SpacingSmall = 3.dp
+    val SpacingMedium = 6.dp
+    val SpacingLarge = 9.dp
+    val SpacingXLarge = 12.dp
 
     val ContentPadding = SpacingSmall
-    val GridGap = 4.dp
-    val SectionGap = 8.dp
+    val GridGap = 3.dp
+    val SectionGap = 6.dp
 
     // Sharp edges instead of heavy rounding
     val CardRadius = 2.dp
@@ -22,20 +22,20 @@ object Dimens {
     val BadgeCorner = 2.dp
     val PillCorner = 2.dp
 
-    val HudHeight = 48.dp
-    val CompactScreenHeaderHeight = 64.dp
-    val MinistryScrollBottomPadding = 12.dp
+    val HudHeight = 36.dp
+    val CompactScreenHeaderHeight = 48.dp
+    val MinistryScrollBottomPadding = 9.dp
 
-    val TabBarHeight = 36.dp
-    val BottomNavHeight = 48.dp
-    val ScreenHeaderHeight = 64.dp
-    val DashboardHeroHeight = 80.dp
+    val TabBarHeight = 27.dp
+    val BottomNavHeight = 36.dp
+    val ScreenHeaderHeight = 48.dp
+    val DashboardHeroHeight = 60.dp
 
-    val SectorCardPhotoHeight = 64.dp
-    val MinistryTilePhotoHeight = 64.dp
-    val NationCardHeaderHeight = 64.dp
-    val UnitCardPhotoHeight = 64.dp
-    val SituationThumbWidth = 64.dp
+    val SectorCardPhotoHeight = 48.dp
+    val MinistryTilePhotoHeight = 48.dp
+    val NationCardHeaderHeight = 48.dp
+    val UnitCardPhotoHeight = 48.dp
+    val SituationThumbWidth = 48.dp
 }
 
 object PhotoScrimAlpha {

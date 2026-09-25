@@ -59,8 +59,8 @@ fun BulkBuildControls(
             style = MaterialTheme.typography.bodySmall,
             color = NeutralGray,
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             presets.forEach { preset ->
                 FilterChip(
                     selected = selectedAmount == preset,
@@ -80,7 +80,7 @@ fun BulkBuildControls(
                 },
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         Button(
             onClick = { onBuild(amount) },
             enabled = canBuild,

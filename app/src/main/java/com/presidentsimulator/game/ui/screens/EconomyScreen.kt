@@ -187,7 +187,7 @@ private fun IndustryTab(
 
     Text(
         text = "Production modifier ${(state.legal.combinedProductionModifier * 100f).roundToInt()}%",
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         color = NssMutedForeground,
     )
 
@@ -198,7 +198,7 @@ private fun IndustryTab(
                     "Energy shortage — industrial output penalized to 30%.",
                     color = NssRed,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp,
+                    fontSize = 9.sp,
                 )
             }
             if (production.foodShortage) {
@@ -206,8 +206,8 @@ private fun IndustryTab(
                     "Food shortage — approval and population are falling.",
                     color = NssRed,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(top = if (production.energyShortage) 6.dp else 0.dp),
+                    fontSize = 9.sp,
+                    modifier = Modifier.padding(top = if (production.energyShortage) 4.dp else 0.dp),
                 )
             }
         }
@@ -229,7 +229,7 @@ private fun IndustryTab(
     )
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("INDUSTRIAL CAPACITY", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("INDUSTRIAL CAPACITY", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         CapacityLine("Power Plants", production.powerPlants)
         CapacityLine("Mines", production.mines)
         CapacityLine("Factories", state.economy.factories)
@@ -238,7 +238,7 @@ private fun IndustryTab(
     }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("EXPAND CAPACITY", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("EXPAND CAPACITY", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         IndustryBuildControls(
             label = "Power Plants",
             amount = plantAmount,
@@ -279,13 +279,13 @@ private fun IndustryResourceCard(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(resource.displayName, fontWeight = FontWeight.Bold, color = NssForeground)
-            Text("Stock ${stock.toResourceString()}", color = NssMutedForeground, fontSize = 12.sp)
+            Text("Stock ${stock.toResourceString()}", color = NssMutedForeground, fontSize = 9.sp)
         }
         Text(
             "+${produced.toResourceString()} / −${consumed.toResourceString()}",
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 3.dp),
         )
         NssGameBar(
             percent = ((produced.toFloat() / (produced + consumed).coerceAtLeast(1).toFloat()) * 100f)
@@ -295,13 +295,13 @@ private fun IndustryResourceCard(
         )
         Text(
             text = if (surplus >= 0) "Surplus ${surplus.toResourceString()}" else "Deficit ${(-surplus).toResourceString()}",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             fontWeight = FontWeight.SemiBold,
             color = if (surplus >= 0) NssEmerald else NssRed,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 3.dp),
         )
         if (extra != null) {
-            Text(extra, fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+            Text(extra, fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
         }
     }
 }
@@ -309,10 +309,10 @@ private fun IndustryResourceCard(
 @Composable
 private fun CapacityLine(label: String, count: Int) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(label, color = NssForeground, fontSize = 13.sp)
+        Text(label, color = NssForeground, fontSize = 9.sp)
         Text(count.toString(), fontWeight = FontWeight.Bold, color = NssPrimary)
     }
 }
@@ -328,10 +328,10 @@ private fun IndustryBuildControls(
     val cappedMax = maxAffordable.coerceAtLeast(1)
     Text(
         "$label · build $amount (max $maxAffordable)",
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         fontWeight = FontWeight.SemiBold,
         color = NssForeground,
-        modifier = Modifier.padding(top = 10.dp),
+        modifier = Modifier.padding(top = 7.dp),
     )
     Slider(
         value = amount.toFloat().coerceIn(1f, cappedMax.toFloat()),
@@ -347,10 +347,10 @@ private fun IndustryBuildControls(
             .clip(NssCardShape)
             .background(if (maxAffordable > 0) NssPrimary else NssMutedForeground.copy(alpha = 0.35f))
             .clickable(enabled = maxAffordable > 0, onClick = onBuild)
-            .padding(vertical = 10.dp),
+            .padding(vertical = 7.dp),
         color = NssOnPhoto,
         fontWeight = FontWeight.Bold,
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
     )
 }
@@ -368,10 +368,10 @@ private fun SectorsTab(
 
     Text(
         text = "SECTOR MANAGEMENT",
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         fontWeight = FontWeight.Black,
         color = NssPrimary,
-        letterSpacing = 3.sp,
+        letterSpacing = 8.sp,
         modifier = Modifier.padding(top = Dimens.SpacingSmall, bottom = Dimens.SpacingXSmall),
     )
 
@@ -432,13 +432,13 @@ private fun GdpBreakdownCard(sectors: List<SectorModel>) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("TOTAL GDP BREAKDOWN", fontSize = 11.sp, fontWeight = FontWeight.Black, color = NssMutedForeground, letterSpacing = 1.sp)
-            Text("🏆 ${sectors.size} Active Sectors", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = NssAccent)
+            Text("TOTAL GDP BREAKDOWN", fontSize = 8.sp, fontWeight = FontWeight.Black, color = NssMutedForeground, letterSpacing = 8.sp)
+            Text("🏆 ${sectors.size} Active Sectors", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = NssAccent)
         }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(16.dp)
+                .height(12.dp)
                 .clip(RoundedCornerShape(50)),
             horizontalArrangement = Arrangement.spacedBy(1.dp),
         ) {
@@ -457,16 +457,16 @@ private fun GdpBreakdownCard(sectors: List<SectorModel>) {
             }
         }
         sectors.forEachIndexed { index, sector ->
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(8.dp)
+                        .size(6.dp)
                         .clip(RoundedCornerShape(50))
                         .background(NssSectorBarColors[index % NssSectorBarColors.size]),
                 )
                 Text(
                     text = "${sector.name} ${"%.1f".format(sector.gdpShare)}%",
-                    fontSize = 9.sp,
+                    fontSize = 8.sp,
                     color = NssMutedForeground,
                     fontWeight = FontWeight.Medium,
                 )
@@ -497,8 +497,8 @@ private fun PolicyTab(state: GameState, viewModel: GameViewModel) {
                     modifier = Modifier.weight(1f),
                 ) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(key, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Text("${(draftTaxRate * 100).roundToInt()}%", color = NssPrimary, fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
+                        Text(key, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 9.sp)
+                        Text("${(draftTaxRate * 100).roundToInt()}%", color = NssPrimary, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Slider(
                         value = draftTaxRate,
@@ -532,8 +532,8 @@ private fun BudgetTab(state: GameState, viewModel: GameViewModel) {
         state.internalSecurity.monthlyUpkeep + state.society.totalMinistryUpkeep + state.finance.monthlyInterestCost
     val borrowingLimit = state.finance.borrowingLimit(revenue)
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("FISCAL POSITION", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
-        Spacer(Modifier.height(8.dp))
+        Text("FISCAL POSITION", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
+        Spacer(Modifier.height(6.dp))
         LedgerLine("Treasury reserves", formatMa2Money(state.vitals.budget), if (state.vitals.budget >= 0L) NssEmerald else NssRed, bold = true)
         LedgerLine("Monthly revenue", formatMa2Money(revenue), NssEmerald)
         LedgerLine("Recurring costs + interest", formatMa2Money(costs), NssOrange)
@@ -542,29 +542,29 @@ private fun BudgetTab(state: GameState, viewModel: GameViewModel) {
     }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("PUBLIC DEBT & CREDIT", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
-        Spacer(Modifier.height(8.dp))
+        Text("PUBLIC DEBT & CREDIT", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
+        Spacer(Modifier.height(6.dp))
         LedgerLine("Outstanding debt", formatMa2Money(state.finance.publicDebt), NssOrange, bold = true)
         LedgerLine("Credit score", "${state.finance.creditScore}/100", if (state.finance.creditScore >= 60) NssEmerald else NssRed)
         LedgerLine("Annual interest rate", "${(state.finance.annualInterestRate * 100f).roundToInt()}%", NssViolet)
         LedgerLine("Credit ceiling", formatMa2Money(borrowingLimit), NssMutedForeground)
         LedgerLine("Unpaid obligations", formatMa2Money(state.finance.arrears), if (state.finance.arrears == 0L) NssEmerald else NssRed)
         if (state.finance.consecutiveDeficitMonths > 0) {
-            Text("Deficit streak: ${state.finance.consecutiveDeficitMonths} month(s). New deficits consume the remaining credit line; uncovered bills become arrears and weaken credit.", color = NssRed, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
+            Text("Deficit streak: ${state.finance.consecutiveDeficitMonths} month(s). New deficits consume the remaining credit line; uncovered bills become arrears and weaken credit.", color = NssRed, fontSize = 9.sp, modifier = Modifier.padding(top = 4.dp))
         } else {
-            Text("Deficits are financed automatically up to a credit ceiling based on annual revenue and creditworthiness. Surpluses repay debt gradually.", color = NssMutedForeground, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
+            Text("Deficits are financed automatically up to a credit ceiling based on annual revenue and creditworthiness. Surpluses repay debt gradually.", color = NssMutedForeground, fontSize = 9.sp, modifier = Modifier.padding(top = 4.dp))
         }
         Button(
             onClick = viewModel::repayPublicDebt,
             enabled = state.finance.publicDebt > 0L && state.vitals.budget > costs * 2L,
-            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 7.dp),
             colors = ButtonDefaults.buttonColors(containerColor = NssPrimary),
         ) { Text("Make a safe extra repayment", color = NssOnPhoto, fontWeight = FontWeight.Bold) }
-        Text("Extra repayment preserves a two-month operating reserve.", color = NssMutedForeground, fontSize = 10.sp)
+        Text("Extra repayment preserves a two-month operating reserve.", color = NssMutedForeground, fontSize = 8.sp)
     }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("REVENUE SOURCES / MONTH", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("REVENUE SOURCES / MONTH", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         LedgerLine("Tax receipts", formatMa2Money(state.economy.taxRevenue(state.vitals.population)), NssEmerald)
         LedgerLine("Exports + trade treaties", formatMa2Money(state.economy.effectiveExports + state.tradeExportBonus), NssEmerald)
         LedgerLine("Industrial goods", formatMa2Money(state.production.lastGoodsRevenue), NssEmerald)
@@ -572,9 +572,9 @@ private fun BudgetTab(state: GameState, viewModel: GameViewModel) {
     }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("FISCAL LEDGER", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("FISCAL LEDGER", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         if (state.finance.ledger.isEmpty()) {
-            Text("No debt transactions recorded. Monthly operations are settled at the start of each turn.", color = NssMutedForeground, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+            Text("No debt transactions recorded. Monthly operations are settled at the start of each turn.", color = NssMutedForeground, fontSize = 9.sp, modifier = Modifier.padding(top = 6.dp))
         } else {
             state.finance.ledger.takeLast(8).asReversed().forEach { entry ->
                 LedgerLine("${entry.label} · ${entry.month}/${entry.year}", formatMa2Money(entry.amount), if (entry.amount >= 0L) NssOrange else NssRed)
@@ -598,19 +598,19 @@ private fun BudgetTab(state: GameState, viewModel: GameViewModel) {
             fallbackGradient = line.fallbackGradient,
         ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSmall + Dimens.SpacingXSmall)) {
-                Box(modifier = Modifier.width(4.dp).height(48.dp).background(line.accent))
+                Box(modifier = Modifier.width(3.dp).height(36.dp).background(line.accent))
                 Column(modifier = Modifier.weight(1f)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(line.dept, color = NssForeground, fontWeight = FontWeight.Bold)
                         Text("${pct.roundToInt()}% of budget", style = MaterialTheme.typography.labelSmall, color = NssMutedForeground)
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     NssProgressBar(percent = pct, color = line.accent, thick = true)
                     Text(
                         text = "Spent: ${formatMa2Money(line.spent)}/mo",
                         style = MaterialTheme.typography.labelSmall,
                         color = NssMutedForeground,
-                        modifier = Modifier.padding(top = 6.dp),
+                        modifier = Modifier.padding(top = 4.dp),
                     )
                 }
             }
@@ -644,12 +644,12 @@ private fun TradeTab(
     val dealPrice = partner?.let { viewModel.negotiatedDealPrice(it.id, selectedCommodity, selectedType) } ?: 0L
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("TARIFF POLICY", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("TARIFF POLICY", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         Text(
             text = "${(draftTariff * 100f).roundToInt()}% · forecast ${formatMa2Money(forecastRevenue)}/mo · approval ${"%.1f".format(forecastPenalty)}",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+            modifier = Modifier.padding(top = 3.dp, bottom = 6.dp),
         )
         Slider(
             value = draftTariff,
@@ -661,12 +661,12 @@ private fun TradeTab(
     }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("EXPORT QUOTA", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("EXPORT QUOTA", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         Text(
             text = "${(draftExportQuota * 100f).roundToInt()}% of goods sold · ${(100 - draftExportQuota * 100f).roundToInt()}% stockpiled (3% decay/mo)",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+            modifier = Modifier.padding(top = 3.dp, bottom = 6.dp),
         )
         Slider(
             value = draftExportQuota,
@@ -677,26 +677,26 @@ private fun TradeTab(
         )
         Text(
             text = "Stockpile: ${state.production.goods} units",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssForeground,
         )
     }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("SPOT MARKET", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("SPOT MARKET", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         state.market.resources.forEach { quote ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 6.dp),
+                    .padding(vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
                     Text(quote.commodity.displayName, fontWeight = FontWeight.Bold, color = NssForeground)
-                    Text(formatMa2Money(quote.currentPrice) + "/u", fontSize = 11.sp, color = NssMutedForeground)
+                    Text(formatMa2Money(quote.currentPrice) + "/u", fontSize = 8.sp, color = NssMutedForeground)
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         "BUY",
                         modifier = Modifier
@@ -706,10 +706,10 @@ private fun TradeTab(
                                 viewModel.buyFromMarket(quote.commodity)
                                 audio.playBuildSuccess()
                             }
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                            .padding(horizontal = 7.dp, vertical = 4.dp),
                         color = NssEmerald,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        fontSize = 8.sp,
                     )
                     Text(
                         "SELL",
@@ -720,10 +720,10 @@ private fun TradeTab(
                                 viewModel.sellToMarket(quote.commodity)
                                 audio.playBuildSuccess()
                             }
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                            .padding(horizontal = 7.dp, vertical = 4.dp),
                         color = NssRed,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        fontSize = 8.sp,
                     )
                 }
             }
@@ -731,16 +731,16 @@ private fun TradeTab(
     }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("ACTIVE DEALS", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("ACTIVE DEALS", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         if (state.trade.activeDeals.isEmpty()) {
-            Text("No active contracts.", fontSize = 12.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 6.dp))
+            Text("No active contracts.", fontSize = 9.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
         } else {
             state.trade.activeDeals.forEach { deal ->
                 val name = state.diplomacy.rivalById(deal.partnerCountryId)?.name ?: deal.partnerCountryId
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 6.dp),
+                        .padding(vertical = 4.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -748,13 +748,13 @@ private fun TradeTab(
                         Text("$name · ${deal.commodity.displayName}", fontWeight = FontWeight.Bold, color = NssForeground)
                         Text(
                             "${deal.type.name} ×${deal.amountPerTick} · ${formatMa2Money(deal.pricePerUnit)}/u",
-                            fontSize = 11.sp,
+                            fontSize = 8.sp,
                             color = NssMutedForeground,
                         )
                         if (deal.missedDeliveries > 0) {
                             Text(
                                 "At risk (${deal.missedDeliveries}/${com.presidentsimulator.game.data.TradeDeal.MAX_MISSED_DELIVERIES} misses)",
-                                fontSize = 10.sp,
+                                fontSize = 8.sp,
                                 color = NssAccent,
                                 fontWeight = FontWeight.Bold,
                             )
@@ -766,8 +766,8 @@ private fun TradeTab(
                             .clip(NssCardShape)
                             .background(NssBorder)
                             .clickable { viewModel.cancelTradeDeal(deal.dealId) }
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                        fontSize = 10.sp,
+                            .padding(horizontal = 7.dp, vertical = 4.dp),
+                        fontSize = 8.sp,
                         fontWeight = FontWeight.Bold,
                         color = NssForeground,
                     )
@@ -777,14 +777,14 @@ private fun TradeTab(
     }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("PROPOSE CONTRACT", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
-        Text("Partners", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text("PROPOSE CONTRACT", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
+        Text("Partners", fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 6.dp, bottom = 3.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             state.diplomacy.rivals.take(4).forEach { rival ->
                 FilterChip(
                     selected = selectedPartnerId == rival.id,
                     onClick = { selectedPartnerId = rival.id },
-                    label = { Text(rival.name, fontSize = 10.sp) },
+                    label = { Text(rival.name, fontSize = 8.sp) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = NssPrimary,
                         selectedLabelColor = Color.White,
@@ -792,37 +792,37 @@ private fun TradeTab(
                 )
             }
         }
-        Text("Commodity", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text("Commodity", fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 6.dp, bottom = 3.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             TradeCommodity.entries.forEach { commodity ->
                 FilterChip(
                     selected = selectedCommodity == commodity,
                     onClick = { selectedCommodity = commodity },
-                    label = { Text(commodity.displayName, fontSize = 10.sp) },
+                    label = { Text(commodity.displayName, fontSize = 8.sp) },
                 )
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(top = 6.dp)) {
             TradeType.entries.forEach { type ->
                 FilterChip(
                     selected = selectedType == type,
                     onClick = { selectedType = type },
-                    label = { Text(type.name, fontSize = 10.sp) },
+                    label = { Text(type.name, fontSize = 8.sp) },
                 )
             }
         }
         val canPropose = partner != null && TradeMarketViewModel.canProposeDeal(state, partner.id)
         Text(
             text = if (partner == null) "Select a partner" else "Unit price ${formatMa2Money(dealPrice)}",
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(top = 6.dp),
         )
         Text(
             text = "SUBMIT DEAL",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 10.dp)
+                .padding(top = 7.dp)
                 .clip(NssCardShape)
                 .background(if (canPropose) NssPrimary else NssBorder)
                 .clickable(enabled = canPropose) {
@@ -831,10 +831,10 @@ private fun TradeTab(
                         audio.playBuildSuccess()
                     }
                 }
-                .padding(vertical = 12.dp),
+                .padding(vertical = 9.dp),
             color = if (canPropose) Color.White else NssMutedForeground,
             fontWeight = FontWeight.Bold,
-            fontSize = 13.sp,
+            fontSize = 9.sp,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
     }
@@ -944,7 +944,7 @@ private fun buildSectors(state: GameState, gdp: Long): List<SectorModel> {
 
 @Composable
 private fun LedgerLine(label: String, value: String, color: Color, bold: Boolean = false) {
-    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, color = NssForeground, fontWeight = if (bold) FontWeight.Bold else FontWeight.SemiBold)
         Text(value, color = color, fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal)
     }

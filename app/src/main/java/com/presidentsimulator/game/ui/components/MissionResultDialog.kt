@@ -65,50 +65,50 @@ fun MissionResultDialog(
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .clip(NssCardShape)
-                .border(2.dp, color.copy(alpha = 0.5f), NssCardShape)
+                .border(1.dp, color.copy(alpha = 0.5f), NssCardShape)
                 .background(NssBackground)
-                .padding(24.dp),
+                .padding(18.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = Modifier.size(64.dp),
+                modifier = Modifier.size(48.dp),
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = title,
                 color = color,
                 fontWeight = FontWeight.Black,
-                fontSize = 18.sp,
-                letterSpacing = 2.sp,
+                fontSize = 13.sp,
+                letterSpacing = 8.sp,
                 textAlign = TextAlign.Center,
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
                 text = description,
                 color = NssForeground,
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 textAlign = TextAlign.Center,
             )
 
             if (mission.outcomeSummary.isNotBlank()) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(9.dp))
                 Text(
                     text = mission.outcomeSummary,
                     color = NssMutedForeground,
-                    fontSize = 13.sp,
+                    fontSize = 9.sp,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             Text(
                 text = "ACKNOWLEDGE",
@@ -117,10 +117,10 @@ fun MissionResultDialog(
                     .clip(NssCardShape)
                     .background(color)
                     .clickable(onClick = onDismiss)
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 9.dp),
                 color = NssOnPhoto,
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 textAlign = TextAlign.Center,
             )
         }

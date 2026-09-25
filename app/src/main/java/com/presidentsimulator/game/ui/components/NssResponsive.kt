@@ -48,9 +48,9 @@ fun rememberNssLayoutSpec(): NssLayoutSpec {
             else -> 2
         }
         val heroHeight = when {
-            landscape -> 112.dp
-            compactH -> 120.dp
-            h < 640 -> 140.dp
+            landscape -> 84.dp
+            compactH -> 90.dp
+            h < 640 -> 105.dp
             else -> Dimens.DashboardHeroHeight
         }
         val headerHeight = when {
@@ -58,13 +58,13 @@ fun rememberNssLayoutSpec(): NssLayoutSpec {
             else -> Dimens.ScreenHeaderHeight
         }
         val heroTitle = when {
-            narrow -> 28.sp
-            compactH -> 32.sp
-            else -> 40.sp
+            narrow -> 21.sp
+            compactH -> 24.sp
+            else -> 30.sp
         }
         val factionHero = when {
-            compactH -> 180.dp
-            else -> 220.dp
+            compactH -> 135.dp
+            else -> 165.dp
         }
         NssLayoutSpec(
             screenWidthDp = w,
