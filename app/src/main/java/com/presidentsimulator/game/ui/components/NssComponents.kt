@@ -8,6 +8,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -1079,4 +1080,26 @@ object NssNationColors {
     val Neutral = Color(0xFFE7E5E4)
     val Rival = Color(0xFFFDE68A)
     val Hostile = Color(0xFFFECACA)
+}
+
+@Composable
+fun InteractiveWorldMap(
+    modifier: Modifier = Modifier,
+    onOpenDiplomacy: () -> Unit = {}
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFF031626))
+            .clickable { onOpenDiplomacy() }
+    ) {
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(id = com.presidentsimulator.game.R.drawable.world_map),
+            contentDescription = "World Map",
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+            alpha = 0.35f,
+            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(com.presidentsimulator.game.ui.theme.NssPrimary)
+        )
+    }
 }

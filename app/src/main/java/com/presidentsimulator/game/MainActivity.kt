@@ -8,6 +8,9 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.background
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.Modifier
 import com.presidentsimulator.game.audio.GameAudioManager
 import com.presidentsimulator.game.ui.navigation.GameNavigation
@@ -24,14 +27,19 @@ class MainActivity : ComponentActivity() {
         GameAudioManager.getInstance(this)
         enableEdgeToEdge()
         setContent {
-            PresidentSimulatorTheme {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(NssBackground),
-                    color = NssBackground,
+                        PresidentSimulatorTheme {
+                val currentDensity = LocalDensity.current
+                CompositionLocalProvider(
+                    LocalDensity provides Density(currentDensity.density * 0.7f, currentDensity.fontScale * 0.7f)
                 ) {
-                    GameNavigation(viewModel = gameViewModel)
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(NssBackground),
+                        color = NssBackground,
+                    ) {
+                        GameNavigation(viewModel = gameViewModel)
+                    }
                 }
             }
         }

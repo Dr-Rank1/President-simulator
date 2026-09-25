@@ -36,6 +36,9 @@ internal class MonthlySimulationPipeline(
         val (month, year) = advanceDate(current.month, current.year)
         var next = current.copy(month = month, year = year)
 
+        // Paid equipment and personnel orders arrive before the monthly budget settles.
+        next = diplomacy.processMilitaryProcurement(next)
+
         // 1. Production and fiscal settlement.
         next = productionLaw.processProductionTick(next)
         next = FiscalEngine.settleMonth(next).let { settled ->

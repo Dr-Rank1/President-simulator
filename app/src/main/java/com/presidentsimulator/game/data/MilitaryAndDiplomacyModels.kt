@@ -22,6 +22,12 @@ data class MilitaryState(
     val nuclearArsenal: Int = 0,
     val deployment: DeploymentStatus = DeploymentStatus.DEFENSIVE,
     val defcon: Int = 4,
+    /** Permanent preparedness improvements purchased by the government. */
+    val trainingLevel: Int = 1,
+    /** Equipment and personnel already paid for, awaiting delivery. */
+    val procurementOrders: List<MilitaryProcurementOrder> = emptyList(),
+    /** Country currently being monitored as the main strategic theater. */
+    val frontlineFocusCountryId: String? = null,
 ) {
     /** Legacy alias used by older UI formatters. */
     val armySize: Long get() = personnel
@@ -67,20 +73,34 @@ data class MilitaryState(
                 else -> 1.0
             }
             val moraleBonus = 0.80 + (morale / 100.0) * 0.40
-            return base * postureBonus * defconBonus * moraleBonus
+            val trainingBonus = 1.0 + (trainingLevel.coerceIn(1, 10) - 1) * 0.035
+            return base * postureBonus * defconBonus * moraleBonus * trainingBonus
         }
 }
 
+@Serializable
+enum class MilitaryProcurementType { PERSONNEL, TANKS, FIGHTER_JETS, NAVAL_SHIPS, NUCLEAR_ARSENAL }
+
+@Serializable
+data class MilitaryProcurementOrder(
+    val type: MilitaryProcurementType,
+    val quantity: Long,
+    val totalCost: Long,
+    val monthsRemaining: Int,
+)
+
 /** Purchasable military hardware categories for the Defense ministry UI. */
+@Serializable
 enum class MilitaryHardware(
     val displayName: String,
     val unitStrength: Float,
     val unitCost: Long,
+    val leadTimeMonths: Int,
 ) {
-    TANKS("Tanks", 2.5f, 15_000_000L),
-    FIGHTER_JETS("Fighter Jets", 8.0f, 80_000_000L),
-    NAVAL_SHIPS("Naval Ships", 5.0f, 120_000_000L),
-    NUCLEAR_ARSENAL("Nuclear Arsenal", 25.0f, 2_000_000_000L),
+    TANKS("Tanks", 2.5f, 15_000_000L, 8),
+    FIGHTER_JETS("Fighter Jets", 8.0f, 80_000_000L, 12),
+    NAVAL_SHIPS("Naval Ships", 5.0f, 120_000_000L, 14),
+    NUCLEAR_ARSENAL("Nuclear Arsenal", 25.0f, 2_000_000_000L, 18),
 }
 
 @Serializable
@@ -118,6 +138,8 @@ data class WarState(
     val warGoal: WarGoal = WarGoal.REPARATIONS,
     /** Most recent monthly battle note for UI / turn bulletin. */
     val lastBattleSummary: String = "",
+    /** Scrollable, recent engagement history retained for the war room. */
+    val battleReports: List<String> = emptyList(),
 )
 
 /**
@@ -191,6 +213,7 @@ data class DiplomacyState(
     val activeWar: WarState? = null,
     /** Months until diplomatic actions can repeat (keys: aid_<id>, visit_<id>). */
     val diplomaticCooldowns: Map<String, Int> = emptyMap(),
+    val actionHistory: List<DiplomaticActionRecord> = emptyList(),
 ) {
     fun rivalById(id: String): RivalNation? = rivals.find { it.id == id }
 
@@ -262,3 +285,13 @@ data class DiplomacyState(
         )
     }
 }
+
+@Serializable
+data class DiplomaticActionRecord(
+    val year: Int,
+    val month: Int,
+    val countryId: String,
+    val countryName: String,
+    val action: String,
+    val result: String,
+)

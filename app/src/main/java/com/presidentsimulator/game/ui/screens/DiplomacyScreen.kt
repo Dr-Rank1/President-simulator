@@ -89,7 +89,7 @@ fun DiplomacyScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(NssBackground)
+            .background(Color(0xCC050A0F))
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
         NssScreenHeader(

@@ -125,7 +125,7 @@ fun ApprovalDemographicsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(NssBackground)
+            .background(androidx.compose.ui.graphics.Color(0xCC050A0F))
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
         NssScreenHeader(
