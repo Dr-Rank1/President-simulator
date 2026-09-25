@@ -63,3 +63,7 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
+
+composeCompiler {
+    enableStrongSkippingMode = true
+}

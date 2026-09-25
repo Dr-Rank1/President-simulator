@@ -131,7 +131,7 @@ fun DiplomacyScreen(
             when (selectedTab) {
                 "RELATIONS" -> {
                     item { RelationsLegend() }
-                    itemsIndexed(state.diplomacy.rivals.chunked(layout.gridColumns)) { rowIndex, row ->
+                    itemsIndexed(state.diplomacy.rivals.chunked(layout.gridColumns), key = { i, r -> r.joinToString { it.id } }) { rowIndex, row ->
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             row.forEachIndexed { colIndex, rival ->
                                 val cardIndex = rowIndex * layout.gridColumns + colIndex
@@ -185,7 +185,7 @@ fun DiplomacyScreen(
                 }
 
                 "TREATIES" -> {
-                    items(state.diplomacy.rivals.filter { it.hasTradeTreaty || it.hasNonAggressionPact }) { rival ->
+                    items(state.diplomacy.rivals.filter { it.hasTradeTreaty || it.hasNonAggressionPact }, key = { it.id }) { rival ->
                         NssStripPhotoCard(
                             imageUrl = NssCardImages.BANNER_FOREIGN,
                             fallbackGradient = NssGradients.Foreign,
@@ -233,7 +233,7 @@ fun DiplomacyScreen(
                 }
 
                 "NEGOTIATIONS" -> {
-                    items(state.diplomacy.rivals) { rival ->
+                    items(state.diplomacy.rivals, key = { it.id }) { rival ->
                         val progress = rival.relationshipScore
                         val warActive = activeWar != null
                         val canTradeDeal = TradeMarketViewModel.canProposeDeal(state, rival.id)

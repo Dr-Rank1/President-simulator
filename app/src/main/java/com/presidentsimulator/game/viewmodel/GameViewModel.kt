@@ -958,7 +958,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                     _state.value.demographics.election.hasPendingNight ||
                     _state.value.gameOver.isGameOver
                 if (!blocked) {
-                    advanceTimeTick()
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { advanceTimeTick() }
                 }
                 delay(interval)
             }
