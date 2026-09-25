@@ -53,38 +53,38 @@ private data class TutorialPage(
 private val tutorialPages = listOf(
     TutorialPage(
         "Welcome, President",
-        "Your command center brings together the country’s finances, approval, stability, current risks, and campaign priorities.",
-        "Check this dashboard daily to know exactly what needs your immediate attention.",
+        "This is your command dashboard. From here you monitor your nation's vitals: Approval, Budget, and Stability.",
+        "Your first goal is to balance the budget. Check the Economy tab next.",
         Icons.Default.AccountBalance,
     ),
     TutorialPage(
-        "Economic Mastery",
-        "The Economy tab allows you to adjust tax rates across classes, fund infrastructure, and balance the budget.",
-        "High taxes increase revenue but hurt approval and economic growth. Balance is key to survival.",
+        "Managing the Economy",
+        "Use the Economy tab to adjust taxes and allocate funds. A high GDP growth means more revenue.",
+        "Warning: High taxes will crash your approval rating. Find the sweet spot.",
         Icons.Default.AccountBalance,
     ),
     TutorialPage(
-        "Military & Defense",
-        "Maintain your army, navy, and airforce. A strong military deters invaders and keeps order during instability.",
-        "Funding the military is expensive. Only raise spending if you anticipate conflict or need to suppress a rebellion.",
+        "National Defense",
+        "The Military tab is where you recruit soldiers and invest in defense technology.",
+        "A weak military invites foreign invasions. Keep it strong, but don't bankrupt the country.",
         Icons.Default.Groups,
     ),
     TutorialPage(
         "Global Diplomacy",
-        "You are not alone in the world. The UN and neighboring countries will react to your aggressive or peaceful actions.",
-        "Forming alliances provides trade benefits and mutual defense, but can drag you into foreign wars.",
+        "The Foreign Affairs tab lets you form alliances, sign trade deals, or declare wars.",
+        "Build relationships before declaring war, or you will face crippling UN sanctions.",
         Icons.Default.Groups,
     ),
     TutorialPage(
         "Passing Laws",
-        "Use the Parliament/Congress to pass sweeping reforms. Laws define your government's stance on rights and security.",
-        "If you lack support, you may have to bribe officials or use executive orders, which risk public backlash.",
+        "Your parliament is waiting. Pass laws to shape your country's ideology and address crises.",
+        "Some laws require high political capital. Check your mandate progress to gain capital.",
         Icons.Default.AccountBalance,
     ),
     TutorialPage(
-        "Advance Time Carefully",
-        "The controls at the top pause, resume, or speed up the simulation. Monthly turns update all statistics.",
-        "Always resolve urgent red alerts before advancing time, or you may face a crisis.",
+        "Advancing Time",
+        "The simulation is turn-based. Tap the Next Month button at the top to advance time.",
+        "Watch out for random events and crises that pop up between turns!",
         Icons.Default.PlayArrow,
     )
 )
@@ -105,13 +105,13 @@ fun GameTutorialDialog(
         val window = (androidx.compose.ui.platform.LocalView.current.parent as? DialogWindowProvider)?.window
         window?.let {
             it.setGravity(Gravity.BOTTOM)
-            it.setDimAmount(0.1f) // very light dim so we don't overshadow the UI
+            it.setDimAmount(0.0f) // Removed dimming so it doesn't overshadow // very light dim so we don't overshadow the UI
         }
         
         Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
 
         Column(
-            modifier = Modifier.fillMaxWidth().clip(NssCardShape)
+            modifier = Modifier.fillMaxWidth(0.85f).clip(NssCardShape)
                 .background(Color(0xE6050A0F)).border(1.dp, NssBorder, NssCardShape).padding(22.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
