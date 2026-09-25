@@ -3,9 +3,7 @@ package com.presidentsimulator.game.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,12 +12,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -29,35 +30,34 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import com.presidentsimulator.game.data.PlayableNationCatalog
 import com.presidentsimulator.game.data.ScenarioCatalog
-import com.presidentsimulator.game.ui.components.rememberNssLayoutSpec
-import com.presidentsimulator.game.ui.components.HeroHeaderScrim
 import com.presidentsimulator.game.ui.components.NssCardShape
-import com.presidentsimulator.game.ui.components.NssPhotoHeader
-import com.presidentsimulator.game.ui.theme.Dimens
 import com.presidentsimulator.game.ui.theme.NssAccent
 import com.presidentsimulator.game.ui.theme.NssBackground
+import com.presidentsimulator.game.ui.theme.NssBorder
+import com.presidentsimulator.game.ui.theme.NssEmerald
 import com.presidentsimulator.game.ui.theme.NssForeground
+import com.presidentsimulator.game.ui.theme.NssGameCard
 import com.presidentsimulator.game.ui.theme.NssMutedForeground
 import com.presidentsimulator.game.ui.theme.NssOnPhoto
 import com.presidentsimulator.game.ui.theme.NssPrimary
+
+private const val NATION_STEP = 0
+private const val SCENARIO_STEP = 1
+private const val CHALLENGE_STEP = 2
 
 @Composable
 fun CountrySelectScreen(
@@ -65,407 +65,275 @@ fun CountrySelectScreen(
     onBack: () -> Unit,
     onSelectCountry: (countryId: String, scenarioId: String, challengeId: String) -> Unit,
 ) {
-    var selectedIndex by remember(nations) { mutableIntStateOf(0) }
+    var step by remember { mutableIntStateOf(NATION_STEP) }
+    var selectedNationId by remember(nations) { mutableStateOf(nations.firstOrNull()?.id.orEmpty()) }
     var scenarioIndex by remember { mutableIntStateOf(0) }
     var challengeIndex by remember { mutableIntStateOf(0) }
     var countryQuery by remember { mutableStateOf("") }
-    var regionFilter by remember { mutableStateOf("All regions") }
-    var systemFilter by remember { mutableStateOf("All systems") }
+
     val context = LocalContext.current
     val favoritePreferences = remember(context) { context.getSharedPreferences("country_picker", 0) }
-    var favoriteIds by remember(context) { mutableStateOf(favoritePreferences.getStringSet("favorites", emptySet()).orEmpty()) }
+    var favoriteIds by remember(context) {
+        mutableStateOf(favoritePreferences.getStringSet("favorites", emptySet()).orEmpty().toSet())
+    }
     var favoritesOnly by remember { mutableStateOf(false) }
-    var compareMode by remember { mutableStateOf(false) }
-    var compareCountryId by remember { mutableStateOf<String?>(null) }
-    val nation = nations.getOrElse(selectedIndex) { nations.first() }
-    val regionOptions = remember(nations) { listOf("All regions") + nations.map { it.region }.distinct().sorted() }
-    val systems = remember(nations) { listOf("All systems") + nations.map { it.governmentSystem.displayName }.distinct().sorted() }
-    val visibleNations = remember(nations, countryQuery, regionFilter, systemFilter, favoriteIds, favoritesOnly) {
-        nations.filter { item ->
-            val matchesRegion = regionFilter == "All regions" || item.region == regionFilter
-            val matchesSystem = systemFilter == "All systems" || item.governmentSystem.displayName == systemFilter
-            val matchesFavorite = !favoritesOnly || item.id in favoriteIds
-            val matchesQuery = countryQuery.isBlank() || listOf(item.name, item.officialName, item.countryCode, item.governmentLabel)
-                .any { it.contains(countryQuery.trim(), ignoreCase = true) }
-            matchesRegion && matchesSystem && matchesFavorite && matchesQuery
+
+    val nation = nations.firstOrNull { it.id == selectedNationId } ?: nations.firstOrNull()
+    val visibleNations = remember(nations, countryQuery, favoritesOnly, favoriteIds) {
+        nations.filter { candidate ->
+            val matchesQuery = countryQuery.isBlank() || listOf(
+                candidate.name,
+                candidate.officialName,
+                candidate.countryCode,
+            ).any { it.contains(countryQuery.trim(), ignoreCase = true) }
+            matchesQuery && (!favoritesOnly || candidate.id in favoriteIds)
         }
     }
-    val compareNation = compareCountryId?.let { id -> nations.firstOrNull { it.id == id } }
     val scenarios = remember { ScenarioCatalog.ALL }
-    val scenario = scenarios.getOrElse(scenarioIndex) { scenarios.first() }
     val challenges = remember { ScenarioCatalog.CHALLENGES }
+    val scenario = scenarios.getOrElse(scenarioIndex) { scenarios.first() }
     val challenge = challenges.getOrElse(challengeIndex) { challenges.first() }
-    val layout = rememberNssLayoutSpec()
+
+    BackHandler {
+        if (step == NATION_STEP) onBack() else step -= 1
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(NssBackground)
-            .windowInsetsPadding(WindowInsets.safeDrawing),
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .padding(horizontal = 20.dp, vertical = 12.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Dimens.SpacingMedium, vertical = Dimens.SpacingSmall)
-                .border(width = 0.dp, color = Color.Transparent),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(
-                modifier = Modifier.clickable(onClick = onBack),
+                modifier = Modifier.clip(NssCardShape).clickable {
+                    if (step == NATION_STEP) onBack() else step -= 1
+                }.padding(vertical = 8.dp, horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = NssMutedForeground, modifier = Modifier.size(16.dp))
-                Text("BACK", color = NssMutedForeground, fontWeight = FontWeight.Black, fontSize = 11.sp)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = NssMutedForeground, modifier = Modifier.size(17.dp))
+                Text(if (step == NATION_STEP) "BACK" else "PREVIOUS", color = NssMutedForeground, fontWeight = FontWeight.Bold, fontSize = 10.sp)
             }
-            Text(
-                text = "SELECT NATION",
-                color = NssAccent,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 2.sp,
-            )
-            Spacer(modifier = Modifier.size(48.dp))
+            Spacer(Modifier.weight(1f))
+            Text("NEW CAMPAIGN", color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
+            Spacer(Modifier.weight(1f))
+            Text("${step + 1} / 3", color = NssMutedForeground, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
 
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = Dimens.SpacingMedium),
-            verticalArrangement = Arrangement.spacedBy(Dimens.SpacingMedium),
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Text("${nations.size} PLAYABLE NATIONS · SEARCH OR FILTER BY REGION", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.2.sp)
-            OutlinedTextField(
-                value = countryQuery,
-                onValueChange = { countryQuery = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("Find a country or government system") },
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(7.dp),
-            ) {
-                regionOptions.forEach { region ->
-                    Text(
-                        text = region,
-                        modifier = Modifier
-                            .clip(NssCardShape)
-                            .background(if (region == regionFilter) NssAccent.copy(alpha = 0.28f) else NssPrimary.copy(alpha = 0.2f))
-                            .clickable { regionFilter = region }
-                            .padding(horizontal = 10.dp, vertical = 7.dp),
-                        color = if (region == regionFilter) NssAccent else NssMutedForeground,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(7.dp),
-            ) {
-                systems.forEach { system ->
-                    Text(system, modifier = Modifier.clip(NssCardShape)
-                        .background(if (system == systemFilter) NssAccent.copy(alpha = 0.28f) else NssPrimary.copy(alpha = 0.2f))
-                        .clickable { systemFilter = system }.padding(horizontal = 10.dp, vertical = 7.dp),
-                        color = if (system == systemFilter) NssAccent else NssMutedForeground, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
-                Text(if (favoritesOnly) "★ Favorites" else "☆ Favorites (${favoriteIds.size})",
-                    modifier = Modifier.clip(NssCardShape).background(if (favoritesOnly) NssAccent.copy(alpha = 0.28f) else NssPrimary.copy(alpha = 0.2f))
-                        .clickable { favoritesOnly = !favoritesOnly }.padding(horizontal = 10.dp, vertical = 7.dp),
-                    color = if (favoritesOnly) NssAccent else NssMutedForeground, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(layout.countrySelectHeroHeight)
-                    .clip(NssCardShape)
-                    .border(1.dp, Color(0x4DD4C8A8), NssCardShape),
-            ) {
-                NssPhotoHeader(
-                    imageUrl = nation.leaderImageUrl,
-                    fallbackGradient = listOf(NssPrimary, NssBackground),
-                    modifier = Modifier.matchParentSize(),
-                    scrimTopToBottom = HeroHeaderScrim,
+            repeat(3) { index ->
+                Spacer(
+                    modifier = Modifier.weight(1f).height(3.dp).clip(CircleShape)
+                        .background(if (index <= step) NssAccent else NssBorder),
                 )
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(Color.Transparent, Color(0xE61C1810)),
-                            ),
-                    ),
-                )
-                Text(nation.flagEmoji, modifier = Modifier.align(Alignment.TopStart).padding(Dimens.SpacingMedium), fontSize = 30.sp)
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(Dimens.SpacingMedium),
-                ) {
-                    Text(
-                        text = nation.governmentLabel.uppercase(),
-                        color = Color(0xFFD4C8A8),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 2.sp,
+            }
+        }
+
+        when (step) {
+            NATION_STEP -> {
+                StepHeading("Choose your nation", "Pick the country you want to lead.")
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = countryQuery,
+                        onValueChange = { countryQuery = it },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        label = { Text("Search countries") },
                     )
                     Text(
-                        text = nation.name.uppercase(),
-                        fontFamily = FontFamily.Serif,
+                        if (favoritesOnly) "ALL" else "★ ${favoriteIds.size}",
+                        modifier = Modifier.clip(NssCardShape)
+                            .background(if (favoritesOnly) NssAccent.copy(alpha = 0.22f) else NssGameCard)
+                            .clickable { favoritesOnly = !favoritesOnly }
+                            .padding(horizontal = 12.dp, vertical = 14.dp),
+                        color = if (favoritesOnly) NssAccent else NssMutedForeground,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Black,
-                        fontSize = if (layout.isCompactHeight) 26.sp else 32.sp,
-                        color = NssOnPhoto,
                     )
                 }
-            }
-
-            Column(
-                modifier = Modifier.fillMaxWidth().clip(NssCardShape)
-                    .background(NssPrimary.copy(alpha = 0.2f))
-                    .border(1.dp, NssPrimary.copy(alpha = 0.55f), NssCardShape)
-                    .padding(Dimens.SpacingMedium),
-            ) {
-                Text("${nation.governmentSystem.displayName.uppercase()} · ${nation.governmentSystem.executiveTitle.uppercase()}", color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                Text(nation.governmentSystem.description, color = NssMutedForeground, fontSize = 11.sp, modifier = Modifier.padding(top = 5.dp))
-                if (nation.countryCode.isNotBlank()) {
-                    Text("Population · ${nation.vitals.population.toCompactCount()}${nation.populationYear.takeIf { it > 0 }?.let { " · $it estimate" } ?: ""}", color = NssOnPhoto, fontSize = 10.sp, modifier = Modifier.padding(top = 8.dp))
-                    if (nation.gdpUsd > 0L) {
-                        Text("Nominal GDP · ${nation.gdpUsd.toCompactUsd()} · World Bank ${nation.gdpYear}", color = NssOnPhoto, fontSize = 10.sp, modifier = Modifier.padding(top = 3.dp))
-                    } else {
-                        Text("Nominal GDP data unavailable · balanced game baseline used", color = NssMutedForeground, fontSize = 10.sp, modifier = Modifier.padding(top = 3.dp))
-                    }
-                    if (nation.statusNote.isNotBlank()) Text(nation.statusNote, color = NssMutedForeground, fontSize = 9.sp, modifier = Modifier.padding(top = 4.dp))
-                }
-                Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    val isFavorite = nation.id in favoriteIds
-                    Text(if (isFavorite) "★ SAVED" else "☆ SAVE COUNTRY",
-                        modifier = Modifier.clip(NssCardShape).background(NssPrimary.copy(alpha = 0.35f)).clickable {
-                            val updated = if (isFavorite) favoriteIds - nation.id else favoriteIds + nation.id
-                            favoriteIds = updated
-                            favoritePreferences.edit().putStringSet("favorites", updated).apply()
-                        }.padding(horizontal = 10.dp, vertical = 7.dp), color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black)
-                    Text(if (compareMode) "PICK A COUNTRY TO COMPARE" else "COMPARE WITH…",
-                        modifier = Modifier.clip(NssCardShape).background(NssAccent.copy(alpha = 0.2f)).clickable { compareMode = !compareMode }
-                            .padding(horizontal = 10.dp, vertical = 7.dp), color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black)
-                    if (compareNation != null) Text("CLEAR COMPARISON",
-                        modifier = Modifier.clip(NssCardShape).background(NssPrimary.copy(alpha = 0.35f)).clickable { compareCountryId = null }
-                            .padding(horizontal = 10.dp, vertical = 7.dp), color = NssMutedForeground, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-
-            if (compareNation != null) {
-                Column(modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssPrimary.copy(alpha = 0.2f))
-                    .border(1.dp, NssPrimary.copy(alpha = 0.55f), NssCardShape).padding(Dimens.SpacingMedium),
-                    verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text("COUNTRY COMPARISON", color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("${nation.flagEmoji} ${nation.name}", color = NssOnPhoto, fontSize = 10.sp, modifier = Modifier.weight(1f))
-                        Text("${compareNation.flagEmoji} ${compareNation.name}", color = NssOnPhoto, fontSize = 10.sp, modifier = Modifier.weight(1f))
-                    }
-                    CompareLine("Government", nation.governmentSystem.displayName, compareNation.governmentSystem.displayName)
-                    CompareLine("Region", nation.region, compareNation.region)
-                    CompareLine("Population", nation.vitals.population.toCompactCount(), compareNation.vitals.population.toCompactCount())
-                    CompareLine("GDP", nation.gdpUsd.takeIf { it > 0L }?.toCompactUsd() ?: "Unavailable", compareNation.gdpUsd.takeIf { it > 0L }?.toCompactUsd() ?: "Unavailable")
-                }
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(NssCardShape)
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(NssPrimary.copy(alpha = 0.4f), NssPrimary.copy(alpha = 0.2f)),
-                        ),
-                    )
-                    .border(1.dp, NssPrimary.copy(alpha = 0.8f), NssCardShape)
-                    .padding(Dimens.SpacingMedium),
-            ) {
-                Text(
-                    text = "NATIONAL PERK",
-                    color = NssAccent,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 2.sp,
-                )
-                Row(
-                    modifier = Modifier.padding(top = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                Text("${visibleNations.size} countries", color = NssMutedForeground, fontSize = 10.sp, modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Icon(Icons.Default.Bolt, contentDescription = null, tint = Color(0xFF34D399), modifier = Modifier.size(18.dp))
-                    Text(nation.nationalPerk, color = NssOnPhoto, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    items(visibleNations, key = { it.id }) { item ->
+                        NationChoiceRow(
+                            nation = item,
+                            selected = item.id == selectedNationId,
+                            favorite = item.id in favoriteIds,
+                            onSelect = { selectedNationId = item.id },
+                            onToggleFavorite = {
+                                val updated = if (item.id in favoriteIds) favoriteIds - item.id else favoriteIds + item.id
+                                favoriteIds = updated
+                                favoritePreferences.edit().putStringSet("favorites", updated).apply()
+                            },
+                        )
+                    }
+                    if (visibleNations.isEmpty()) {
+                        item { Text("No countries match that search.", color = NssMutedForeground, fontSize = 12.sp, modifier = Modifier.padding(16.dp)) }
+                    }
+                }
+                nation?.let {
+                    SelectedNationSummary(it)
+                    PrimaryAction("Continue to scenario") { step = SCENARIO_STEP }
                 }
             }
 
-            if (visibleNations.isEmpty()) {
-                Text("No country matches this search and region filter.", color = NssMutedForeground, fontSize = 11.sp)
-            } else {
-                Text("COUNTRY RESULTS · ${visibleNations.size}", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.2.sp)
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(visibleNations, key = { it.id }) { item ->
-                        val index = nations.indexOfFirst { it.id == item.id }
-                        val selected = index == selectedIndex
-                        Box(
-                            modifier = Modifier.size(width = 108.dp, height = 86.dp)
-                                .clip(NssCardShape)
-                                .background(if (selected) NssPrimary.copy(alpha = 0.75f) else NssBackground.copy(alpha = 0.65f))
-                                .border(if (selected) 2.dp else 1.dp, if (selected) NssAccent else Color(0x33FFFFFF), NssCardShape)
-                                .clickable {
-                                    if (compareMode) {
-                                        if (item.id != nation.id) compareCountryId = item.id
-                                        compareMode = false
-                                    } else if (index >= 0) selectedIndex = index
-                                },
-                        ) {
-                            Column(modifier = Modifier.align(Alignment.Center).padding(5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(item.flagEmoji, fontSize = 20.sp, textAlign = TextAlign.Center)
-                                Text(item.countryCode.ifBlank { item.name }.uppercase(), color = NssOnPhoto, fontSize = 8.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, maxLines = 2)
+            SCENARIO_STEP -> {
+                StepHeading("Choose a scenario", "Pick the kind of campaign you want to play.")
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    items(scenarios, key = { it.id }) { option ->
+                        val index = scenarios.indexOf(option)
+                        val selected = index == scenarioIndex
+                        SelectionCard(selected = selected, onClick = { scenarioIndex = index }) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(option.title, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Text("${option.difficulty.displayName} · ${option.tagline}", color = NssMutedForeground, fontSize = 11.sp, modifier = Modifier.padding(top = 3.dp))
+                                }
+                                if (selected) SelectionCheck()
                             }
-                            if (item.id in favoriteIds) Text("★", modifier = Modifier.align(Alignment.TopEnd).padding(5.dp), color = NssAccent, fontSize = 16.sp)
+                        }
+                    }
+                    item {
+                        SelectionCard(selected = true, onClick = {}) {
+                            Text("MISSION OBJECTIVES", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                            scenario.objectives.take(3).forEachIndexed { index, objective ->
+                                Text("${index + 1}. $objective", color = NssMutedForeground, fontSize = 10.sp, modifier = Modifier.padding(top = 5.dp))
+                            }
                         }
                     }
                 }
+                PrimaryAction("Continue to challenge") { step = CHALLENGE_STEP }
             }
-            Spacer(modifier = Modifier.height(24.dp))
-        }
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color.Transparent, NssBackground, NssBackground),
-                    ),
-                )
-                .padding(Dimens.SpacingMedium),
-        ) {
-            Text(
-                "SCENARIO",
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Black,
-                color = NssPrimary,
-                letterSpacing = 2.sp,
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-                    .padding(top = 8.dp, bottom = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                scenarios.forEachIndexed { index, pack ->
-                    val selected = index == scenarioIndex
-                    Column(
-                        modifier = Modifier
-                            .clip(NssCardShape)
-                            .background(if (selected) NssPrimary else NssPrimary.copy(alpha = 0.25f))
-                            .clickable { scenarioIndex = index }
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                    ) {
-                        Text(pack.title, color = NssOnPhoto, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                        Text(pack.difficulty.displayName, color = NssOnPhoto.copy(alpha = 0.75f), fontSize = 9.sp)
+            else -> {
+                StepHeading("Set your challenge", "Optional rules make the campaign harder and raise your legacy score.")
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    items(challenges, key = { it.id }) { option ->
+                        val index = challenges.indexOf(option)
+                        val selected = index == challengeIndex
+                        SelectionCard(selected = selected, onClick = { challengeIndex = index }) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(option.title, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    Text(option.description, color = NssMutedForeground, fontSize = 11.sp, modifier = Modifier.padding(top = 3.dp))
+                                }
+                                Text("${option.scoreMultiplier}×", color = NssAccent, fontWeight = FontWeight.Black, fontSize = 14.sp)
+                                if (selected) SelectionCheck()
+                            }
+                        }
                     }
+                    item { nation?.let { SelectedCampaignSummary(it.name, scenario.title, challenge.title) } }
                 }
-            }
-            Text(
-                scenario.tagline,
-                fontSize = 11.sp,
-                color = NssMutedForeground,
-                modifier = Modifier.padding(bottom = 12.dp),
-            )
-            Text(
-                if (scenario.id == "standard") "FIRST CAMPAIGN RECOMMENDED" else "MISSION OBJECTIVES",
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Black,
-                color = NssAccent,
-                letterSpacing = 1.5.sp,
-            )
-            scenario.objectives.forEachIndexed { index, objective ->
-                Text(
-                    text = "${index + 1}. $objective",
-                    fontSize = 11.sp,
-                    color = NssOnPhoto.copy(alpha = 0.85f),
-                    modifier = Modifier.padding(top = 3.dp),
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("OPTIONAL CHALLENGE RULE", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.5.sp)
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                challenges.forEachIndexed { index, option ->
-                    val selected = index == challengeIndex
-                    Text(
-                        text = option.title,
-                        modifier = Modifier.clip(NssCardShape)
-                            .background(if (selected) NssAccent.copy(alpha = 0.28f) else NssPrimary.copy(alpha = 0.28f))
-                            .border(1.dp, if (selected) NssAccent else Color.Transparent, NssCardShape)
-                            .clickable { challengeIndex = index }
-                            .padding(horizontal = 10.dp, vertical = 7.dp),
-                        color = NssOnPhoto,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
+                PrimaryAction("Start campaign") {
+                    nation?.let { onSelectCountry(it.id, scenario.id, challenge.id) }
                 }
-            }
-            Text(
-                "${challenge.description}  ·  ${challenge.scoreMultiplier}× legacy score",
-                fontSize = 10.sp,
-                color = NssMutedForeground,
-                modifier = Modifier.padding(bottom = 8.dp),
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(NssCardShape)
-                    .background(Brush.horizontalGradient(listOf(NssAccent, Color(0xFFD97706))))
-                    .clickable { onSelectCountry(nation.id, scenario.id, challenge.id) }
-                    .padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "INITIATE SEQUENCE",
-                    color = NssOnPhoto,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 14.sp,
-                    letterSpacing = 1.sp,
-                )
-                Icon(
-                    Icons.Default.LocalFireDepartment,
-                    contentDescription = null,
-                    tint = NssOnPhoto,
-                    modifier = Modifier.padding(start = 8.dp).size(18.dp),
-                )
             }
         }
     }
-}
-
-private fun Long.toCompactCount(): String = when {
-    this >= 1_000_000_000L -> "${this / 1_000_000_000L}B"
-    this >= 1_000_000L -> "${this / 1_000_000L}M"
-    this >= 1_000L -> "${this / 1_000L}K"
-    else -> toString()
 }
 
 @Composable
-private fun CompareLine(label: String, left: String, right: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(left, color = NssOnPhoto, fontSize = 10.sp, modifier = Modifier.weight(1f))
-        Text(label.uppercase(), color = NssMutedForeground, fontSize = 8.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, modifier = Modifier.weight(0.8f))
-        Text(right, color = NssOnPhoto, fontSize = 10.sp, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+private fun StepHeading(title: String, subtitle: String) {
+    Column(modifier = Modifier.padding(bottom = 12.dp)) {
+        Text(title, color = NssForeground, fontSize = 25.sp, fontWeight = FontWeight.Black)
+        Text(subtitle, color = NssMutedForeground, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
     }
 }
 
-private fun Long.toCompactUsd(): String = when {
-    this >= 1_000_000_000_000L -> "$${this / 1_000_000_000_000L}T"
-    this >= 1_000_000_000L -> "$${this / 1_000_000_000L}B"
-    this >= 1_000_000L -> "$${this / 1_000_000L}M"
-    else -> "$${this}"
+@Composable
+private fun NationChoiceRow(
+    nation: PlayableNationCatalog.NationDefinition,
+    selected: Boolean,
+    favorite: Boolean,
+    onSelect: () -> Unit,
+    onToggleFavorite: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clip(NssCardShape)
+            .background(if (selected) NssPrimary.copy(alpha = 0.35f) else NssGameCard)
+            .border(1.dp, if (selected) NssAccent else NssBorder, NssCardShape)
+            .clickable(onClick = onSelect).padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Text(nation.flagEmoji, fontSize = 26.sp)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(nation.name, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("${nation.governmentLabel} · ${nation.region}", color = NssMutedForeground, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        Text(
+            if (favorite) "★" else "☆",
+            modifier = Modifier.clip(CircleShape).clickable(onClick = onToggleFavorite).padding(6.dp),
+            color = NssAccent,
+            fontSize = 17.sp,
+        )
+        if (selected) SelectionCheck()
+    }
+}
+
+@Composable
+private fun SelectedNationSummary(nation: PlayableNationCatalog.NationDefinition) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp)
+            .clip(NssCardShape).background(NssGameCard).border(1.dp, NssBorder, NssCardShape).padding(12.dp),
+    ) {
+        Text("YOUR SELECTION", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+        Text("${nation.flagEmoji} ${nation.name} · ${nation.governmentSystem.displayName}", color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+        Text("National advantage: ${nation.nationalPerk}", color = NssMutedForeground, fontSize = 10.sp, modifier = Modifier.padding(top = 3.dp))
+    }
+}
+
+@Composable
+private fun SelectedCampaignSummary(nation: String, scenario: String, challenge: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard)
+            .border(1.dp, NssBorder, NssCardShape).padding(14.dp),
+    ) {
+        Text("CAMPAIGN SUMMARY", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+        Text("$nation · $scenario", color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(top = 5.dp))
+        Text("Challenge: $challenge", color = NssMutedForeground, fontSize = 11.sp, modifier = Modifier.padding(top = 3.dp))
+    }
+}
+
+@Composable
+private fun SelectionCard(selected: Boolean, onClick: () -> Unit, content: @Composable () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().clip(NssCardShape)
+            .background(if (selected) NssPrimary.copy(alpha = 0.25f) else NssGameCard)
+            .border(1.dp, if (selected) NssAccent else NssBorder, NssCardShape)
+            .clickable(onClick = onClick).padding(14.dp),
+    ) { content() }
+}
+
+@Composable
+private fun SelectionCheck() {
+    Icon(Icons.Default.Check, contentDescription = "Selected", tint = NssEmerald, modifier = Modifier.padding(start = 8.dp).size(18.dp))
+}
+
+@Composable
+private fun PrimaryAction(label: String, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+        shape = NssCardShape,
+        colors = ButtonDefaults.buttonColors(containerColor = NssAccent, contentColor = Color.White),
+    ) {
+        Text(label, fontWeight = FontWeight.Black, fontSize = 14.sp, modifier = Modifier.padding(vertical = 5.dp))
+    }
 }

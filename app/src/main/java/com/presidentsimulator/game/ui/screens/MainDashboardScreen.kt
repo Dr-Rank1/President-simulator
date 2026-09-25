@@ -301,6 +301,23 @@ fun MainDashboardScreen(
                 }
             }
 
+            DashboardSection(
+                title = "National Profile",
+                subtitle = "${state.playerNation.region.ifBlank { "National strategy" }} · active campaign",
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard)
+                        .border(1.dp, NssBorder, NssCardShape).padding(Dimens.SpacingMedium),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text("${state.playerNation.name} · ${state.playerNation.governmentLabel}", color = NssForeground, fontWeight = FontWeight.Black, fontSize = 13.sp)
+                        Text("National advantage", color = NssAccent, fontWeight = FontWeight.Bold, fontSize = 10.sp, modifier = Modifier.padding(top = 5.dp))
+                        Text(state.playerNation.resolvedPerk().label, color = NssMutedForeground, fontSize = 11.sp, modifier = Modifier.padding(top = 2.dp))
+                    }
+                }
+            }
+
             if (state.scenario.scenarioId == "standard" && state.month == 1 && state.year == 2026) {
                 DashboardSection(title = "Your First Month", subtitle = "A quick route through the core governing loop") {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
