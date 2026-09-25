@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -309,10 +310,12 @@ fun GameNavigation(
         )
 
         Row(modifier = Modifier.weight(1f).fillMaxSize()) {
+            Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                com.presidentsimulator.game.ui.components.InteractiveWorldMap(modifier = Modifier.fillMaxSize())
             NavHost(
                 navController = navController,
                 startDestination = GameDestination.Dashboard.route,
-                modifier = Modifier.weight(1f).fillMaxHeight(),
+                modifier = Modifier.fillMaxSize(),
             ) {
             composable(GameDestination.Dashboard.route) {
                 MainDashboardScreen(
@@ -356,6 +359,7 @@ fun GameNavigation(
             }
             composable(GameDestination.Cabinet.route) {
                 CabinetScreen(state = state, viewModel = viewModel)
+            }
             }
             }
             MinistryBottomNav(

@@ -4,8 +4,11 @@ import com.presidentsimulator.game.data.DeploymentStatus
 import com.presidentsimulator.game.data.EconomicSector
 import com.presidentsimulator.game.data.NationalPerkEffects
 import com.presidentsimulator.game.data.DiplomacyState
+import com.presidentsimulator.game.data.DiplomaticActionRecord
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.MilitaryHardware
+import com.presidentsimulator.game.data.MilitaryProcurementOrder
+import com.presidentsimulator.game.data.MilitaryProcurementType
 import com.presidentsimulator.game.data.SectorInvestment
 import com.presidentsimulator.game.data.TreatyType
 import com.presidentsimulator.game.data.WarGoal
@@ -180,7 +183,7 @@ class DiplomacyViewModel(
                 ),
             )
 
-        return state.copy(
+        val treatyState = state.copy(
             vitals = state.vitals.copy(
                 approval = (state.vitals.approval - 5f).coerceIn(0f, 100f),
             ),
@@ -190,6 +193,7 @@ class DiplomacyViewModel(
             ),
             diplomacy = diplomacy,
         )
+        return recordDiplomaticAction(treatyState, targetCountryId, "War declared", "War goal: ${warGoal.displayName}.")
     }
 
     /**
@@ -239,23 +243,21 @@ class DiplomacyViewModel(
             random.nextInt(1, 4)
         }
 
+        val battleSummary = buildString {
+            append(if (playerWonSkirmish) "Front advanced " else "Front fell back ")
+            append("${abs(progressDelta.roundToInt())} pts · ")
+            append("our losses ${playerCasualties.toCasualtyString()} · ")
+            append("enemy ${enemyCasualties.toCasualtyString()}")
+            if (hardwareLossTanks > 0 || hardwareLossJets > 0) append(" · hardware -$hardwareLossTanks tanks / -$hardwareLossJets jets")
+            if (allianceSupport > 0.5) append(" · allies +${allianceSupport.roundToInt()} power")
+        }
         val updatedWar = war.copy(
             warProgress = nextProgress,
             playerCasualties = war.playerCasualties + playerCasualties,
             enemyCasualties = war.enemyCasualties + enemyCasualties,
             monthsActive = war.monthsActive + 1,
-            lastBattleSummary = buildString {
-                append(if (playerWonSkirmish) "Front advanced " else "Front fell back ")
-                append("${abs(progressDelta.roundToInt())} pts · ")
-                append("our losses ${playerCasualties.toCasualtyString()} · ")
-                append("enemy ${enemyCasualties.toCasualtyString()}")
-                if (hardwareLossTanks > 0 || hardwareLossJets > 0) {
-                    append(" · hardware -$hardwareLossTanks tanks / -$hardwareLossJets jets")
-                }
-                if (allianceSupport > 0.5) {
-                    append(" · allies +${allianceSupport.roundToInt()} power")
-                }
-            },
+            lastBattleSummary = battleSummary,
+            battleReports = (war.battleReports + "${state.dateLabel}: $battleSummary").takeLast(12),
         )
 
         val midState = state.copy(
@@ -328,7 +330,7 @@ class DiplomacyViewModel(
             TreatyType.PEACE -> rival
         }
 
-        return state.copy(
+        val treatyState = state.copy(
             vitals = state.vitals.copy(
                 budget = state.vitals.budget - type.budgetCost,
                 approval = (state.vitals.approval + 1.5f).coerceIn(0f, 100f),
@@ -339,6 +341,7 @@ class DiplomacyViewModel(
                     diplomaticInfluence = state.diplomacy.diplomaticInfluence - type.influenceCost,
                 ),
         )
+        return recordDiplomaticAction(treatyState, targetCountryId, "Treaty signed", "${type.name.replace('_', ' ')} agreement established.")
     }
 
     /**
@@ -372,7 +375,7 @@ class DiplomacyViewModel(
             }
             .copy(activeWar = null)
 
-        return state.copy(
+        val armisticeState = state.copy(
             vitals = state.vitals.copy(
                 budget = state.vitals.budget - reparations,
                 approval = (state.vitals.approval + 4f).coerceIn(0f, 100f),
@@ -383,6 +386,7 @@ class DiplomacyViewModel(
             ),
             diplomacy = diplomacy,
         )
+        return recordDiplomaticAction(armisticeState, war.targetCountryId, "Armistice signed", "Peace restored after ${war.monthsActive} month(s) of war.")
     }
 
     /**
@@ -410,7 +414,7 @@ class DiplomacyViewModel(
             }
             TreatyType.PEACE -> rival
         }
-        return state.copy(
+        val brokenState = state.copy(
             vitals = state.vitals.copy(
                 approval = (state.vitals.approval - 1.5f).coerceIn(0f, 100f),
             ),
@@ -420,6 +424,7 @@ class DiplomacyViewModel(
                     diplomaticInfluence = (state.diplomacy.diplomaticInfluence - 5).coerceAtLeast(0),
                 ),
         )
+        return recordDiplomaticAction(brokenState, targetCountryId, "Treaty broken", "${type.name.replace('_', ' ')} agreement withdrawn; relations deteriorated.")
     }
 
     fun setDefcon(state: GameState, level: Int): GameState {
@@ -454,7 +459,7 @@ class DiplomacyViewModel(
             FOREIGN_AID_REL_BONUS
         }
 
-        return state.copy(
+        val aidState = state.copy(
             vitals = state.vitals.copy(
                 budget = state.vitals.budget - FOREIGN_AID_COST,
                 approval = (state.vitals.approval + 0.5f).coerceIn(0f, 100f),
@@ -474,6 +479,7 @@ class DiplomacyViewModel(
                         (cooldownKey(ACTION_AID, targetCountryId) to AID_COOLDOWN_MONTHS),
                 ),
         )
+        return recordDiplomaticAction(aidState, targetCountryId, "Foreign aid delivered", "Aid cost ${FOREIGN_AID_COST}; relations improved by $relBonus.")
     }
 
     /** High-profile visit: spend influence for a larger relationship swing. */
@@ -491,7 +497,7 @@ class DiplomacyViewModel(
             STATE_VISIT_REL_BONUS
         }
 
-        return state.copy(
+        val visitState = state.copy(
             vitals = state.vitals.copy(
                 budget = state.vitals.budget - STATE_VISIT_BUDGET_COST,
                 approval = (state.vitals.approval + 1f).coerceIn(0f, 100f),
@@ -512,6 +518,7 @@ class DiplomacyViewModel(
                         (cooldownKey(ACTION_VISIT, targetCountryId) to VISIT_COOLDOWN_MONTHS),
                 ),
         )
+        return recordDiplomaticAction(visitState, targetCountryId, "State visit", "Relations improved by $relBonus after an official visit.")
     }
 
     fun setDeployment(state: GameState, status: DeploymentStatus): GameState {
@@ -539,9 +546,8 @@ class DiplomacyViewModel(
         if (state.vitals.budget < cost) return state
         return state.copy(
             vitals = state.vitals.copy(budget = state.vitals.budget - cost),
-            military = state.military.copy(
-                personnel = state.military.personnel + amount,
-            ),
+            military = state.military.copy(procurementOrders = state.military.procurementOrders +
+                MilitaryProcurementOrder(MilitaryProcurementType.PERSONNEL, amount, cost, PERSONNEL_LEAD_TIME_MONTHS)),
         )
     }
 
@@ -572,18 +578,51 @@ class DiplomacyViewModel(
         val cost = hardware.unitCost * amount
         if (state.vitals.budget < cost) return state
 
-        val military = state.military
-        val updated = when (hardware) {
-            MilitaryHardware.TANKS -> military.copy(tanks = military.tanks + amount)
-            MilitaryHardware.FIGHTER_JETS -> military.copy(jets = military.jets + amount)
-            MilitaryHardware.NAVAL_SHIPS -> military.copy(ships = military.ships + amount)
-            MilitaryHardware.NUCLEAR_ARSENAL ->
-                military.copy(nuclearArsenal = military.nuclearArsenal + amount)
-        }
         return state.awardSectorXp(EconomicSector.DEFENSE, SectorInvestment.XP_PER_TANK_BATCH * amount).copy(
             vitals = state.vitals.copy(budget = state.vitals.budget - cost),
-            military = updated,
+            military = state.military.copy(procurementOrders = state.military.procurementOrders +
+                MilitaryProcurementOrder(
+                    type = MilitaryProcurementType.valueOf(hardware.name),
+                    quantity = amount.toLong(),
+                    totalCost = cost,
+                    monthsRemaining = hardware.leadTimeMonths,
+                )),
         )
+    }
+
+    /** Advance paid military orders and place completed units into active service. */
+    fun processMilitaryProcurement(state: GameState): GameState {
+        val delivered = state.military.procurementOrders.filter { it.monthsRemaining <= 1 }
+        val pending = state.military.procurementOrders.filter { it.monthsRemaining > 1 }
+            .map { it.copy(monthsRemaining = it.monthsRemaining - 1) }
+        if (delivered.isEmpty() && pending == state.military.procurementOrders) return state
+        var updated = state.military.copy(procurementOrders = pending)
+        delivered.forEach { order ->
+            updated = when (order.type) {
+                MilitaryProcurementType.PERSONNEL -> updated.copy(personnel = updated.personnel + order.quantity)
+                MilitaryProcurementType.TANKS -> updated.copy(tanks = updated.tanks + order.quantity.toInt())
+                MilitaryProcurementType.FIGHTER_JETS -> updated.copy(jets = updated.jets + order.quantity.toInt())
+                MilitaryProcurementType.NAVAL_SHIPS -> updated.copy(ships = updated.ships + order.quantity.toInt())
+                MilitaryProcurementType.NUCLEAR_ARSENAL -> updated.copy(nuclearArsenal = updated.nuclearArsenal + order.quantity.toInt())
+            }
+        }
+        return state.copy(military = updated)
+    }
+
+    fun upgradeMilitaryTraining(state: GameState): GameState {
+        val level = state.military.trainingLevel.coerceIn(1, MAX_TRAINING_LEVEL)
+        if (level >= MAX_TRAINING_LEVEL) return state
+        val cost = MILITARY_TRAINING_BASE_COST * level
+        if (state.vitals.budget < cost) return state
+        return state.copy(
+            vitals = state.vitals.copy(budget = state.vitals.budget - cost),
+            military = state.military.copy(trainingLevel = level + 1),
+        )
+    }
+
+    fun setFrontlineFocus(state: GameState, countryId: String): GameState {
+        if (state.diplomacy.rivalById(countryId) == null) return state
+        return state.copy(military = state.military.copy(frontlineFocusCountryId = countryId))
     }
 
     /** Press attack: increases casualties but increases chance of taking ground. */
@@ -613,6 +652,12 @@ class DiplomacyViewModel(
     }
 
     // ── Internals ────────────────────────────────────────────────────────────
+
+    private fun recordDiplomaticAction(state: GameState, countryId: String, action: String, result: String): GameState {
+        val country = state.diplomacy.rivalById(countryId) ?: return state
+        val entry = DiplomaticActionRecord(state.year, state.month, countryId, country.name, action, result)
+        return state.copy(diplomacy = state.diplomacy.copy(actionHistory = (state.diplomacy.actionHistory + entry).takeLast(50)))
+    }
 
     /** Allied members (excluding player and war target) contribute a fraction of their strength. */
     private fun alliedCombatSupport(state: GameState, warTargetId: String): Double {
@@ -773,6 +818,9 @@ class DiplomacyViewModel(
         const val EARLY_SETTLEMENT_MIN_PROGRESS = 60f
         const val RECRUIT_COST_PER_SOLDIER = 50_000L
         const val RECRUIT_BATCH_SIZE = 10_000L
+        const val PERSONNEL_LEAD_TIME_MONTHS = 6
+        const val MILITARY_TRAINING_BASE_COST = 900_000_000L
+        const val MAX_TRAINING_LEVEL = 10
         const val ALLIED_SUPPORT_FRACTION = 0.35
         const val TANK_UNIT_COST = 15_000_000L
         const val JET_UNIT_COST = 80_000_000L

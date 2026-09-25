@@ -1,9 +1,12 @@
 package com.presidentsimulator.game.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,10 +29,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
+import android.view.Gravity
 import com.presidentsimulator.game.ui.theme.NssAccent
 import com.presidentsimulator.game.ui.theme.NssBackground
+import com.presidentsimulator.game.ui.theme.NssBorder
 import com.presidentsimulator.game.ui.theme.NssForeground
 import com.presidentsimulator.game.ui.theme.NssGameCard
 import com.presidentsimulator.game.ui.theme.NssMutedForeground
@@ -45,29 +52,41 @@ private data class TutorialPage(
 
 private val tutorialPages = listOf(
     TutorialPage(
-        "Your command center",
-        "This overview brings together the country’s finances, approval, stability, current risks, and campaign priorities.",
-        "Start here when you want to know what needs attention.",
+        "Welcome, President",
+        "Your command center brings together the country’s finances, approval, stability, current risks, and campaign priorities.",
+        "Check this dashboard daily to know exactly what needs your immediate attention.",
         Icons.Default.AccountBalance,
     ),
     TutorialPage(
-        "Run the country",
-        "Use the bottom bar for the main ministries. Tap More for cabinet, elections, intelligence, research, the UN, analytics, and settings.",
-        "Economy, Defense, Foreign, and Policy are always one tap away.",
+        "Economic Mastery",
+        "The Economy tab allows you to adjust tax rates across classes, fund infrastructure, and balance the budget.",
+        "High taxes increase revenue but hurt approval and economic growth. Balance is key to survival.",
+        Icons.Default.AccountBalance,
+    ),
+    TutorialPage(
+        "Military & Defense",
+        "Maintain your army, navy, and airforce. A strong military deters invaders and keeps order during instability.",
+        "Funding the military is expensive. Only raise spending if you anticipate conflict or need to suppress a rebellion.",
         Icons.Default.Groups,
     ),
     TutorialPage(
-        "Advance time carefully",
-        "The controls at the top pause, resume, or speed up the simulation. Monthly turns update the budget, production, politics, and diplomacy.",
-        "Resolve urgent alerts before letting several months pass.",
-        Icons.Default.PlayArrow,
+        "Global Diplomacy",
+        "You are not alone in the world. The UN and neighboring countries will react to your aggressive or peaceful actions.",
+        "Forming alliances provides trade benefits and mutual defense, but can drag you into foreign wars.",
+        Icons.Default.Groups,
     ),
     TutorialPage(
-        "Choose a first priority",
-        "Review the Government Agenda, then open a department card to act. Your decisions change the country over time and shape your legacy.",
-        "Tip: check food, energy, and the monthly balance before expanding quickly.",
-        Icons.Default.TipsAndUpdates,
+        "Passing Laws",
+        "Use the Parliament/Congress to pass sweeping reforms. Laws define your government's stance on rights and security.",
+        "If you lack support, you may have to bribe officials or use executive orders, which risk public backlash.",
+        Icons.Default.AccountBalance,
     ),
+    TutorialPage(
+        "Advance Time Carefully",
+        "The controls at the top pause, resume, or speed up the simulation. Monthly turns update all statistics.",
+        "Always resolve urgent red alerts before advancing time, or you may face a crisis.",
+        Icons.Default.PlayArrow,
+    )
 )
 
 @Composable
@@ -81,11 +100,19 @@ fun GameTutorialDialog(
 
     Dialog(
         onDismissRequest = onSkip,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
     ) {
+        val window = (androidx.compose.ui.platform.LocalView.current.parent as? DialogWindowProvider)?.window
+        window?.let {
+            it.setGravity(Gravity.BOTTOM)
+            it.setDimAmount(0.1f) // very light dim so we don't overshadow the UI
+        }
+        
+        Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
+
         Column(
-            modifier = Modifier.fillMaxWidth(0.9f).clip(NssCardShape)
-                .background(NssGameCard).padding(22.dp),
+            modifier = Modifier.fillMaxWidth().clip(NssCardShape)
+                .background(Color(0xE6050A0F)).border(1.dp, NssBorder, NssCardShape).padding(22.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("FIRST DAY BRIEFING", color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
@@ -154,3 +181,5 @@ fun GameTutorialDialog(
         }
     }
 }
+
+    }

@@ -1,5 +1,7 @@
 package com.presidentsimulator.game.ui.screens
 
+import androidx.compose.ui.graphics.Color
+
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -52,7 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
+
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -146,7 +148,7 @@ fun MainDashboardScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(NssBackground)
+            .background(androidx.compose.ui.graphics.Color(0xCC050A0F))
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
             .verticalScroll(rememberScrollState())
             .nssMinistryScrollPadding(),
@@ -616,7 +618,7 @@ private fun LandscapeCommandCenter(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier.fillMaxSize().background(NssBackground)
+        modifier = modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xCC050A0F))
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
             .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -647,7 +649,7 @@ private fun LandscapeCommandCenter(
                 if (situations.isEmpty()) Text("No urgent files. Your cabinet is clear.", color = NssMutedForeground, fontSize = 10.sp)
                 situations.take(3).forEach { item ->
                     Row(
-                        modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssBackground)
+                        modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(androidx.compose.ui.graphics.Color(0xCC050A0F))
                             .clickable { onNavigate(item.destination) }.padding(horizontal = 9.dp, vertical = 7.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {

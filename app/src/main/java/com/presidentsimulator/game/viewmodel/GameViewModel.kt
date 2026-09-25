@@ -259,6 +259,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         after.diplomacy.activeWar?.lastBattleSummary?.takeIf { it.isNotBlank() }?.let {
             lines += "War: $it"
         }
+        before.military.procurementOrders
+            .filter { it.monthsRemaining <= 1 && after.military.procurementOrders.none { order -> order.type == it.type && order.quantity == it.quantity && order.totalCost == it.totalCost } }
+            .forEach { order -> lines += "Military delivery received: ${order.quantity} ${order.type.name.lowercase().replace('_', ' ')}." }
         _warOutcome.value?.let { war ->
             lines += if (war.victory) {
                 "War won vs ${war.targetName} after ${war.monthsActive} months."
@@ -876,6 +879,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun recruitPersonnel(amount: Long) {
         _state.update { diplomacyEngine.recruitPersonnel(it, amount) }
+    }
+
+    fun upgradeMilitaryTraining() {
+        _state.update { diplomacyEngine.upgradeMilitaryTraining(it) }
+    }
+
+    fun setFrontlineFocus(countryId: String) {
+        _state.update { diplomacyEngine.setFrontlineFocus(it, countryId) }
     }
 
     fun purchaseTanks(amount: Int) {

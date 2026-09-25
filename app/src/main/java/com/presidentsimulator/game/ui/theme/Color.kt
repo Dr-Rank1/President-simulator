@@ -2,38 +2,37 @@ package com.presidentsimulator.game.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Map-led strategy palette: cool paper, clear blue navigation, and green action accents.
-val NssBackground = Color(0xFFEAF1F6)
-val NssForeground = Color(0xFF172634)
-val NssCard = Color(0xFFFFFFFF)
-/** Bright, readable management panels on a cool map-console surface. */
-val NssGameCard = Color(0xFFFFFFFF)
-val NssPrimary = Color(0xFF17699F)
-val NssSecondary = Color(0xFFD9E7EF)
-val NssMuted = Color(0xFFE1EBF1)
-val NssMutedForeground = Color(0xFF617587)
-val NssAccent = Color(0xFF27845F)
-val NssBorder = Color(0xFFCAD9E3)
-val NssDestructive = Color(0xFFB93838)
+// Military-industrial strategy palette: dark slate, olive drab, deep navy, and crimson alerts
+val NssBackground = Color(0xFF101418) // Dark Slate
+val NssForeground = Color(0xFFD3D8DE)
+val NssCard = Color(0xFF1B2228)
+val NssGameCard = Color(0xCC15191E) // Semi-transparent dark
+val NssPrimary = Color(0xFF4C5D6C)
+val NssSecondary = Color(0xFF28343D)
+val NssMuted = Color(0xFF222B32)
+val NssMutedForeground = Color(0xFF8294A1)
+val NssAccent = Color(0xFF6B8049) // Olive drab
+val NssBorder = Color(0xFF323F49)
+val NssDestructive = Color(0xFFA13535)
 
-// Semantic values tuned for parchment surfaces
-val NssEmerald = Color(0xFF21875D)
-val NssSky = Color(0xFF3189C4)
-val NssAmber = Color(0xFFD89324)
-val NssRed = Color(0xFFB93838)
-val NssViolet = Color(0xFF6B4FA0)
-val NssIndigo = Color(0xFF3F62A5)
-val NssOrange = Color(0xFFB96520)
+// Semantic values tuned for military terminal interfaces
+val NssEmerald = Color(0xFF4E7A4A)
+val NssSky = Color(0xFF456B86)
+val NssAmber = Color(0xFFB08C36)
+val NssRed = Color(0xFFA13535)
+val NssViolet = Color(0xFF5B457D)
+val NssIndigo = Color(0xFF384666)
+val NssOrange = Color(0xFF915629)
 
 /** Text and overlays on photo headers and dark scrims */
 val NssOnPhoto = Color(0xFFFFFFFF)
 
-/** Inset metrics strip under the main HUD row (zip reference `#15294e`). */
-val NssHudMetricsBar = Color(0xFF11577F)
+/** Inset metrics strip under the main HUD row */
+val NssHudMetricsBar = Color(0xFF0F151B)
 
-// Legacy aliases — mapped to NSS tokens for existing screens
+// Legacy aliases mapped
 val Ma2Teal = NssPrimary
-val Ma2TealDark = Color(0xFF114565)
+val Ma2TealDark = Color(0xFF2D3945)
 val Ma2HeaderBlue = NssPrimary
 val Ma2HeaderOrange = NssAmber
 val Ma2Green = NssEmerald
@@ -48,19 +47,19 @@ val TileRed = NssRed
 val TileGreen = NssEmerald
 val TilePurple = NssViolet
 val TileOrange = NssOrange
-val TileBrown = Color(0xFF78716C)
+val TileBrown = Color(0xFF4A4B45)
 val TileCyan = NssSky
 val TileIndigo = NssIndigo
 
-val DeepNavy = NssForeground
+val DeepNavy = Color(0xFF0D1217)
 val NavySurface = NssCard
 val SlateGray = NssSecondary
 val SlateOutline = NssBorder
 val StarkWhite = Color(0xFFFFFFFF)
 val NeutralGray = NssMutedForeground
-val CommandGold = NssAccent
-val ProfitGreen = Color(0xFF1D6940)
-val DeficitRed = Color(0xFFA52828)
-val WarningOrange = Color(0xFFC4882A)
-val InfoBlue = NssPrimary
-val CrisisCrimson = Color(0xFFA52828)
+val CommandGold = NssAmber
+val ProfitGreen = NssEmerald
+val DeficitRed = NssRed
+val WarningOrange = NssAmber
+val InfoBlue = NssSky
+val CrisisCrimson = NssRed

@@ -2,71 +2,51 @@ package com.presidentsimulator.game.ui.theme
 
 import androidx.compose.ui.unit.dp
 
-/**
- * Central spacing, sizing, and elevation tokens for NSS layouts.
- * Tuned to the scaled-down Figma Make export (Nation State Simulator UI Design zip).
- */
+/** Dense layout metrics for gritty grand-strategy feel */
 object Dimens {
-    val SpacingXSmall = 4.dp
-    val SpacingSmall = 8.dp
-    val SpacingMedium = 12.dp
-    val SpacingLarge = 20.dp
-    val SpacingXLarge = 28.dp
+    val SpacingXSmall = 2.dp
+    val SpacingSmall = 4.dp
+    val SpacingMedium = 8.dp
+    val SpacingLarge = 12.dp
+    val SpacingXLarge = 16.dp
 
-    /** Standard content inset for scrollable ministry bodies. */
-    val ContentPadding = SpacingMedium
+    val ContentPadding = SpacingSmall
+    val GridGap = 4.dp
+    val SectionGap = 8.dp
 
-    /** Gap between cards in 2-column grids / horizontal rows. */
-    val GridGap = 8.dp
+    // Sharp edges instead of heavy rounding
+    val CardRadius = 2.dp
+    val CardElevation = 0.dp
+    val CardTonalElevation = 0.dp
 
-    /** Vertical rhythm between stacked sections. */
-    val SectionGap = 16.dp
+    val BadgeCorner = 2.dp
+    val PillCorner = 2.dp
 
-    val CardRadius = 16.dp
-    val CardElevation = 1.dp
-    val CardTonalElevation = 2.dp
+    val HudHeight = 48.dp
+    val CompactScreenHeaderHeight = 64.dp
+    val MinistryScrollBottomPadding = 12.dp
 
-    val BadgeCorner = 6.dp
-    val PillCorner = 12.dp
+    val TabBarHeight = 36.dp
+    val BottomNavHeight = 48.dp
+    val ScreenHeaderHeight = 64.dp
+    val DashboardHeroHeight = 80.dp
 
-    /** Two-row HUD: brand row + inset metrics strip (zip reference). */
-    val HudHeight = 72.dp
-
-    /** Shorter ministry photo header on small / landscape phones. */
-    val CompactScreenHeaderHeight = 96.dp
-
-    /** Extra scroll padding above bottom nav so last cards are not clipped. */
-    val MinistryScrollBottomPadding = 20.dp
-
-    val TabBarHeight = 44.dp
-    val BottomNavHeight = 56.dp
-
-    /** Matches reference ScreenHeader `h-32`. */
-    val ScreenHeaderHeight = 128.dp
-
-    /** Matches reference dashboard hero `h-40`. */
-    val DashboardHeroHeight = 160.dp
-
-    val SectorCardPhotoHeight = 96.dp
-    val MinistryTilePhotoHeight = 80.dp
-    val NationCardHeaderHeight = 80.dp
-    val UnitCardPhotoHeight = 80.dp
-    val SituationThumbWidth = 80.dp
+    val SectorCardPhotoHeight = 64.dp
+    val MinistryTilePhotoHeight = 64.dp
+    val NationCardHeaderHeight = 64.dp
+    val UnitCardPhotoHeight = 64.dp
+    val SituationThumbWidth = 64.dp
 }
 
-/**
- * Standardized photo overlay alphas for readable light text on imagery.
- * Bottom/strong values target ~4.5:1 contrast for white body text.
- */
 object PhotoScrimAlpha {
     const val Transparent = 0f
-    const val Soft = 0.22f
-    const val Medium = 0.40f
-    const val Strong = 0.78f
-    const val Max = 0.88f
+    const val Soft = 0.40f
+    const val Medium = 0.60f
+    const val Strong = 0.85f
+    const val Max = 0.95f
 
-    const val ScreenHeaderTop = 0.60f
-    const val ScreenHeaderBottom = 0.78f
-    const val BannerLeftStrong = 0.78f
-    const val BannerLeftMid = 0.40f
+    const val ScreenHeaderTop = 0.80f
+    const val ScreenHeaderBottom = 0.95f
+    const val BannerLeftStrong = 0.90f
+    const val BannerLeftMid = 0.70f
 }

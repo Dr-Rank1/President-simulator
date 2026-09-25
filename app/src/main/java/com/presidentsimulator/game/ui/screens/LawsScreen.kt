@@ -99,7 +99,7 @@ fun LawsScreen(
         selected.category?.let { LawCatalog.byCategory(it) }.orEmpty()
     }
 
-    Column(modifier = modifier.fillMaxSize().background(NssBackground).windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
+    Column(modifier = modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xCC050A0F)).windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
         NssScreenHeader(
             title = "Domestic Policy",
             imageUrl = NssCardImages.BANNER_DOMESTIC,

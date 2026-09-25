@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.activity.compose.BackHandler
@@ -37,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -104,7 +109,7 @@ fun CountrySelectScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(NssBackground)
+            .background(androidx.compose.ui.graphics.Color(0xCC050A0F))
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(horizontal = if (layout.isLandscape) 12.dp else 20.dp, vertical = if (layout.isLandscape) 6.dp else 12.dp),
     ) {
@@ -292,43 +297,63 @@ private fun NationList(
     onSelect: (String) -> Unit,
     onToggleFavorite: (String) -> Unit,
 ) {
-    LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         items(nations, key = { it.id }) { item ->
-            NationChoiceRow(item, item.id == selectedNationId, item.id in favoriteIds,
+            NationChoiceCard(item, item.id == selectedNationId, item.id in favoriteIds,
                 onSelect = { onSelect(item.id) }, onToggleFavorite = { onToggleFavorite(item.id) })
         }
-        if (nations.isEmpty()) item { Text("No countries match that search.", color = NssMutedForeground, fontSize = 12.sp, modifier = Modifier.padding(16.dp)) }
+    }
+    if (nations.isEmpty()) {
+        Text("No countries match that search.", color = NssMutedForeground, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
     }
 }
 
 @Composable
-private fun NationChoiceRow(
+private fun NationChoiceCard(
     nation: PlayableNationCatalog.NationDefinition,
     selected: Boolean,
     favorite: Boolean,
     onSelect: () -> Unit,
     onToggleFavorite: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clip(NssCardShape)
-            .background(if (selected) NssPrimary.copy(alpha = 0.35f) else NssGameCard)
-            .border(1.dp, if (selected) NssAccent else NssBorder, NssCardShape)
-            .clickable(onClick = onSelect).padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(0.85f)
+            .clip(NssCardShape)
+            .background(if (selected) NssPrimary.copy(alpha = 0.4f) else NssGameCard)
+            .border(2.dp, if (selected) NssAccent else NssBorder, NssCardShape)
+            .clickable(onClick = onSelect)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Text(nation.flagEmoji, fontSize = 26.sp)
-        Column(modifier = Modifier.weight(1f)) {
-            Text(nation.name, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("${nation.governmentLabel} · ${nation.region}", color = NssMutedForeground, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                if (favorite) "★" else "☆",
+                modifier = Modifier.clip(CircleShape).clickable(onClick = onToggleFavorite).padding(4.dp),
+                color = NssAccent,
+                fontSize = 20.sp,
+            )
+            if (selected) {
+                Icon(Icons.Default.Check, contentDescription = "Selected", tint = NssEmerald, modifier = Modifier.size(24.dp))
+            } else {
+                Spacer(modifier = Modifier.size(24.dp))
+            }
         }
-        Text(
-            if (favorite) "★" else "☆",
-            modifier = Modifier.clip(CircleShape).clickable(onClick = onToggleFavorite).padding(6.dp),
-            color = NssAccent,
-            fontSize = 17.sp,
-        )
-        if (selected) SelectionCheck()
+        
+        Spacer(modifier = Modifier.weight(1f))
+        Text(nation.flagEmoji, fontSize = 60.sp)
+        Spacer(modifier = Modifier.weight(1f))
+        
+        Text(nation.name, color = NssForeground, fontWeight = FontWeight.Black, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+        Text("${nation.governmentLabel}", color = NssAccent, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+        Text("${nation.region}", color = NssMutedForeground, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 2.dp))
     }
 }
 
