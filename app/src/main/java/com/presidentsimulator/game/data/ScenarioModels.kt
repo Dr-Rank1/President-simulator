@@ -4,9 +4,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class ScenarioDifficulty(val displayName: String) {
+    EASY("Easy"),
     STANDARD("Standard"),
     HARD("Hard"),
-    NIGHTMARE("Nightmare"),
+    VERY_HARSH("Very Harsh"),
 }
 
 @Serializable
