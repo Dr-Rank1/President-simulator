@@ -585,6 +585,7 @@ private fun campaignObjectives(state: GameState): List<Pair<String, Boolean>> {
     val stable = state.internalSecurity.instabilityScore < 30f
     val wonElection = state.legacy.electionsWon > 0
     val complete = when (state.scenario.scenarioId) {
+        "peaceful_opening" -> listOf(state.netIncome >= 0L, state.vitals.approval >= 55f, !state.production.foodShortage)
         "powder_keg" -> listOf(state.vitals.budget >= 3_000_000_000L, averageRelations >= 0.0, wonElection)
         "empty_granaries" -> listOf(!state.production.foodShortage, state.vitals.approval >= 50f, state.economy.farms >= 12)
         "palace_intrigue" -> listOf(state.cabinet.cohesion >= 60f, state.press.credibility >= 55f, state.internalSecurity.coupRisk < 30f)

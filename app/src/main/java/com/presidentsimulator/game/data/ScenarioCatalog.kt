@@ -12,6 +12,13 @@ object ScenarioCatalog {
 
     val ALL = listOf(
         ScenarioPack(
+            id = "peaceful_opening",
+            title = "Peaceful Opening",
+            tagline = "A stronger treasury, steady public support, and calm borders.",
+            difficulty = ScenarioDifficulty.EASY,
+            objectives = listOf("Keep the monthly budget in surplus", "Maintain public approval above 55%", "Keep food supply stable"),
+        ),
+        ScenarioPack(
             id = "standard",
             title = "Standard Mandate",
             tagline = "Balanced start — write your own legacy.",
@@ -43,7 +50,7 @@ object ScenarioCatalog {
             id = "iron_curtain",
             title = "Iron Curtain",
             tagline = "Autocratic grip, embargoed trade, UN spotlight.",
-            difficulty = ScenarioDifficulty.NIGHTMARE,
+            difficulty = ScenarioDifficulty.VERY_HARSH,
             recommendedNationId = "kryos",
             objectives = listOf("Break the diplomatic isolation", "Keep the regime stable", "Reach the national victory year"),
         ),
@@ -51,7 +58,7 @@ object ScenarioCatalog {
             id = "reform_or_die",
             title = "Reform or Die",
             tagline = "Minority government, surging opposition, ticking clock.",
-            difficulty = ScenarioDifficulty.NIGHTMARE,
+            difficulty = ScenarioDifficulty.VERY_HARSH,
             objectives = listOf("Pass legislation with a minority government", "Contain opposition momentum", "Win the early election"),
         ),
     )
@@ -76,6 +83,23 @@ object ScenarioCatalog {
         )
 
         next = when (pack.id) {
+            "peaceful_opening" -> next.copy(
+                vitals = next.vitals.copy(
+                    budget = (next.vitals.budget * 1.35).toLong(),
+                    approval = (next.vitals.approval + 10f).coerceAtMost(85f),
+                ),
+                production = next.production.copy(food = next.production.food + 2_500L),
+                diplomacy = next.diplomacy.copy(
+                    rivals = next.diplomacy.rivals.map { rival ->
+                        rival.copy(relationshipScore = (rival.relationshipScore + 12).coerceAtMost(100))
+                    },
+                ),
+                internalSecurity = next.internalSecurity.copy(
+                    instabilityScore = (next.internalSecurity.instabilityScore - 12f).coerceAtLeast(0f),
+                    coupRisk = (next.internalSecurity.coupRisk - 12f).coerceAtLeast(0f),
+                ),
+                scenario = next.scenario.copy(notes = next.scenario.notes + "Peaceful opening · extra reserves and stronger public support"),
+            )
             "powder_keg" -> next.copy(
                 vitals = next.vitals.copy(
                     budget = (next.vitals.budget * 0.55).toLong(),

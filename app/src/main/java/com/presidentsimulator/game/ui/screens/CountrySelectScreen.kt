@@ -188,7 +188,7 @@ fun CountrySelectScreen(
             }
 
             SCENARIO_STEP -> {
-                StepHeading("Choose a scenario", "Pick the kind of campaign you want to play.")
+                StepHeading("Choose a scenario", "Choose a starting situation, from Easy to Very Harsh.")
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -200,9 +200,29 @@ fun CountrySelectScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(option.title, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                    Text("${option.difficulty.displayName} · ${option.tagline}", color = NssMutedForeground, fontSize = 11.sp, modifier = Modifier.padding(top = 3.dp))
                                 }
+                                Text(
+                                    option.difficulty.displayName.uppercase(),
+                                    modifier = Modifier.clip(NssCardShape)
+                                        .background(scenarioDifficultyColor(option.difficulty).copy(alpha = 0.16f))
+                                        .padding(horizontal = 8.dp, vertical = 5.dp),
+                                    color = scenarioDifficultyColor(option.difficulty),
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 0.5.sp,
+                                )
                                 if (selected) SelectionCheck()
+                            }
+                            Text(option.tagline, color = NssMutedForeground, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+                            option.recommendedNationId?.let { recommendedId ->
+                                val recommendedName = nations.firstOrNull { it.id == recommendedId }?.name ?: recommendedId
+                                Text(
+                                    if (nation?.id == recommendedId) "Good fit for your selected nation" else "Recommended nation: $recommendedName",
+                                    color = NssAccent,
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(top = 5.dp),
+                                )
                             }
                         }
                     }
@@ -219,7 +239,7 @@ fun CountrySelectScreen(
             }
 
             else -> {
-                StepHeading("Set your challenge", "Optional rules make the campaign harder and raise your legacy score.")
+                StepHeading("Set your challenge", "Optional modifiers add difficulty and raise your legacy score. Classic Rules keeps the selected scenario unchanged.")
                 LazyColumn(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -319,6 +339,13 @@ private fun SelectionCard(selected: Boolean, onClick: () -> Unit, content: @Comp
             .border(1.dp, if (selected) NssAccent else NssBorder, NssCardShape)
             .clickable(onClick = onClick).padding(14.dp),
     ) { content() }
+}
+
+private fun scenarioDifficultyColor(difficulty: com.presidentsimulator.game.data.ScenarioDifficulty): Color = when (difficulty) {
+    com.presidentsimulator.game.data.ScenarioDifficulty.EASY -> NssEmerald
+    com.presidentsimulator.game.data.ScenarioDifficulty.STANDARD -> NssAccent
+    com.presidentsimulator.game.data.ScenarioDifficulty.HARD -> Color(0xFFF59E0B)
+    com.presidentsimulator.game.data.ScenarioDifficulty.VERY_HARSH -> Color(0xFFEF4444)
 }
 
 @Composable
