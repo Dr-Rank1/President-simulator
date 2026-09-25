@@ -1103,3 +1103,34 @@ fun InteractiveWorldMap(
         )
     }
 }
+
+
+fun formatCompactMoney(value: Long): String {
+    if (value >= 1_000_000_000_000L) return String.format("$%.1fT", value / 1_000_000_000_000.0)
+    if (value >= 1_000_000_000L) return String.format("$%.1fB", value / 1_000_000_000.0)
+    if (value >= 1_000_000L) return String.format("$%.1fM", value / 1_000_000.0)
+    if (value >= 1_000L) return String.format("$%.1fK", value / 1_000.0)
+    return "$$value"
+}
+
+fun formatCompactMil(value: Long): String {
+    if (value >= 1_000_000_000L) return String.format("%.1fB", value / 1_000_000_000.0)
+    if (value >= 1_000_000L) return String.format("%.1fM", value / 1_000_000.0)
+    if (value >= 1_000L) return String.format("%.1fK", value / 1_000.0)
+    return value.toString()
+}
+
+
+fun formatMa2Money(amount: Long): String = formatCompactMoney(amount)
+
+fun collectAlertCount(state: com.presidentsimulator.game.data.GameState): Int {
+    var count = 0
+    if (state.diplomacy.activeWar != null) count++
+    if (state.internalSecurity.coupRisk >= 60f) count++
+    if (state.internalSecurity.instabilityScore >= 50f) count++
+    if (state.production.foodShortage) count++
+    if (state.production.energyShortage) count++
+    if (state.governance.activeResolution != null) count++
+    if (state.gameOver.isGameOver) count++
+    return count.coerceAtLeast(if (count == 0) 1 else count)
+}

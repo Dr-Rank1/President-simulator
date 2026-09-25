@@ -3,39 +3,13 @@ package com.presidentsimulator.game.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material.icons.filled.Science
-import androidx.compose.material.icons.filled.Gavel
-import androidx.compose.material.icons.filled.Analytics
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.DropdownMenu
@@ -48,18 +22,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.ui.navigation.GameDestination
-import com.presidentsimulator.game.ui.theme.Dimens
 import com.presidentsimulator.game.ui.theme.NssAccent
-import com.presidentsimulator.game.ui.theme.NssOnPhoto
-import com.presidentsimulator.game.ui.theme.NssPrimary
 import com.presidentsimulator.game.ui.theme.NssRed
-import com.presidentsimulator.game.ui.theme.NssMutedForeground
 
 data class BottomNavItem(
     val destination: GameDestination,
@@ -68,41 +39,21 @@ data class BottomNavItem(
 )
 
 val bottomNavItems = listOf(
-    BottomNavItem(GameDestination.Dashboard, "Overview", Icons.Default.AccountBalance),
+    BottomNavItem(GameDestination.Dashboard, "Map", Icons.Default.Public),
     BottomNavItem(GameDestination.Economy, "Economy", Icons.Default.AttachMoney),
-    BottomNavItem(GameDestination.Military, "Defense", Icons.Default.Shield),
-    BottomNavItem(GameDestination.Diplomacy, "Foreign", Icons.Default.Public),
-    BottomNavItem(GameDestination.LawsSociety, "Policy", Icons.Default.Gavel),
-)
-
-private val moreNavItems = listOf(
-    BottomNavItem(GameDestination.Cabinet, "Cabinet", Icons.Default.AccountBalance),
-    BottomNavItem(GameDestination.Demographics, "Public Support & Elections", Icons.Default.Groups),
-    BottomNavItem(GameDestination.SecretService, "Intelligence", Icons.Default.Visibility),
+    BottomNavItem(GameDestination.Military, "Military", Icons.Default.Shield),
+    BottomNavItem(GameDestination.Diplomacy, "Foreign", Icons.Default.Gavel),
+    BottomNavItem(GameDestination.LawsSociety, "Laws", Icons.Default.AccountBalance),
     BottomNavItem(GameDestination.Science, "Research", Icons.Default.Science),
-    BottomNavItem(GameDestination.Governance, "United Nations", Icons.Default.Public),
-    BottomNavItem(GameDestination.Analytics, "Analytics", Icons.Default.Analytics),
-    BottomNavItem(GameDestination.AudioSettings, "Settings", Icons.Default.Settings),
 )
 
-fun bottomNavAlertCount(state: GameState, destination: GameDestination): Int = when (destination) {
-    GameDestination.Dashboard -> collectAlertCount(state)
+private fun bottomNavAlertCount(state: GameState, dest: GameDestination): Int = when (dest) {
     GameDestination.Military -> if (state.diplomacy.activeWar != null) 1 else 0
     GameDestination.Diplomacy -> state.diplomacy.rivals.count { it.relationshipScore < 25 }
-    GameDestination.Science -> scienceAlertCount(state)
+    GameDestination.Science -> if ((state.research.activeTechnology != null && state.research.progressPercent() >= 80f) || (state.research.activeTechnology == null && state.research.sciencePoints >= 150L)) 1 else 0
     GameDestination.LawsSociety -> state.legal.pendingLaws.size
     GameDestination.Governance -> if (state.governance.activeResolution != null) 1 else 0
     else -> 0
-}
-
-private fun scienceAlertCount(state: GameState): Int {
-    val research = state.research
-    val nearComplete = research.activeTechnology != null && research.progressPercent() >= 80f
-    val idleWithPoints = research.activeTechnology == null && research.sciencePoints >= 150L
-    return when {
-        nearComplete || idleWithPoints -> 1
-        else -> 0
-    }
 }
 
 @Composable
@@ -113,198 +64,74 @@ fun MinistryBottomNav(
     sideRail: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    var moreExpanded by remember { mutableStateOf(false) }
-    val moreSelected = moreNavItems.any { it.destination.route == currentRoute }
-    val moreAlerts = moreNavItems.sumOf { bottomNavAlertCount(state, it.destination) }.coerceAtMost(9)
-
-    if (sideRail) {
-        Column(
-            modifier = modifier.fillMaxHeight()
-                .background(NssPrimary.copy(alpha = 0.98f))
-                .border(1.dp, NssOnPhoto.copy(alpha = 0.12f))
-                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.End + WindowInsetsSides.Bottom))
-                .verticalScroll(rememberScrollState()).padding(horizontal = 5.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
-            bottomNavItems.forEach { item ->
-                val selected = currentRoute == item.destination.route
-                val alerts = bottomNavAlertCount(state, item.destination)
-                Column(
-                    modifier = Modifier.fillMaxWidth().height(43.dp).clickable { onNavigate(item.destination) },
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Box(
-                            modifier = Modifier.size(27.dp).clip(CircleShape)
-                                .background(if (selected) NssAccent else NssOnPhoto.copy(alpha = 0.14f)),
-                        )
-                        Icon(item.icon, contentDescription = item.label, tint = NssOnPhoto, modifier = Modifier.size(15.dp))
-                        if (alerts > 0) {
-                            Box(
-                                modifier = Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-3).dp)
-                                    .size(12.dp).clip(CircleShape).background(NssRed),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(alerts.coerceAtMost(9).toString(), color = NssOnPhoto, fontSize = 7.sp, fontWeight = FontWeight.Black)
-                            }
-                        }
-                    }
-                    Text(item.label, color = if (selected) NssOnPhoto else NssOnPhoto.copy(alpha = 0.72f), fontSize = 7.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, maxLines = 1)
-                }
-            }
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().height(43.dp).clickable { moreExpanded = true },
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Box(Modifier.size(27.dp).clip(CircleShape).background(if (moreSelected) NssAccent else NssOnPhoto.copy(alpha = 0.14f)))
-                        Icon(Icons.Default.MoreHoriz, contentDescription = "More ministries", tint = NssOnPhoto, modifier = Modifier.size(17.dp))
-                        if (moreAlerts > 0) {
-                            Box(Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-3).dp).size(12.dp).clip(CircleShape).background(NssRed), contentAlignment = Alignment.Center) {
-                                Text(moreAlerts.toString(), color = NssOnPhoto, fontSize = 7.sp, fontWeight = FontWeight.Black)
-                            }
-                        }
-                    }
-                    Text("More", color = if (moreSelected) NssOnPhoto else NssOnPhoto.copy(alpha = 0.72f), fontSize = 7.sp, fontWeight = FontWeight.SemiBold)
-                }
-                DropdownMenu(expanded = moreExpanded, onDismissRequest = { moreExpanded = false }) {
-                    moreNavItems.forEach { item ->
-                        val alerts = bottomNavAlertCount(state, item.destination)
-                        DropdownMenuItem(
-                            text = {
-                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                    Text(item.label)
-                                    if (alerts > 0) Text(alerts.coerceAtMost(9).toString(), color = NssRed, fontWeight = FontWeight.Black)
-                                }
-                            },
-                            leadingIcon = { Icon(item.icon, contentDescription = null) },
-                            onClick = { moreExpanded = false; onNavigate(item.destination) },
-                        )
-                    }
-                }
-            }
-        }
-        return
-    }
-
+    // In Modern Age 2, the bottom navigation is made of chunky metallic/dark tiles.
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(NssPrimary.copy(alpha = 0.95f))
-            .border(1.dp, NssOnPhoto.copy(alpha = 0.1f), RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp))
+            .background(Color(0xFF0F172A)) // Dark slate background
+            .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
             .windowInsetsPadding(
                 WindowInsets.safeDrawing.only(
-                    WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal,
-                ),
+                    WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
+                )
             )
-            .height(Dimens.BottomNavHeight),
+            .padding(horizontal = 4.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         bottomNavItems.forEach { item ->
             val selected = currentRoute == item.destination.route
             val alerts = bottomNavAlertCount(state, item.destination)
-            Box(
+            
+            Column(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable { onNavigate(item.destination) },
+                    .padding(horizontal = 4.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(if (selected) Color(0xFF1E293B) else Color.Transparent)
+                    .border(
+                        1.dp,
+                        if (selected) NssAccent.copy(alpha = 0.5f) else Color.Transparent,
+                        RoundedCornerShape(6.dp)
+                    )
+                    .clickable { onNavigate(item.destination) }
+                    .padding(vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
-                if (selected) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .padding(horizontal = 4.dp, vertical = 2.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(NssOnPhoto.copy(alpha = 0.12f)),
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = item.label,
+                        tint = if (selected) NssAccent else Color.Gray,
+                        modifier = Modifier.size(24.dp)
                     )
-                }
-                if (selected) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .offset(y = (-2).dp)
-                            .width(32.dp)
-                            .height(3.dp)
-                            .clip(RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp))
-                            .background(NssAccent),
-                    )
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = Dimens.SpacingSmall),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(Dimens.SpacingXSmall),
-                ) {
-                    Box {
-                Icon(
-                            imageVector = item.icon,
-                            contentDescription = item.label,
-                            tint = if (selected) NssOnPhoto else NssOnPhoto.copy(alpha = 0.5f),
-                            modifier = Modifier.size(20.dp),
-                        )
-                        if (alerts > 0) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .offset(x = 6.dp, y = (-4).dp)
-                                    .size(14.dp)
-                                    .clip(CircleShape)
-                                    .background(NssRed),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = alerts.coerceAtMost(9).toString(),
-                                    color = NssOnPhoto,
-                                    fontSize = 8.sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                            }
+                    if (alerts > 0) {
+                        Box(
+                            Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = 8.dp, y = (-6).dp)
+                                .size(14.dp)
+                                .clip(CircleShape)
+                                .background(NssRed),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = alerts.coerceAtMost(9).toString(),
+                                color = Color.White,
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Black
+                            )
                         }
                     }
-                    Text(
-                        text = item.label,
-                        color = if (selected) NssOnPhoto else NssOnPhoto.copy(alpha = 0.5f),
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
                 }
-            }
-        }
-        Box(modifier = Modifier.weight(1f)) {
-            Column(
-                modifier = Modifier.fillMaxWidth().clickable { moreExpanded = true }.padding(vertical = Dimens.SpacingSmall),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(Dimens.SpacingXSmall),
-            ) {
-                Icon(Icons.Default.MoreHoriz, contentDescription = "More ministries", tint = if (moreSelected) NssOnPhoto else NssMutedForeground, modifier = Modifier.size(20.dp))
-                Text("More", color = if (moreSelected) NssOnPhoto else NssMutedForeground, fontSize = 9.sp, fontWeight = if (moreSelected) FontWeight.Bold else FontWeight.SemiBold)
-            }
-            if (moreSelected) Box(modifier = Modifier.align(Alignment.TopCenter).width(32.dp).height(3.dp)
-                .clip(RoundedCornerShape(bottomStart = 4.dp, bottomEnd = 4.dp)).background(NssAccent))
-            if (moreAlerts > 0) Box(modifier = Modifier.align(Alignment.TopEnd).padding(top = 5.dp, end = 12.dp).size(15.dp)
-                .clip(CircleShape).background(NssRed), contentAlignment = Alignment.Center) {
-                Text(moreAlerts.toString(), color = NssOnPhoto, fontSize = 8.sp, fontWeight = FontWeight.Black)
-            }
-            DropdownMenu(expanded = moreExpanded, onDismissRequest = { moreExpanded = false }) {
-                moreNavItems.forEach { item ->
-                    val alerts = bottomNavAlertCount(state, item.destination)
-                    DropdownMenuItem(
-                        text = {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text(item.label)
-                                if (alerts > 0) Text(alerts.coerceAtMost(9).toString(), color = NssRed, fontWeight = FontWeight.Black)
-                            }
-                        },
-                        leadingIcon = { Icon(item.icon, contentDescription = null) },
-                        onClick = {
-                            moreExpanded = false
-                            onNavigate(item.destination)
-                        },
-                    )
-                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = item.label.uppercase(),
+                    color = if (selected) NssAccent else Color.Gray,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
