@@ -1,70 +1,43 @@
 package com.presidentsimulator.game.ui.screens
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
+import coil.compose.AsyncImage
 import com.presidentsimulator.game.data.PlayableNationCatalog
 import com.presidentsimulator.game.data.ScenarioCatalog
 import com.presidentsimulator.game.ui.components.NssCardShape
 import com.presidentsimulator.game.ui.components.rememberNssLayoutSpec
-import com.presidentsimulator.game.ui.theme.NssAccent
-import com.presidentsimulator.game.ui.theme.NssBackground
-import com.presidentsimulator.game.ui.theme.NssBorder
-import com.presidentsimulator.game.ui.theme.NssEmerald
-import com.presidentsimulator.game.ui.theme.NssForeground
-import com.presidentsimulator.game.ui.theme.NssGameCard
-import com.presidentsimulator.game.ui.theme.NssMutedForeground
-import com.presidentsimulator.game.ui.theme.NssOnPhoto
-import com.presidentsimulator.game.ui.theme.NssPrimary
-
-private const val NATION_STEP = 0
-private const val SCENARIO_STEP = 1
-private const val CHALLENGE_STEP = 2
+import com.presidentsimulator.game.ui.theme.*
 
 @Composable
 fun CountrySelectScreen(
@@ -72,208 +45,154 @@ fun CountrySelectScreen(
     onBack: () -> Unit,
     onSelectCountry: (countryId: String, scenarioId: String, challengeId: String) -> Unit,
 ) {
-    var step by remember { mutableIntStateOf(NATION_STEP) }
-    var selectedNationId by remember(nations) { mutableStateOf(nations.firstOrNull()?.id.orEmpty()) }
-    var scenarioIndex by remember { mutableIntStateOf(0) }
-    var challengeIndex by remember { mutableIntStateOf(0) }
-    var countryQuery by remember { mutableStateOf("") }
-
-    val context = LocalContext.current
-    val favoritePreferences = remember(context) { context.getSharedPreferences("country_picker", 0) }
-    var favoriteIds by remember(context) {
-        mutableStateOf(favoritePreferences.getStringSet("favorites", emptySet()).orEmpty().toSet())
-    }
-    var favoritesOnly by remember { mutableStateOf(false) }
     val layout = rememberNssLayoutSpec()
-
+    var selectedNationId by remember(nations) { mutableStateOf(nations.firstOrNull()?.id.orEmpty()) }
+    var selectedChallengeId by remember { mutableStateOf(ScenarioCatalog.CHALLENGES.first().id) }
+    
     val nation = nations.firstOrNull { it.id == selectedNationId } ?: nations.firstOrNull()
-    val visibleNations = remember(nations, countryQuery, favoritesOnly, favoriteIds) {
-        nations.filter { candidate ->
-            val matchesQuery = countryQuery.isBlank() || listOf(
-                candidate.name,
-                candidate.officialName,
-                candidate.countryCode,
-            ).any { it.contains(countryQuery.trim(), ignoreCase = true) }
-            matchesQuery && (!favoritesOnly || candidate.id in favoriteIds)
-        }
-    }
-    val scenarios = remember { ScenarioCatalog.ALL }
     val challenges = remember { ScenarioCatalog.CHALLENGES }
-    val scenario = scenarios.getOrElse(scenarioIndex) { scenarios.first() }
-    val challenge = challenges.getOrElse(challengeIndex) { challenges.first() }
+    
+    BackHandler { onBack() }
 
-    BackHandler {
-        if (step == NATION_STEP) onBack() else step -= 1
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(androidx.compose.ui.graphics.Color(0xCC050A0F))
-            .windowInsetsPadding(WindowInsets.safeDrawing)
-            .padding(horizontal = if (layout.isLandscape) 12.dp else 20.dp, vertical = if (layout.isLandscape) 6.dp else 12.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+    Box(modifier = Modifier.fillMaxSize().background(Color(0xFF070B11))) {
+        // Background Image (Faded Map)
+        AsyncImage(
+            model = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop",
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+            alpha = 0.15f
+        )
+        
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .padding(16.dp)
         ) {
+            // Header
             Row(
-                modifier = Modifier.clip(NssCardShape).clickable {
-                    if (step == NATION_STEP) onBack() else step -= 1
-                }.padding(vertical = 8.dp, horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = NssMutedForeground, modifier = Modifier.size(17.dp))
-                Text(if (step == NATION_STEP) "BACK" else "PREVIOUS", color = NssMutedForeground, fontWeight = FontWeight.Bold, fontSize = 10.sp)
-            }
-            Spacer(Modifier.weight(1f))
-            Text("NEW CAMPAIGN", color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
-            Spacer(Modifier.weight(1f))
-            Text("${step + 1} / 3", color = NssMutedForeground, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = if (layout.isLandscape) 7.dp else 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            repeat(3) { index ->
-                Spacer(
-                    modifier = Modifier.weight(1f).height(3.dp).clip(CircleShape)
-                        .background(if (index <= step) NssAccent else NssBorder),
-                )
-            }
-        }
-
-        when (step) {
-            NATION_STEP -> {
-                StepHeading("Choose your nation", "Pick the country you want to lead.", layout.isLandscape)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = countryQuery,
-                        onValueChange = { countryQuery = it },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        label = { Text("Search countries") },
-                    )
-                    Text(
-                        if (favoritesOnly) "ALL" else "★ ${favoriteIds.size}",
-                        modifier = Modifier.clip(NssCardShape)
-                            .background(if (favoritesOnly) NssAccent.copy(alpha = 0.22f) else NssGameCard)
-                            .clickable { favoritesOnly = !favoritesOnly }
-                            .padding(horizontal = 12.dp, vertical = 14.dp),
-                        color = if (favoritesOnly) NssAccent else NssMutedForeground,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                    )
-                }
-                Text("${visibleNations.size} countries", color = NssMutedForeground, fontSize = 10.sp, modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
-                val listContent: @Composable (Modifier) -> Unit = { listModifier ->
-                    NationList(
-                        nations = visibleNations,
-                        selectedNationId = selectedNationId,
-                        favoriteIds = favoriteIds,
-                        modifier = listModifier,
-                        onSelect = { selectedNationId = it },
-                        onToggleFavorite = { id ->
-                            val updated = if (id in favoriteIds) favoriteIds - id else favoriteIds + id
-                            favoriteIds = updated
-                            favoritePreferences.edit().putStringSet("favorites", updated).apply()
-                        },
-                    )
-                }
-                if (layout.isLandscape) {
-                    Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        listContent(Modifier.weight(1.35f))
-                        Column(Modifier.weight(0.8f), verticalArrangement = Arrangement.Center) {
-                            nation?.let { SelectedNationSummary(it) }
-                            PrimaryAction("Continue to scenario") { step = SCENARIO_STEP }
-                        }
-                    }
-                } else {
-                    listContent(Modifier.weight(1f))
-                    nation?.let {
-                        SelectedNationSummary(it)
-                        PrimaryAction("Continue to scenario") { step = SCENARIO_STEP }
-                    }
-                }
-            }
-
-            SCENARIO_STEP -> {
-                StepHeading("Choose a scenario", "Choose a starting situation, from Easy to Very Harsh.", layout.isLandscape)
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                Row(
+                    modifier = Modifier.clip(CircleShape).background(Color.Black.copy(alpha=0.3f)).clickable { onBack() }.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    items(scenarios, key = { it.id }) { option ->
-                        val index = scenarios.indexOf(option)
-                        val selected = index == scenarioIndex
-                        SelectionCard(selected = selected, onClick = { scenarioIndex = index }) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(option.title, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                }
-                                Text(
-                                    option.difficulty.displayName.uppercase(),
-                                    modifier = Modifier.clip(NssCardShape)
-                                        .background(scenarioDifficultyColor(option.difficulty).copy(alpha = 0.16f))
-                                        .padding(horizontal = 8.dp, vertical = 5.dp),
-                                    color = scenarioDifficultyColor(option.difficulty),
-                                    fontSize = 8.sp,
-                                    fontWeight = FontWeight.Black,
-                                    letterSpacing = 0.5.sp,
-                                )
-                                if (selected) SelectionCheck()
-                            }
-                            Text(option.tagline, color = NssMutedForeground, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
-                            option.recommendedNationId?.let { recommendedId ->
-                                val recommendedName = nations.firstOrNull { it.id == recommendedId }?.name ?: recommendedId
-                                Text(
-                                    if (nation?.id == recommendedId) "Good fit for your selected nation" else "Recommended nation: $recommendedName",
-                                    color = NssAccent,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(top = 5.dp),
-                                )
-                            }
-                        }
-                    }
-                    item {
-                        SelectionCard(selected = true, onClick = {}) {
-                            Text("MISSION OBJECTIVES", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                            scenario.objectives.take(3).forEachIndexed { index, objective ->
-                                Text("${index + 1}. $objective", color = NssMutedForeground, fontSize = 10.sp, modifier = Modifier.padding(top = 5.dp))
-                            }
-                        }
-                    }
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = NssAccent, modifier = Modifier.size(20.dp))
                 }
-                PrimaryAction("Continue to challenge") { step = CHALLENGE_STEP }
+                Spacer(Modifier.weight(1f))
+                Text("SELECT NATION", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+                Spacer(Modifier.weight(1f))
+                Box(Modifier.size(44.dp)) // balance
             }
 
-            else -> {
-                StepHeading("Set your challenge", "Optional modifiers add difficulty and raise your legacy score. Classic Rules keeps the selected scenario unchanged.", layout.isLandscape)
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+            // Top Area: Nation Stats & Start Game
+            if (nation != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(challenges, key = { it.id }) { option ->
-                        val index = challenges.indexOf(option)
-                        val selected = index == challengeIndex
-                        SelectionCard(selected = selected, onClick = { challengeIndex = index }) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(option.title, color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                    Text(option.description, color = NssMutedForeground, fontSize = 11.sp, modifier = Modifier.padding(top = 3.dp))
+                    // Left: Selected Nation Details
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color(0x990A111A))
+                            .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(16.dp))
+                            .padding(20.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text(nation.flagEmoji, fontSize = 42.sp)
+                            Column {
+                                Text(nation.name.uppercase(), color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                                Text(nation.officialName, color = NssMutedForeground, fontSize = 12.sp)
+                            }
+                        }
+                        
+                        Spacer(Modifier.height(24.dp))
+                        
+                        // Stats Grid
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            StatBlock("POPULATION", "${nation.vitals.population / 1_000_000}M")
+                            StatBlock("BUDGET", "$${nation.vitals.budget / 1_000}B")
+                            StatBlock("MILITARY", "${nation.militaryStrength / 1000}K")
+                        }
+                        
+                        Spacer(Modifier.height(24.dp))
+                        Text("DIFFICULTY", color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        Spacer(Modifier.height(8.dp))
+                        
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(challenges) { challenge ->
+                                val isSelected = selectedChallengeId == challenge.id
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(if (isSelected) NssAccent else Color(0xFF131A26))
+                                        .clickable { selectedChallengeId = challenge.id }
+                                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                                ) {
+                                    Text(
+                                        challenge.title,
+                                        color = if (isSelected) Color.White else NssMutedForeground,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
                                 }
-                                Text("${option.scoreMultiplier}×", color = NssAccent, fontWeight = FontWeight.Black, fontSize = 14.sp)
-                                if (selected) SelectionCheck()
+                            }
+                        }
+                        
+                        Spacer(Modifier.weight(1f))
+                        
+                        Button(
+                            onClick = { 
+                                // Default scenario is Modern Age
+                                onSelectCountry(nation.id, ScenarioCatalog.ALL.first().id, selectedChallengeId)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = NssEmerald, contentColor = Color.White),
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("COMMENCE COMMAND", fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                        }
+                    }
+                    
+                    // Right: Scrollable Nation List
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(0.8f)
+                            .fillMaxHeight()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color(0x990A111A))
+                            .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(16.dp)),
+                        contentPadding = PaddingValues(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(nations) { n ->
+                            val isSelected = selectedNationId == n.id
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSelected) Color(0xFF1D283A) else Color.Transparent)
+                                    .border(1.dp, if (isSelected) NssAccent else Color.Transparent, RoundedCornerShape(8.dp))
+                                    .clickable { selectedNationId = n.id }
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Text(n.flagEmoji, fontSize = 24.sp)
+                                Text(
+                                    n.name, 
+                                    color = if (isSelected) Color.White else NssMutedForeground,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     }
-                    item { nation?.let { SelectedCampaignSummary(it.name, scenario.title, challenge.title) } }
-                }
-                PrimaryAction("Start campaign") {
-                    nation?.let { onSelectCountry(it.id, scenario.id, challenge.id) }
                 }
             }
         }
@@ -281,136 +200,9 @@ fun CountrySelectScreen(
 }
 
 @Composable
-private fun StepHeading(title: String, subtitle: String, landscape: Boolean) {
-    Column(modifier = Modifier.padding(bottom = if (landscape) 5.dp else 12.dp)) {
-        Text(title, color = NssForeground, fontSize = if (landscape) 20.sp else 25.sp, fontWeight = FontWeight.Black, maxLines = 1)
-        Text(subtitle, color = NssMutedForeground, fontSize = if (landscape) 10.sp else 12.sp, modifier = Modifier.padding(top = 2.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
-}
-
-@Composable
-private fun NationList(
-    nations: List<PlayableNationCatalog.NationDefinition>,
-    selectedNationId: String,
-    favoriteIds: Set<String>,
-    modifier: Modifier = Modifier,
-    onSelect: (String) -> Unit,
-    onToggleFavorite: (String) -> Unit,
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        modifier = modifier.fillMaxSize(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(nations, key = { it.id }) { item ->
-            NationChoiceCard(item, item.id == selectedNationId, item.id in favoriteIds,
-                onSelect = { onSelect(item.id) }, onToggleFavorite = { onToggleFavorite(item.id) })
-        }
-    }
-    if (nations.isEmpty()) {
-        Text("No countries match that search.", color = NssMutedForeground, fontSize = 14.sp, modifier = Modifier.padding(16.dp))
-    }
-}
-
-@Composable
-private fun NationChoiceCard(
-    nation: PlayableNationCatalog.NationDefinition,
-    selected: Boolean,
-    favorite: Boolean,
-    onSelect: () -> Unit,
-    onToggleFavorite: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(0.85f)
-            .clip(NssCardShape)
-            .background(if (selected) NssPrimary.copy(alpha = 0.4f) else NssGameCard)
-            .border(2.dp, if (selected) NssAccent else NssBorder, NssCardShape)
-            .clickable(onClick = onSelect)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(
-                if (favorite) "★" else "☆",
-                modifier = Modifier.clip(CircleShape).clickable(onClick = onToggleFavorite).padding(4.dp),
-                color = NssAccent,
-                fontSize = 20.sp,
-            )
-            if (selected) {
-                Icon(Icons.Default.Check, contentDescription = "Selected", tint = NssEmerald, modifier = Modifier.size(24.dp))
-            } else {
-                Spacer(modifier = Modifier.size(24.dp))
-            }
-        }
-        
-        Spacer(modifier = Modifier.weight(1f))
-        Text(nation.flagEmoji, fontSize = 60.sp)
-        Spacer(modifier = Modifier.weight(1f))
-        
-        Text(nation.name, color = NssForeground, fontWeight = FontWeight.Black, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
-        Text("${nation.governmentLabel}", color = NssAccent, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
-        Text("${nation.region}", color = NssMutedForeground, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 2.dp))
-    }
-}
-
-@Composable
-private fun SelectedNationSummary(nation: PlayableNationCatalog.NationDefinition) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp)
-            .clip(NssCardShape).background(NssGameCard).border(1.dp, NssBorder, NssCardShape).padding(12.dp),
-    ) {
-        Text("YOUR SELECTION", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-        Text("${nation.flagEmoji} ${nation.name} · ${nation.governmentSystem.displayName}", color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
-        Text("National advantage: ${nation.nationalPerk}", color = NssMutedForeground, fontSize = 10.sp, modifier = Modifier.padding(top = 3.dp))
-    }
-}
-
-@Composable
-private fun SelectedCampaignSummary(nation: String, scenario: String, challenge: String) {
-    Column(
-        modifier = Modifier.fillMaxWidth().clip(NssCardShape).background(NssGameCard)
-            .border(1.dp, NssBorder, NssCardShape).padding(14.dp),
-    ) {
-        Text("CAMPAIGN SUMMARY", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-        Text("$nation · $scenario", color = NssForeground, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.padding(top = 5.dp))
-        Text("Challenge: $challenge", color = NssMutedForeground, fontSize = 11.sp, modifier = Modifier.padding(top = 3.dp))
-    }
-}
-
-@Composable
-private fun SelectionCard(selected: Boolean, onClick: () -> Unit, content: @Composable () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxWidth().clip(NssCardShape)
-            .background(if (selected) NssPrimary.copy(alpha = 0.25f) else NssGameCard)
-            .border(1.dp, if (selected) NssAccent else NssBorder, NssCardShape)
-            .clickable(onClick = onClick).padding(14.dp),
-    ) { content() }
-}
-
-private fun scenarioDifficultyColor(difficulty: com.presidentsimulator.game.data.ScenarioDifficulty): Color = when (difficulty) {
-    com.presidentsimulator.game.data.ScenarioDifficulty.EASY -> NssEmerald
-    com.presidentsimulator.game.data.ScenarioDifficulty.STANDARD -> NssAccent
-    com.presidentsimulator.game.data.ScenarioDifficulty.HARD -> Color(0xFFF59E0B)
-    com.presidentsimulator.game.data.ScenarioDifficulty.VERY_HARSH -> Color(0xFFEF4444)
-}
-
-@Composable
-private fun SelectionCheck() {
-    Icon(Icons.Default.Check, contentDescription = "Selected", tint = NssEmerald, modifier = Modifier.padding(start = 8.dp).size(18.dp))
-}
-
-@Composable
-private fun PrimaryAction(label: String, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-        shape = NssCardShape,
-        colors = ButtonDefaults.buttonColors(containerColor = NssAccent, contentColor = Color.White),
-    ) {
-        Text(label, fontWeight = FontWeight.Black, fontSize = 14.sp, modifier = Modifier.padding(vertical = 5.dp))
+private fun StatBlock(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label, color = NssMutedForeground, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Text(value, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black)
     }
 }
