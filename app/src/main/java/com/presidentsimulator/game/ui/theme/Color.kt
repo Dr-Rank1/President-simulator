@@ -2,38 +2,38 @@ package com.presidentsimulator.game.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Nation State Simulator — warm parchment command-center palette (v2 reference)
-val NssBackground = Color(0xFFF0E8D4)
-val NssForeground = Color(0xFF1C1810)
-val NssCard = Color(0xFFFFFDF5)
-/** Gamified v3 card surface — clean white on parchment background */
+// Map-led strategy palette: cool paper, clear blue navigation, and green action accents.
+val NssBackground = Color(0xFFEAF1F6)
+val NssForeground = Color(0xFF172634)
+val NssCard = Color(0xFFFFFFFF)
+/** Bright, readable management panels on a cool map-console surface. */
 val NssGameCard = Color(0xFFFFFFFF)
-val NssPrimary = Color(0xFF1E3A6E)
-val NssSecondary = Color(0xFFE6DDC8)
-val NssMuted = Color(0xFFEDE4D0)
-val NssMutedForeground = Color(0xFF7A6F5A)
-val NssAccent = Color(0xFFC4882A)
-val NssBorder = Color(0xFFD4C8A8)
-val NssDestructive = Color(0xFFA52828)
+val NssPrimary = Color(0xFF17699F)
+val NssSecondary = Color(0xFFD9E7EF)
+val NssMuted = Color(0xFFE1EBF1)
+val NssMutedForeground = Color(0xFF617587)
+val NssAccent = Color(0xFF27845F)
+val NssBorder = Color(0xFFCAD9E3)
+val NssDestructive = Color(0xFFB93838)
 
 // Semantic values tuned for parchment surfaces
-val NssEmerald = Color(0xFF1D6940)
-val NssSky = Color(0xFF1E3A6E)
-val NssAmber = Color(0xFFC4882A)
-val NssRed = Color(0xFFA52828)
+val NssEmerald = Color(0xFF21875D)
+val NssSky = Color(0xFF3189C4)
+val NssAmber = Color(0xFFD89324)
+val NssRed = Color(0xFFB93838)
 val NssViolet = Color(0xFF6B4FA0)
-val NssIndigo = Color(0xFF1E3A6E)
-val NssOrange = Color(0xFFB45309)
+val NssIndigo = Color(0xFF3F62A5)
+val NssOrange = Color(0xFFB96520)
 
 /** Text and overlays on photo headers and dark scrims */
 val NssOnPhoto = Color(0xFFFFFFFF)
 
 /** Inset metrics strip under the main HUD row (zip reference `#15294e`). */
-val NssHudMetricsBar = Color(0xFF15294E)
+val NssHudMetricsBar = Color(0xFF11577F)
 
 // Legacy aliases — mapped to NSS tokens for existing screens
 val Ma2Teal = NssPrimary
-val Ma2TealDark = Color(0xFF152A52)
+val Ma2TealDark = Color(0xFF114565)
 val Ma2HeaderBlue = NssPrimary
 val Ma2HeaderOrange = NssAmber
 val Ma2Green = NssEmerald

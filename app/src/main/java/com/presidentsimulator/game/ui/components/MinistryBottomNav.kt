@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
@@ -18,6 +19,9 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -106,11 +110,87 @@ fun MinistryBottomNav(
     state: GameState,
     currentRoute: String?,
     onNavigate: (GameDestination) -> Unit,
+    sideRail: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     var moreExpanded by remember { mutableStateOf(false) }
     val moreSelected = moreNavItems.any { it.destination.route == currentRoute }
     val moreAlerts = moreNavItems.sumOf { bottomNavAlertCount(state, it.destination) }.coerceAtMost(9)
+
+    if (sideRail) {
+        Column(
+            modifier = modifier.fillMaxHeight()
+                .background(NssPrimary.copy(alpha = 0.98f))
+                .border(1.dp, NssOnPhoto.copy(alpha = 0.12f))
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.End + WindowInsetsSides.Bottom))
+                .verticalScroll(rememberScrollState()).padding(horizontal = 5.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            bottomNavItems.forEach { item ->
+                val selected = currentRoute == item.destination.route
+                val alerts = bottomNavAlertCount(state, item.destination)
+                Column(
+                    modifier = Modifier.fillMaxWidth().height(43.dp).clickable { onNavigate(item.destination) },
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier.size(27.dp).clip(CircleShape)
+                                .background(if (selected) NssAccent else NssOnPhoto.copy(alpha = 0.14f)),
+                        )
+                        Icon(item.icon, contentDescription = item.label, tint = NssOnPhoto, modifier = Modifier.size(15.dp))
+                        if (alerts > 0) {
+                            Box(
+                                modifier = Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-3).dp)
+                                    .size(12.dp).clip(CircleShape).background(NssRed),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(alerts.coerceAtMost(9).toString(), color = NssOnPhoto, fontSize = 7.sp, fontWeight = FontWeight.Black)
+                            }
+                        }
+                    }
+                    Text(item.label, color = if (selected) NssOnPhoto else NssOnPhoto.copy(alpha = 0.72f), fontSize = 7.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, maxLines = 1)
+                }
+            }
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().height(43.dp).clickable { moreExpanded = true },
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Box(Modifier.size(27.dp).clip(CircleShape).background(if (moreSelected) NssAccent else NssOnPhoto.copy(alpha = 0.14f)))
+                        Icon(Icons.Default.MoreHoriz, contentDescription = "More ministries", tint = NssOnPhoto, modifier = Modifier.size(17.dp))
+                        if (moreAlerts > 0) {
+                            Box(Modifier.align(Alignment.TopEnd).offset(x = 4.dp, y = (-3).dp).size(12.dp).clip(CircleShape).background(NssRed), contentAlignment = Alignment.Center) {
+                                Text(moreAlerts.toString(), color = NssOnPhoto, fontSize = 7.sp, fontWeight = FontWeight.Black)
+                            }
+                        }
+                    }
+                    Text("More", color = if (moreSelected) NssOnPhoto else NssOnPhoto.copy(alpha = 0.72f), fontSize = 7.sp, fontWeight = FontWeight.SemiBold)
+                }
+                DropdownMenu(expanded = moreExpanded, onDismissRequest = { moreExpanded = false }) {
+                    moreNavItems.forEach { item ->
+                        val alerts = bottomNavAlertCount(state, item.destination)
+                        DropdownMenuItem(
+                            text = {
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Text(item.label)
+                                    if (alerts > 0) Text(alerts.coerceAtMost(9).toString(), color = NssRed, fontWeight = FontWeight.Black)
+                                }
+                            },
+                            leadingIcon = { Icon(item.icon, contentDescription = null) },
+                            onClick = { moreExpanded = false; onNavigate(item.destination) },
+                        )
+                    }
+                }
+            }
+        }
+        return
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
