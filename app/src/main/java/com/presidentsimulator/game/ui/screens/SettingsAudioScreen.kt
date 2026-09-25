@@ -164,6 +164,25 @@ fun SettingsAudioScreen(
                 }
             }
 
+            
+            NssPanel(modifier = Modifier.fillMaxWidth()) {
+                Text("GAME TUTORIAL", fontWeight = FontWeight.Black, fontSize = 10.sp, color = NssForeground)
+                Text(
+                    text = "RESTART TUTORIAL",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp)
+                        .clip(NssCardShape)
+                        .background(NssAccent)
+                        .clickable { viewModel?.triggerTutorial() }
+                        .padding(vertical = 9.dp),
+                    color = NssOnPhoto,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 9.sp,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
             if (viewModel != null) {
                 SettingsSavePanel(viewModel = viewModel)
             }
