@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -80,70 +81,38 @@ fun LaunchScreen(
                 ),
         )
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(Dimens.SpacingXLarge),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = "GLOBAL COMMAND INTERFACE",
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Black,
-                color = NssAccent,
-                letterSpacing = 4.sp,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "NATION STATE",
-                fontFamily = FontFamily.Serif,
-                fontSize = 40.sp,
-                fontWeight = FontWeight.Black,
-                color = NssOnPhoto,
-                letterSpacing = 2.sp,
-                textAlign = TextAlign.Center,
-            )
-            Text(
-                text = "SIMULATOR",
-                fontFamily = FontFamily.Serif,
-                fontSize = 40.sp,
-                fontWeight = FontWeight.Black,
-                color = NssOnPhoto,
-                letterSpacing = 2.sp,
-                textAlign = TextAlign.Center,
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            Column(
-                modifier = Modifier.fillMaxWidth(if (layout.isNarrowWidth) 0.92f else 0.72f),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+        if (layout.isLandscape) {
+            Row(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 36.dp, vertical = 18.dp),
+                horizontalArrangement = Arrangement.spacedBy(40.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (hasSave) {
-                    LaunchActionButton(
-                        label = "RESUME CAMPAIGN",
-                        icon = Icons.Default.PlayArrow,
-                        primary = true,
-                        onClick = onContinueGame,
-                    )
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+                    Text("GLOBAL COMMAND INTERFACE", fontSize = 10.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 4.sp)
+                    Spacer(Modifier.height(6.dp))
+                    Text("NATION STATE\nSIMULATOR", fontFamily = FontFamily.Serif, fontSize = 36.sp, lineHeight = 39.sp,
+                        fontWeight = FontWeight.Black, color = NssOnPhoto, letterSpacing = 2.sp)
+                    Text("Lead a nation. Shape its future.", color = NssOnPhoto.copy(alpha = .78f), fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
                 }
-                LaunchActionButton(
-                    label = "NEW CAMPAIGN",
-                    icon = Icons.Default.LocalFireDepartment,
-                    primary = !hasSave,
-                    onClick = onNewGame,
-                )
-                val occupiedSlots = slots.filter { it.occupied }
-                if (occupiedSlots.isNotEmpty() && onLoadSlot != null) {
-                    occupiedSlots.forEach { slot ->
-                        LaunchActionButton(
-                            label = slot.label.ifBlank { "LOAD SLOT ${slot.slotIndex}" }.uppercase(),
-                            icon = Icons.Default.Settings,
-                            primary = false,
-                            onClick = { onLoadSlot(slot.slotIndex) },
-                        )
-                    }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    LaunchActions(hasSave, onContinueGame, onNewGame, slots, onLoadSlot)
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(Dimens.SpacingXLarge),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text("GLOBAL COMMAND INTERFACE", fontSize = 10.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 4.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("NATION STATE", fontFamily = FontFamily.Serif, fontSize = 40.sp, fontWeight = FontWeight.Black,
+                    color = NssOnPhoto, letterSpacing = 2.sp, textAlign = TextAlign.Center)
+                Text("SIMULATOR", fontFamily = FontFamily.Serif, fontSize = 40.sp, fontWeight = FontWeight.Black,
+                    color = NssOnPhoto, letterSpacing = 2.sp, textAlign = TextAlign.Center)
+                Spacer(modifier = Modifier.height(48.dp))
+                Column(modifier = Modifier.fillMaxWidth(if (layout.isNarrowWidth) 0.92f else 0.72f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    LaunchActions(hasSave, onContinueGame, onNewGame, slots, onLoadSlot)
                 }
             }
         }
@@ -158,6 +127,26 @@ fun LaunchScreen(
             letterSpacing = 2.sp,
             fontWeight = FontWeight.Bold,
         )
+    }
+}
+
+@Composable
+private fun LaunchActions(
+    hasSave: Boolean,
+    onContinueGame: () -> Unit,
+    onNewGame: () -> Unit,
+    slots: List<SaveSlotInfo>,
+    onLoadSlot: ((Int) -> Unit)?,
+) {
+    if (hasSave) LaunchActionButton("RESUME CAMPAIGN", Icons.Default.PlayArrow, true, onContinueGame)
+    LaunchActionButton("NEW CAMPAIGN", Icons.Default.LocalFireDepartment, !hasSave, onNewGame)
+    val occupiedSlots = slots.filter { it.occupied }
+    if (occupiedSlots.isNotEmpty() && onLoadSlot != null) {
+        occupiedSlots.forEach { slot ->
+            LaunchActionButton(slot.label.ifBlank { "LOAD SLOT ${slot.slotIndex}" }.uppercase(), Icons.Default.Settings, false) {
+                onLoadSlot(slot.slotIndex)
+            }
+        }
     }
 }
 

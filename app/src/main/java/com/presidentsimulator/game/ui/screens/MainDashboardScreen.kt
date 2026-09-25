@@ -126,7 +126,7 @@ fun MainDashboardScreen(
     val situations = remember(state) { agendaSituations(state) }
     val quarter = ((state.month - 1) / 3) + 1
 
-    if (layout.isCompactHeight) {
+    if (layout.isLandscape) {
         LandscapeCommandCenter(
             state = state,
             situations = situations,
