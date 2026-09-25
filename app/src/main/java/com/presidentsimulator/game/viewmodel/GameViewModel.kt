@@ -2,6 +2,7 @@ package com.presidentsimulator.game.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.presidentsimulator.game.data.ActiveCrisisState
@@ -364,6 +365,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun formAlliance(name: String, invitees: List<String>) {
         if (_currentActiveEvent.value != null) return
         _state.update { governanceEngine.formAlliance(it, name, invitees) }
+        Toast.makeText(getApplication(), "Alliance Formed.", Toast.LENGTH_SHORT).show()
     }
 
     fun dissolveAlliance(allianceId: String) {
@@ -381,13 +383,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     ) {
         if (_currentActiveEvent.value != null) return
         _state.update {
-            tradeEngine.proposeTradeDeal(it, partnerCountryId, commodity, amount, type)
+            tradeEngine.proposeTradeDeal(it, partnerCountryId, commodity, amount, type).also { Toast.makeText(getApplication(), "Trade Deal Proposed", Toast.LENGTH_SHORT).show() }
         }
     }
 
     fun cancelTradeDeal(dealId: String) {
         if (_currentActiveEvent.value != null) return
-        _state.update { tradeEngine.cancelTradeDeal(it, dealId) }
+        _state.update { tradeEngine.cancelTradeDeal(it, dealId).also { Toast.makeText(getApplication(), "Trade Deal Cancelled", Toast.LENGTH_SHORT).show() } }
     }
 
     fun setTariffRate(rate: Float) {
@@ -461,6 +463,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun changeStateReligion(religion: StateReligion) {
         if (_currentActiveEvent.value != null) return
         _state.update { advancementEngine.changeStateReligion(it, religion) }
+        Toast.makeText(getApplication(), "State Religion updated.", Toast.LENGTH_SHORT).show()
     }
 
     fun buildUniversity() {
@@ -686,16 +689,19 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun negotiateWithOpposition() {
         if (_currentActiveEvent.value != null) return
         _state.update { OppositionEngine.negotiate(it) }
+        Toast.makeText(getApplication(), "Negotiations held. Stability changed.", Toast.LENGTH_SHORT).show()
     }
 
     fun smearOpposition() {
         if (_currentActiveEvent.value != null) return
         _state.update { OppositionEngine.smear(it) }
+        Toast.makeText(getApplication(), "Smear campaign initiated.", Toast.LENGTH_SHORT).show()
     }
 
     fun concedeToOpposition() {
         if (_currentActiveEvent.value != null) return
         _state.update { OppositionEngine.concedePlatform(it) }
+        Toast.makeText(getApplication(), "Concessions made to opposition.", Toast.LENGTH_SHORT).show()
     }
 
     fun makeMandateCommitment(goal: MandateGoal) {
@@ -804,6 +810,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun declareWar(targetCountryId: String, warGoal: com.presidentsimulator.game.data.WarGoal = com.presidentsimulator.game.data.WarGoal.REPARATIONS) {
         if (_currentActiveEvent.value != null) return
         _state.update { diplomacyEngine.declareWar(it, targetCountryId, warGoal) }
+        Toast.makeText(getApplication(), "WAR DECLARED!", Toast.LENGTH_LONG).show()
     }
 
     fun claimWarSettlement() {
@@ -814,11 +821,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun negotiateTreaty(targetCountryId: String, type: TreatyType) {
         if (_currentActiveEvent.value != null) return
         _state.update { diplomacyEngine.negotiateTreaty(it, targetCountryId, type) }
+        Toast.makeText(getApplication(), "Treaty Negotiated.", Toast.LENGTH_SHORT).show()
     }
 
     fun breakTreaty(targetCountryId: String, type: TreatyType) {
         if (_currentActiveEvent.value != null) return
         _state.update { diplomacyEngine.breakTreaty(it, targetCountryId, type) }
+        Toast.makeText(getApplication(), "Treaty Broken!", Toast.LENGTH_SHORT).show()
     }
 
     fun setDefcon(level: Int) {
@@ -829,6 +838,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun setIdeology(ideology: com.presidentsimulator.game.data.Ideology) {
         if (_currentActiveEvent.value != null) return
         _state.update { productionLawEngine.setIdeology(it, ideology) }
+        Toast.makeText(getApplication(), "State Ideology updated.", Toast.LENGTH_SHORT).show()
     }
 
     fun cancelPendingLaw(lawId: String) {
@@ -843,7 +853,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun sendForeignAid(targetCountryId: String) {
         if (_currentActiveEvent.value != null) return
-        _state.update { diplomacyEngine.sendForeignAid(it, targetCountryId) }
+        _state.update { diplomacyEngine.sendForeignAid(it, targetCountryId).also { Toast.makeText(getApplication(), "Foreign Aid Sent.", Toast.LENGTH_SHORT).show() } }
     }
 
     fun canSendForeignAid(targetCountryId: String): Boolean =
@@ -851,7 +861,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun conductStateVisit(targetCountryId: String) {
         if (_currentActiveEvent.value != null) return
-        _state.update { diplomacyEngine.conductStateVisit(it, targetCountryId) }
+        _state.update { diplomacyEngine.conductStateVisit(it, targetCountryId).also { Toast.makeText(getApplication(), "State Visit Completed.", Toast.LENGTH_SHORT).show() } }
     }
 
     fun canConductStateVisit(targetCountryId: String): Boolean =

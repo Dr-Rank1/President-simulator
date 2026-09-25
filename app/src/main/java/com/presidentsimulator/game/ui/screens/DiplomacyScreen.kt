@@ -25,6 +25,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -118,18 +121,17 @@ fun DiplomacyScreen(
 
         NssTabBar(tabs = tabs, selectedTab = selectedTab, onTabSelected = { selectedTab = it })
 
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .nssMinistryScrollPadding()
                 .padding(Dimens.ContentPadding),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             when (selectedTab) {
                 "RELATIONS" -> {
-                    RelationsLegend()
-                    state.diplomacy.rivals.chunked(layout.gridColumns).forEachIndexed { rowIndex, row ->
+                    item { RelationsLegend() }
+                    itemsIndexed(state.diplomacy.rivals.chunked(layout.gridColumns)) { rowIndex, row ->
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             row.forEachIndexed { colIndex, rival ->
                                 val cardIndex = rowIndex * layout.gridColumns + colIndex
@@ -157,7 +159,7 @@ fun DiplomacyScreen(
                         }
                     }
 
-                    selectedRival?.let { rival ->
+                    item { selectedRival?.let { rival ->
                         RivalActionPanel(
                             state = state,
                             rival = rival,
@@ -179,11 +181,11 @@ fun DiplomacyScreen(
                             },
                             onDeclareWar = { goal -> viewModel.declareWar(rival.id, goal) },
                         )
-                    }
+                    } }
                 }
 
                 "TREATIES" -> {
-                    state.diplomacy.rivals.filter { it.hasTradeTreaty || it.hasNonAggressionPact }.forEach { rival ->
+                    items(state.diplomacy.rivals.filter { it.hasTradeTreaty || it.hasNonAggressionPact }) { rival ->
                         NssStripPhotoCard(
                             imageUrl = NssCardImages.BANNER_FOREIGN,
                             fallbackGradient = NssGradients.Foreign,
@@ -231,7 +233,7 @@ fun DiplomacyScreen(
                 }
 
                 "NEGOTIATIONS" -> {
-                    state.diplomacy.rivals.forEach { rival ->
+                    items(state.diplomacy.rivals) { rival ->
                         val progress = rival.relationshipScore
                         val warActive = activeWar != null
                         val canTradeDeal = TradeMarketViewModel.canProposeDeal(state, rival.id)
