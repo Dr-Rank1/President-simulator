@@ -68,6 +68,7 @@ fun DisasterResponseSection(
                     modifier = Modifier.padding(top = 6.dp),
                 )
             }
+            DisasterCommandHistory(disaster.commandLog)
             return@NssPanel
         }
 
@@ -151,5 +152,27 @@ fun DisasterResponseSection(
                 color = NssEmerald,
             )
         }
+        DisasterCommandHistory(disaster.commandLog)
+    }
+}
+
+@Composable
+private fun DisasterCommandHistory(commandLog: List<String>) {
+    if (commandLog.isEmpty()) return
+    Text(
+        "RECENT RESPONSE LOG",
+        fontSize = 9.sp,
+        fontWeight = FontWeight.Black,
+        color = NssAccent,
+        letterSpacing = 1.sp,
+        modifier = Modifier.padding(top = 12.dp),
+    )
+    commandLog.takeLast(3).asReversed().forEach { entry ->
+        Text(
+            "• $entry",
+            fontSize = 10.sp,
+            color = NssMutedForeground,
+            modifier = Modifier.padding(top = 4.dp),
+        )
     }
 }
