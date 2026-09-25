@@ -270,7 +270,7 @@ fun GameNavigation(
             page = tutorialPage,
             onNext = {
                 audio.playClick()
-                if (tutorialPage >= 3) showTutorial = false else tutorialPage += 1
+                if (tutorialPage >= 3) viewModel.dismissTutorial() else tutorialPage += 1
             },
             onBack = {
                 audio.playClick()
@@ -278,7 +278,7 @@ fun GameNavigation(
             },
             onSkip = {
                 audio.playClick()
-                showTutorial = false
+                viewModel.dismissTutorial()
             },
         )
     }

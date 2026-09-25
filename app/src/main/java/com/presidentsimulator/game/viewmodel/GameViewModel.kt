@@ -123,7 +123,35 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         Context.MODE_PRIVATE,
     )
 
+    
+    private fun applyActionWithFeedback(successMsg: String, failMsg: String, block: (GameState) -> GameState) {
+        var success = false
+        _state.update { old ->
+            val new = block(old)
+            if (new !== old) success = true
+            new
+        }
+        if (success) {
+            Toast.makeText(getApplication(), successMsg, Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(getApplication(), failMsg, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    
+    private val _showTutorial = MutableStateFlow(false)
+    val showTutorial: StateFlow<Boolean> = _showTutorial.asStateFlow()
+
+    fun triggerTutorial() {
+        _showTutorial.value = true
+    }
+    
+    fun dismissTutorial() {
+        _showTutorial.value = false
+    }
+
     init {
+        if (!hasAutomatedSave()) _showTutorial.value = true
         _hasSave.value = hasAutomatedSave()
     }
 
@@ -354,7 +382,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun proposeResolution(type: ResolutionType, targetCountryId: String? = null) {
         if (_currentActiveEvent.value != null) return
-        _state.update { governanceEngine.proposeResolution(it, type, targetCountryId) }
+        applyActionWithFeedback("Resolution Proposed.", "Failed: Insufficient Capital or Cooldown.") { governanceEngine.proposeResolution(it, type, targetCountryId) }
     }
 
     fun bribeCountryVote(countryId: String, voteFor: Boolean) {
@@ -382,14 +410,25 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         type: TradeType,
     ) {
         if (_currentActiveEvent.value != null) return
-        _state.update {
-            tradeEngine.proposeTradeDeal(it, partnerCountryId, commodity, amount, type).also { Toast.makeText(getApplication(), "Trade Deal Proposed", Toast.LENGTH_SHORT).show() }
+        var success = false
+        _state.update { old -> 
+            val new = tradeEngine.proposeTradeDeal(old, partnerCountryId, commodity, amount, type)
+            if (new !== old) success = true
+            new
         }
+        if (success) Toast.makeText(getApplication(), "Trade Deal Proposed.", Toast.LENGTH_SHORT).show()
+        else Toast.makeText(getApplication(), "Trade Deal Failed (Check requirements).", Toast.LENGTH_SHORT).show()
     }
 
     fun cancelTradeDeal(dealId: String) {
         if (_currentActiveEvent.value != null) return
-        _state.update { tradeEngine.cancelTradeDeal(it, dealId).also { Toast.makeText(getApplication(), "Trade Deal Cancelled", Toast.LENGTH_SHORT).show() } }
+        var success = false
+        _state.update { old ->
+            val new = tradeEngine.cancelTradeDeal(old, dealId)
+            if (new !== old) success = true
+            new
+        }
+        if (success) Toast.makeText(getApplication(), "Trade Deal Cancelled.", Toast.LENGTH_SHORT).show()
     }
 
     fun setTariffRate(rate: Float) {
@@ -768,7 +807,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun enactLaw(lawId: String) {
         if (_currentActiveEvent.value != null) return
-        _state.update { productionLawEngine.enactLaw(it, lawId) }
+        applyActionWithFeedback("Law Action Processed.", "Failed: Insufficient Capital/Budget.") { productionLawEngine.enactLaw(it, lawId) }
     }
 
     fun negotiatePendingLaw(lawId: String) {
@@ -809,7 +848,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun declareWar(targetCountryId: String, warGoal: com.presidentsimulator.game.data.WarGoal = com.presidentsimulator.game.data.WarGoal.REPARATIONS) {
         if (_currentActiveEvent.value != null) return
-        _state.update { diplomacyEngine.declareWar(it, targetCountryId, warGoal) }
+        applyActionWithFeedback("War Declared!", "Failed: Invalid Target or Missing Requirements.") { diplomacyEngine.declareWar(it, targetCountryId, warGoal) }
         Toast.makeText(getApplication(), "WAR DECLARED!", Toast.LENGTH_LONG).show()
     }
 
@@ -820,7 +859,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun negotiateTreaty(targetCountryId: String, type: TreatyType) {
         if (_currentActiveEvent.value != null) return
-        _state.update { diplomacyEngine.negotiateTreaty(it, targetCountryId, type) }
+        applyActionWithFeedback("Treaty Signed.", "Failed: Insufficient Capital/Relations.") { diplomacyEngine.negotiateTreaty(it, targetCountryId, type) }
         Toast.makeText(getApplication(), "Treaty Negotiated.", Toast.LENGTH_SHORT).show()
     }
 
@@ -837,8 +876,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setIdeology(ideology: com.presidentsimulator.game.data.Ideology) {
         if (_currentActiveEvent.value != null) return
-        _state.update { productionLawEngine.setIdeology(it, ideology) }
-        Toast.makeText(getApplication(), "State Ideology updated.", Toast.LENGTH_SHORT).show()
+        applyActionWithFeedback("Ideology Shifted.", "Failed: Insufficient Budget ($3B required).") { productionLawEngine.setIdeology(it, ideology) }
     }
 
     fun cancelPendingLaw(lawId: String) {
@@ -853,7 +891,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun sendForeignAid(targetCountryId: String) {
         if (_currentActiveEvent.value != null) return
-        _state.update { diplomacyEngine.sendForeignAid(it, targetCountryId).also { Toast.makeText(getApplication(), "Foreign Aid Sent.", Toast.LENGTH_SHORT).show() } }
+        var success = false
+        _state.update { old ->
+            val new = diplomacyEngine.sendForeignAid(old, targetCountryId)
+            if (new !== old) success = true
+            new
+        }
+        if (success) Toast.makeText(getApplication(), "Foreign Aid Sent.", Toast.LENGTH_SHORT).show()
+        else Toast.makeText(getApplication(), "Action Failed (Insufficient Budget/Cooldown).", Toast.LENGTH_SHORT).show()
     }
 
     fun canSendForeignAid(targetCountryId: String): Boolean =
@@ -861,7 +906,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun conductStateVisit(targetCountryId: String) {
         if (_currentActiveEvent.value != null) return
-        _state.update { diplomacyEngine.conductStateVisit(it, targetCountryId).also { Toast.makeText(getApplication(), "State Visit Completed.", Toast.LENGTH_SHORT).show() } }
+        var success = false
+        _state.update { old ->
+            val new = diplomacyEngine.conductStateVisit(old, targetCountryId)
+            if (new !== old) success = true
+            new
+        }
+        if (success) Toast.makeText(getApplication(), "State Visit Completed.", Toast.LENGTH_SHORT).show()
+        else Toast.makeText(getApplication(), "Action Failed (Insufficient Capital/Cooldown).", Toast.LENGTH_SHORT).show()
     }
 
     fun canConductStateVisit(targetCountryId: String): Boolean =

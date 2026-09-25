@@ -3,45 +3,36 @@ package com.presidentsimulator.game.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.TipsAndUpdates
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.DialogWindowProvider
-import android.view.Gravity
 import com.presidentsimulator.game.ui.theme.NssAccent
 import com.presidentsimulator.game.ui.theme.NssBackground
 import com.presidentsimulator.game.ui.theme.NssBorder
 import com.presidentsimulator.game.ui.theme.NssForeground
-import com.presidentsimulator.game.ui.theme.NssGameCard
 import com.presidentsimulator.game.ui.theme.NssMutedForeground
 import com.presidentsimulator.game.ui.theme.NssOnPhoto
 import com.presidentsimulator.game.ui.theme.NssPrimary
+
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 
 private data class TutorialPage(
     val title: String,
@@ -53,38 +44,38 @@ private data class TutorialPage(
 private val tutorialPages = listOf(
     TutorialPage(
         "Welcome, President",
-        "This is your command dashboard. From here you monitor your nation's vitals: Approval, Budget, and Stability.",
-        "Your first goal is to balance the budget. Check the Economy tab next.",
+        "Your first term begins now. This interface represents your presidential desk. At the top, you can track your Approval, Budget, and Global Influence.",
+        "Your first goal is to explore the dashboard. Try tapping the tabs below.",
         Icons.Default.AccountBalance,
     ),
     TutorialPage(
-        "Managing the Economy",
-        "Use the Economy tab to adjust taxes and allocate funds. A high GDP growth means more revenue.",
-        "Warning: High taxes will crash your approval rating. Find the sweet spot.",
+        "Economic Strategy",
+        "Open the 'ECONOMY' tab to view your national budget. You can set tax rates, enact economic policies, and invest in infrastructure.",
+        "Avoid high taxes early on! They will cripple your approval rating.",
         Icons.Default.AccountBalance,
     ),
     TutorialPage(
-        "National Defense",
-        "The Military tab is where you recruit soldiers and invest in defense technology.",
-        "A weak military invites foreign invasions. Keep it strong, but don't bankrupt the country.",
+        "Defense & Security",
+        "Open the 'MILITARY' tab. You need a strong defense to deter invasions. Construct units and invest in the military-industrial complex.",
+        "Watch your deficit! A massive army costs a lot of maintenance.",
         Icons.Default.Groups,
     ),
     TutorialPage(
-        "Global Diplomacy",
-        "The Foreign Affairs tab lets you form alliances, sign trade deals, or declare wars.",
-        "Build relationships before declaring war, or you will face crippling UN sanctions.",
+        "Foreign Policy",
+        "The 'FOREIGN' tab lets you manage global relations. Propose trade deals, send aid, or form alliances.",
+        "Before declaring war, make sure you have enough military power and political capital.",
         Icons.Default.Groups,
     ),
     TutorialPage(
-        "Passing Laws",
-        "Your parliament is waiting. Pass laws to shape your country's ideology and address crises.",
-        "Some laws require high political capital. Check your mandate progress to gain capital.",
+        "Laws & Society",
+        "Your parliament shapes the ideology of the nation. Pass laws to tackle crises or shift your government towards Democracy or Autocracy.",
+        "Laws require 'Political Capital' and parliamentary support to pass.",
         Icons.Default.AccountBalance,
     ),
     TutorialPage(
         "Advancing Time",
-        "The simulation is turn-based. Tap the Next Month button at the top to advance time.",
-        "Watch out for random events and crises that pop up between turns!",
+        "This game is turn-based. When you are ready, tap 'ADVANCE' on the top right to process the month.",
+        "You can leave this tutorial open while you explore. Good luck, Mr. President!",
         Icons.Default.PlayArrow,
     )
 )
@@ -98,76 +89,82 @@ fun GameTutorialDialog(
 ) {
     val current = tutorialPages[page.coerceIn(tutorialPages.indices)]
 
-    Dialog(
-        onDismissRequest = onSkip,
-        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+    // Floating overlay, NOT a Dialog, allowing background clicks
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 80.dp, end = 16.dp, start = 16.dp),
+        contentAlignment = Alignment.TopCenter
     ) {
-        val window = (androidx.compose.ui.platform.LocalView.current.parent as? DialogWindowProvider)?.window
-        window?.let {
-            it.setGravity(Gravity.BOTTOM)
-            it.setDimAmount(0.0f) // Removed dimming so it doesn't overshadow // very light dim so we don't overshadow the UI
-        }
-        
-        Box(modifier = Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.BottomCenter) {
-
         Column(
-            modifier = Modifier.fillMaxWidth(0.85f).clip(NssCardShape)
-                .background(Color(0xE6050A0F)).border(1.dp, NssBorder, NssCardShape).padding(16.dp),
+            modifier = Modifier
+                .widthIn(max = 350.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xF5050A0F)) // Opaque enough to read, but not modal
+                .border(1.dp, NssBorder, RoundedCornerShape(8.dp))
+                .padding(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("FIRST DAY BRIEFING", color = NssAccent, fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = 1.8.sp)
+                Text("TUTORIAL BRIEFING", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.8.sp)
                 Spacer(Modifier.weight(1f))
-                Text("${page + 1} / ${tutorialPages.size}", color = NssMutedForeground, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                Text("${page + 1} / ${tutorialPages.size}", color = NssMutedForeground, fontSize = 9.sp, fontWeight = FontWeight.Bold)
             }
             Row(
-                modifier = Modifier.padding(top = 16.dp),
+                modifier = Modifier.padding(top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Icon(current.icon, contentDescription = null, tint = NssOnPhoto, modifier = Modifier.size(19.dp))
-                Text(current.title, color = NssForeground, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                Icon(current.icon, contentDescription = null, tint = NssOnPhoto, modifier = Modifier.size(16.dp))
+                Text(current.title, color = NssForeground, fontSize = 14.sp, fontWeight = FontWeight.Black)
             }
-            Text(current.body, color = NssMutedForeground, fontSize = 10.sp, lineHeight = 15.sp, modifier = Modifier.padding(top = 9.dp))
+            Text(current.body, color = NssMutedForeground, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.padding(top = 6.dp))
+            
             Column(
-                modifier = Modifier.fillMaxWidth().padding(top = 13.dp).clip(NssCardShape)
-                    .background(NssBackground).padding(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(NssBackground)
+                    .padding(8.dp),
             ) {
-                Text("ADVISOR NOTE", color = NssAccent, fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = 8.sp)
-                Text(current.tip, color = NssForeground, fontSize = 9.sp, lineHeight = 13.sp, modifier = Modifier.padding(top = 3.dp))
+                Text("ADVISOR TIP", color = NssAccent, fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+                Text(current.tip, color = NssForeground, fontSize = 10.sp, lineHeight = 14.sp, modifier = Modifier.padding(top = 3.dp))
             }
+            
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    "Skip tour",
-                    modifier = Modifier.clip(NssCardShape).clickable(onClick = onSkip).padding(horizontal = 6.dp, vertical = 9.dp),
+                    "Dismiss",
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onSkip).padding(horizontal = 6.dp, vertical = 6.dp),
                     color = NssMutedForeground,
-                    fontSize = 9.sp,
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
                 if (page > 0) {
                     Text(
                         "Back",
-                        modifier = Modifier.clip(NssCardShape).clickable(onClick = onBack).padding(horizontal = 7.dp, vertical = 9.dp),
+                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onBack).padding(horizontal = 8.dp, vertical = 6.dp),
                         color = NssPrimary,
-                        fontSize = 9.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 }
                 Text(
-                    if (page == tutorialPages.lastIndex) "Enter the game" else "Next",
-                    modifier = Modifier.clip(NssCardShape).background(NssPrimary).clickable(onClick = onNext)
-                        .padding(horizontal = 13.dp, vertical = 9.dp),
+                    if (page == tutorialPages.lastIndex) "Finish Tour" else "Next",
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(NssPrimary).clickable(onClick = onNext)
+                        .padding(horizontal = 14.dp, vertical = 6.dp),
                     color = NssOnPhoto,
-                    fontSize = 9.sp,
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Black,
                     textAlign = TextAlign.Center,
                 )
             }
+            
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -181,5 +178,3 @@ fun GameTutorialDialog(
         }
     }
 }
-
-    }
