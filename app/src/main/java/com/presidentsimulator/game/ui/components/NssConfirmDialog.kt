@@ -55,9 +55,9 @@ fun NssConfirmDialog(
             Text(
                 text = title.uppercase(),
                 fontWeight = FontWeight.Black,
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 color = NssPrimary,
-                letterSpacing = 1.sp,
+                letterSpacing = 8.sp,
             )
             NssPanel(
                 modifier = Modifier
@@ -66,9 +66,9 @@ fun NssConfirmDialog(
             ) {
                 Text(
                     text = body,
-                    fontSize = 13.sp,
+                    fontSize = 9.sp,
                     color = NssMutedForeground,
-                    lineHeight = 18.sp,
+                    lineHeight = 13.sp,
                     modifier = Modifier.verticalScroll(rememberScrollState()),
                 )
             }
@@ -83,10 +83,10 @@ fun NssConfirmDialog(
                         .clip(NssCardShape)
                         .background(NssPrimary.copy(alpha = 0.15f))
                         .clickable(onClick = onDismiss)
-                        .padding(vertical = 12.dp),
+                        .padding(vertical = 9.dp),
                     color = NssPrimary,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
+                    fontSize = 9.sp,
                     textAlign = TextAlign.Center,
                 )
                 Text(
@@ -96,10 +96,10 @@ fun NssConfirmDialog(
                         .clip(NssCardShape)
                         .background(NssAccent)
                         .clickable(onClick = onConfirm)
-                        .padding(vertical = 12.dp),
+                        .padding(vertical = 9.dp),
                     color = NssOnPhoto,
                     fontWeight = FontWeight.Black,
-                    fontSize = 13.sp,
+                    fontSize = 9.sp,
                     textAlign = TextAlign.Center,
                 )
             }

@@ -85,7 +85,7 @@ fun ScienceScreen(
                 top = Dimens.ContentPadding,
                 bottom = Dimens.ContentPadding + Dimens.MinistryScrollBottomPadding,
             ),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp),
         ) {
             item {
                 SectionTitle("Current Research")
@@ -123,11 +123,11 @@ fun ScienceScreen(
 private fun SectionTitle(text: String) {
     Text(
         text = text.uppercase(),
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         fontWeight = FontWeight.Black,
         color = NssPrimary,
-        letterSpacing = 3.sp,
-        modifier = Modifier.padding(bottom = 8.dp),
+        letterSpacing = 8.sp,
+        modifier = Modifier.padding(bottom = 6.dp),
     )
 }
 
@@ -144,7 +144,7 @@ private fun CurrentResearchPanel(
 ) {
     NssPanel(modifier = Modifier.fillMaxWidth()) {
         if (activeTech != null) {
-            Box(modifier = Modifier.fillMaxWidth().height(88.dp).padding(bottom = 8.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().height(66.dp).padding(bottom = 6.dp)) {
                 NssPhotoHeader(
                     imageUrl = NssCardImages.techCategoryImage(activeTech.category),
                     fallbackGradient = NssGradients.Violet,
@@ -154,56 +154,56 @@ private fun CurrentResearchPanel(
             }
         }
         if (activeTech == null) {
-            Text("No active research project", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = NssForeground)
+            Text("No active research project", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = NssForeground)
             if (queuedTech != null) {
                 Text(
                     "Queued next: ${queuedTech.name}",
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     color = NssEmerald,
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = 3.dp),
                 )
             } else {
-                Text("Select a technology below to begin.", fontSize = 12.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+                Text("Select a technology below to begin.", fontSize = 9.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
             }
         } else {
-            Text(activeTech.name, fontWeight = FontWeight.Black, fontSize = 16.sp, color = NssForeground)
-            Text(activeTech.effect.description, fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
-            Spacer(modifier = Modifier.padding(top = 8.dp))
+            Text(activeTech.name, fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssForeground)
+            Text(activeTech.effect.description, fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+            Spacer(modifier = Modifier.padding(top = 6.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Research XP", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground)
+                Text("Research XP", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground)
                 Text("${progressPercent.toInt()}%", fontWeight = FontWeight.Black, color = NssPrimary)
             }
             NssGameBar(percent = progressPercent, color = NssPrimary, thick = true)
-            Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Est. remaining", fontSize = 11.sp, color = NssMutedForeground)
-                Text(if (daysRemaining == 0) "< 1 day" else "$daysRemaining days", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Est. remaining", fontSize = 8.sp, color = NssMutedForeground)
+                Text(if (daysRemaining == 0) "< 1 day" else "$daysRemaining days", fontWeight = FontWeight.Bold, fontSize = 9.sp)
             }
             Text(
                 text = "Extra funding tier: $extraFundingTier / ${com.presidentsimulator.game.data.ResearchState.MAX_EXTRA_FUNDING_TIER}",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = NssMutedForeground,
-                modifier = Modifier.padding(top = 6.dp),
+                modifier = Modifier.padding(top = 4.dp),
             )
             Text(
                 text = "⬆ Allocate Extra Funding ($fundingCostLabel)",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 10.dp)
+                    .padding(top = 7.dp)
                     .clip(NssCardShape)
                     .background(if (canAllocateFunding) NssAccent else NssAccent.copy(alpha = 0.35f))
                     .clickable(enabled = canAllocateFunding, onClick = onAllocateFunding)
-                    .padding(vertical = 10.dp),
+                    .padding(vertical = 7.dp),
                 color = NssOnPhoto,
                 fontWeight = FontWeight.Black,
-                fontSize = 12.sp,
+                fontSize = 9.sp,
                 textAlign = TextAlign.Center,
             )
             if (queuedTech != null) {
                 Text(
                     "Up next: ${queuedTech.name}",
-                    fontSize = 11.sp,
+                    fontSize = 8.sp,
                     color = NssEmerald,
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.padding(top = 6.dp),
                 )
             }
         }
@@ -234,9 +234,9 @@ private fun TechTreeRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(NssCardShape)
-            .then(if (isActive) Modifier.background(NssGameCard).border(2.dp, NssAccent.copy(alpha = 0.4f), NssCardShape) else Modifier.background(NssGameCard)),
+            .then(if (isActive) Modifier.background(NssGameCard).border(1.dp, NssAccent.copy(alpha = 0.4f), NssCardShape) else Modifier.background(NssGameCard)),
     ) {
-        Box(modifier = Modifier.fillMaxWidth().height(72.dp)) {
+        Box(modifier = Modifier.fillMaxWidth().height(54.dp)) {
             NssPhotoHeader(
                 imageUrl = NssCardImages.techCategoryImage(tech.category),
                 fallbackGradient = NssGradients.Violet,
@@ -247,19 +247,19 @@ private fun TechTreeRow(
         Column(modifier = Modifier.padding(Dimens.ContentPadding)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(tech.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = NssForeground)
-                    Text(tech.category.displayName, fontSize = 10.sp, color = NssMutedForeground)
+                    Text(tech.name, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
+                    Text(tech.category.displayName, fontSize = 8.sp, color = NssMutedForeground)
                 }
                 NssBadge(label = status)
             }
-            Text(tech.effect.description, fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 6.dp))
-            Text("Cost: ${tech.scienceCost} science pts", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = NssForeground, modifier = Modifier.padding(top = 4.dp))
+            Text(tech.effect.description, fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+            Text("Cost: ${tech.scienceCost} science pts", fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = NssForeground, modifier = Modifier.padding(top = 3.dp))
             if (tech.prerequisiteIds.isNotEmpty() && !prerequisitesMet) {
                 Text(
                     text = "Requires: " + tech.prerequisiteIds.joinToString { id -> TechCatalog.byId(id)?.name ?: id },
-                    fontSize = 10.sp,
+                    fontSize = 8.sp,
                     color = NssAccent,
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = 3.dp),
                 )
             }
             if (!isUnlocked && !isActive && !isQueued) {
@@ -271,28 +271,28 @@ private fun TechTreeRow(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 10.dp)
+                        .padding(top = 7.dp)
                         .clip(NssCardShape)
                         .background(if (canStart) NssEmerald else NssMutedForeground.copy(alpha = 0.3f))
                         .clickable(enabled = canStart, onClick = onStartResearch)
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = 6.dp),
                     color = NssOnPhoto,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     text = if (canUnlock) "⚡ Unlock Instantly (${tech.scienceCost} pts)" else "Instant unlock unavailable",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 6.dp)
+                        .padding(top = 4.dp)
                         .clip(NssCardShape)
                         .background(if (canUnlock) NssAccent else NssMutedForeground.copy(alpha = 0.3f))
                         .clickable(enabled = canUnlock, onClick = onUnlock)
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = 6.dp),
                     color = NssOnPhoto,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     textAlign = TextAlign.Center,
                 )
             }

@@ -65,7 +65,7 @@ fun ActiveWarPanel(
     val barPct = ((progressPct + 100f) / 2f).coerceIn(0f, 100f)
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Box(modifier = Modifier.fillMaxWidth().height(96.dp)) {
+        Box(modifier = Modifier.fillMaxWidth().height(72.dp)) {
             NssPhotoHeader(
                 imageUrl = NssCardImages.BANNER_DEFENSE,
                 fallbackGradient = NssGradients.Defense,
@@ -76,32 +76,32 @@ fun ActiveWarPanel(
         NssPanel(
             modifier = Modifier
                 .fillMaxWidth()
-                .border(2.dp, Color(0xFFFECACA), NssCardShape),
+                .border(1.dp, Color(0xFFFECACA), NssCardShape),
             highlighted = true,
         ) {
         NssBadge(label = "WAR ROOM", large = true)
         Text(
             text = "⚔ Engaged with $rivalName",
             fontWeight = FontWeight.Black,
-            fontSize = 18.sp,
+            fontSize = 13.sp,
             color = NssForeground,
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(top = 6.dp),
         )
         Text(
             text = "Month ${war.monthsActive} · Goal: ${war.warGoal.displayName} · Posture: ${state.military.deployment.name}",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(9.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("War Progress", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = NssForeground)
-            Text(war.progressLabel(), fontWeight = FontWeight.Black, fontSize = 13.sp, color = progressColor)
+            Text("War Progress", fontWeight = FontWeight.Bold, fontSize = 9.sp, color = NssForeground)
+            Text(war.progressLabel(), fontWeight = FontWeight.Black, fontSize = 9.sp, color = progressColor)
         }
         NssGameBar(percent = barPct, color = progressColor, thick = true)
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(9.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             WarStat("Our Losses", war.playerCasualties.toCasualtyString())
@@ -110,16 +110,16 @@ fun ActiveWarPanel(
         }
 
         if (war.lastBattleSummary.isNotBlank()) {
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(7.dp))
             Text(
                 text = "Last battle: ${war.lastBattleSummary}",
-                fontSize = 11.sp,
+                fontSize = 8.sp,
                 color = NssMutedForeground,
             )
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
-        Text("TACTICAL ORDERS", fontSize = 10.sp, fontWeight = FontWeight.Black, color = NssMutedForeground, letterSpacing = 2.sp)
+        Spacer(modifier = Modifier.height(10.dp))
+        Text("TACTICAL ORDERS", fontSize = 8.sp, fontWeight = FontWeight.Black, color = NssMutedForeground, letterSpacing = 8.sp)
 
         WarActionButton(
             label = if (state.military.deployment == DeploymentStatus.MOBILIZED) "Launch Offensive (Active)" else "⚔ Launch Offensive",
@@ -151,8 +151,8 @@ fun ActiveWarPanel(
 @Composable
 private fun WarStat(label: String, value: String) {
     Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
-        Text(value, fontWeight = FontWeight.Black, fontSize = 16.sp, color = NssForeground)
-        Text(label, fontSize = 9.sp, color = NssMutedForeground, fontWeight = FontWeight.Bold)
+        Text(value, fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssForeground)
+        Text(label, fontSize = 8.sp, color = NssMutedForeground, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -167,14 +167,14 @@ private fun WarActionButton(
         text = label,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp)
+            .padding(top = 6.dp)
             .clip(NssCardShape)
             .background(if (enabled) color else color.copy(alpha = 0.35f))
             .clickable(enabled = enabled, onClick = onClick)
-            .padding(vertical = 10.dp),
+            .padding(vertical = 7.dp),
         color = NssOnPhoto,
         fontWeight = FontWeight.Bold,
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         textAlign = TextAlign.Center,
     )
 }

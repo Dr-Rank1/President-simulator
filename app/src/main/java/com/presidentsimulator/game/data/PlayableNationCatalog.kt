@@ -90,12 +90,12 @@ object PlayableNationCatalog {
         }
     }
 
-    fun all(): List<NationDefinition> = NATIONS + RealCountryCatalog.all.map(::fromRealProfile)
+    fun all(): List<NationDefinition> = RealCountryCatalog.all.map(::fromRealProfile)
 
     fun byId(id: String): NationDefinition? = all().find { it.id == id }
 
     fun initialState(countryId: String): GameState =
-        byId(countryId)?.toInitialGameState() ?: NATIONS.first().toInitialGameState()
+        byId(countryId)?.toInitialGameState() ?: all().first().toInitialGameState()
 
     private val NATIONS = listOf(
         NationDefinition(

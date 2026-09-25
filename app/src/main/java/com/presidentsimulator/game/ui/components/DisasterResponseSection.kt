@@ -42,54 +42,54 @@ fun DisasterResponseSection(
         Text(
             "DISASTER RESPONSE COMMAND",
             fontWeight = FontWeight.Black,
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             color = NssRed,
-            letterSpacing = 2.sp,
+            letterSpacing = 8.sp,
         )
         Text(
             text = "Readiness ${disaster.readiness.roundToInt()}% · handled ${disaster.disastersHandled} · mismanaged ${disaster.disastersMismanaged}",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 3.dp),
         )
 
         if (active == null) {
             Text(
                 "No active emergency. Keep readiness high via Health ministry and clean responses.",
-                fontSize = 12.sp,
+                fontSize = 9.sp,
                 color = NssForeground,
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = 6.dp),
             )
             if (disaster.lastCommandNote.isNotBlank()) {
                 Text(
                     disaster.lastCommandNote,
-                    fontSize = 11.sp,
+                    fontSize = 8.sp,
                     color = NssMutedForeground,
-                    modifier = Modifier.padding(top = 6.dp),
+                    modifier = Modifier.padding(top = 4.dp),
                 )
             }
             DisasterCommandHistory(disaster.commandLog)
             return@NssPanel
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
             "${active.type.displayName} — ${active.stageLabel}",
             fontWeight = FontWeight.Black,
-            fontSize = 16.sp,
+            fontSize = 12.sp,
             color = NssForeground,
         )
         Text(
             active.type.blurb,
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 2.dp),
+            modifier = Modifier.padding(top = 1.dp),
         )
         Text(
             "Severity ${active.severity.roundToInt()} · month ${active.monthsActive} · response ${active.responsePoints.roundToInt()} pts",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssAccent,
-            modifier = Modifier.padding(top = 6.dp),
+            modifier = Modifier.padding(top = 4.dp),
         )
         NssGameBar(
             percent = active.severity,
@@ -102,21 +102,21 @@ fun DisasterResponseSection(
         if (disaster.lastCommandNote.isNotBlank()) {
             Text(
                 disaster.lastCommandNote,
-                fontSize = 11.sp,
+                fontSize = 8.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = NssForeground,
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = 6.dp),
             )
         }
 
         val canAct = disaster.responseCooldownMonths == 0
         Text(
             if (!canAct) "Next allocation in ${disaster.responseCooldownMonths} mo" else "ALLOCATE RESPONSE",
-            fontSize = 10.sp,
+            fontSize = 8.sp,
             fontWeight = FontWeight.Black,
             color = NssPrimary,
-            letterSpacing = 1.sp,
-            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+            letterSpacing = 8.sp,
+            modifier = Modifier.padding(top = 9.dp, bottom = 3.dp),
         )
         ResponseFocus.entries.forEach { focus ->
             val afford = state.vitals.budget >= focus.cost && canAct
@@ -124,31 +124,31 @@ fun DisasterResponseSection(
                 text = "${focus.displayName} · ${focus.cost.toBudgetString()}",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 6.dp)
+                    .padding(top = 4.dp)
                     .clip(NssCardShape)
                     .background(if (afford) NssPrimary else NssMutedForeground.copy(alpha = 0.35f))
                     .clickable(enabled = afford) { onAllocate(focus) }
-                    .padding(vertical = 10.dp),
+                    .padding(vertical = 7.dp),
                 color = NssOnPhoto,
                 fontWeight = FontWeight.Bold,
-                fontSize = 12.sp,
+                fontSize = 9.sp,
                 textAlign = TextAlign.Center,
             )
         }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp),
+                .padding(top = 6.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
                 "Spent ${active.fundsSpent.toBudgetString()}",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = NssMutedForeground,
             )
             Text(
                 "~${active.livesSavedEstimate / 1000}k aided",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = NssEmerald,
             )
         }
@@ -161,18 +161,18 @@ private fun DisasterCommandHistory(commandLog: List<String>) {
     if (commandLog.isEmpty()) return
     Text(
         "RECENT RESPONSE LOG",
-        fontSize = 9.sp,
+        fontSize = 8.sp,
         fontWeight = FontWeight.Black,
         color = NssAccent,
-        letterSpacing = 1.sp,
-        modifier = Modifier.padding(top = 12.dp),
+        letterSpacing = 8.sp,
+        modifier = Modifier.padding(top = 9.dp),
     )
     commandLog.takeLast(3).asReversed().forEach { entry ->
         Text(
             "• $entry",
-            fontSize = 10.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 3.dp),
         )
     }
 }

@@ -55,28 +55,28 @@ fun TurnSummaryDialog(
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .clip(NssCardShape)
                 .background(NssBackground)
-                .padding(20.dp)
+                .padding(15.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
             val dateLabel = "${GameState.monthName(summary.month)} ${summary.year}"
 
             Text(
                 text = "MONTHLY BULLETIN",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 fontWeight = FontWeight.Black,
                 color = NssPrimary,
-                letterSpacing = 2.sp,
+                letterSpacing = 8.sp,
             )
             Text(
                 text = dateLabel,
                 fontWeight = FontWeight.Black,
-                fontSize = 24.sp,
+                fontSize = 18.sp,
                 color = NssForeground,
-                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp),
+                modifier = Modifier.padding(top = 3.dp, bottom = 12.dp),
             )
 
             NssPanel(modifier = Modifier.fillMaxWidth()) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
                     SummaryRow(
                         label = "Net Income",
                         value = summary.netIncome.toBudgetString(),
@@ -106,27 +106,27 @@ fun TurnSummaryDialog(
             }
 
             if (summary.bulletin.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(9.dp))
                 NssPanel(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "WHAT HAPPENED",
-                        fontSize = 10.sp,
+                        fontSize = 8.sp,
                         fontWeight = FontWeight.Black,
                         color = NssPrimary,
-                        letterSpacing = 2.sp,
+                        letterSpacing = 8.sp,
                     )
                     summary.bulletin.forEach { line ->
                         Text(
                             text = "• $line",
-                            fontSize = 12.sp,
+                            fontSize = 9.sp,
                             color = NssMutedForeground,
-                            modifier = Modifier.padding(top = 6.dp),
+                            modifier = Modifier.padding(top = 4.dp),
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = "Continue",
@@ -135,10 +135,10 @@ fun TurnSummaryDialog(
                     .clip(NssCardShape)
                     .background(NssPrimary)
                     .clickable { onDismiss() }
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 9.dp),
                 color = NssOnPhoto,
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 textAlign = TextAlign.Center,
             )
         }
@@ -158,12 +158,12 @@ private fun SummaryRow(
     ) {
         Text(
             text = label,
-            fontSize = 13.sp,
+            fontSize = 9.sp,
             color = NssMutedForeground,
         )
         Text(
             text = value,
-            fontSize = 14.sp,
+            fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
             color = if (isPositive) NssEmerald else NssRed,
         )

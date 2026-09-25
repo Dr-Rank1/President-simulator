@@ -55,26 +55,26 @@ fun EventCrisisDialog(
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .clip(NssCardShape)
                 .background(NssBackground)
-                .padding(20.dp),
+                .padding(15.dp),
         ) {
-            Text("🚨 NATIONAL CRISIS", fontSize = 10.sp, fontWeight = FontWeight.Black, color = NssRed, letterSpacing = 3.sp)
+            Text("🚨 NATIONAL CRISIS", fontSize = 8.sp, fontWeight = FontWeight.Black, color = NssRed, letterSpacing = 8.sp)
             Text(
                 text = event.title,
                 fontWeight = FontWeight.Black,
-                fontSize = 20.sp,
+                fontSize = 15.sp,
                 color = NssForeground,
-                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
+                modifier = Modifier.padding(top = 3.dp, bottom = 9.dp),
             )
-            EventIllustration(eventType = event.id, modifier = Modifier.padding(bottom = 10.dp))
-            Text(event.description, fontSize = 13.sp, color = NssMutedForeground, lineHeight = 18.sp)
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("CHOOSE A RESPONSE", fontSize = 10.sp, fontWeight = FontWeight.Black, color = NssPrimary, letterSpacing = 2.sp)
-            Spacer(modifier = Modifier.height(8.dp))
+            EventIllustration(eventType = event.id, modifier = Modifier.padding(bottom = 7.dp))
+            Text(event.description, fontSize = 9.sp, color = NssMutedForeground, lineHeight = 13.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+            Text("CHOOSE A RESPONSE", fontSize = 8.sp, fontWeight = FontWeight.Black, color = NssPrimary, letterSpacing = 8.sp)
+            Spacer(modifier = Modifier.height(6.dp))
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 280.dp),
+                    .heightIn(max = 210.dp),
             ) {
                 items(event.choices, key = { it.text }) { choice ->
                     NssPanel(
@@ -82,21 +82,21 @@ fun EventCrisisDialog(
                             .fillMaxWidth()
                             .clickable { onChoiceSelected(choice) },
                     ) {
-                        Text(choice.text, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = NssForeground)
+                        Text(choice.text, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
                         Text(
                             text = choice.consequence.toEffectSummary(),
-                            fontSize = 11.sp,
+                            fontSize = 8.sp,
                             color = NssMutedForeground,
-                            modifier = Modifier.padding(top = 4.dp),
+                            modifier = Modifier.padding(top = 3.dp),
                         )
                     }
                 }
             }
             Text(
                 text = "⏸ Time paused until resolved",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = NssMutedForeground,
-                modifier = Modifier.padding(top = 12.dp).align(Alignment.CenterHorizontally),
+                modifier = Modifier.padding(top = 9.dp).align(Alignment.CenterHorizontally),
             )
         }
     }

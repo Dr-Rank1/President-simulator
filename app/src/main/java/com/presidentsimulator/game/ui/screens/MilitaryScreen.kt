@@ -200,19 +200,19 @@ private fun ForcesTab(state: GameState) {
                     .clickable { branch = name }
                     .padding(Dimens.ContentPadding - Dimens.SpacingXSmall),
             ) {
-                Icon(icon, contentDescription = null, tint = if (selected) com.presidentsimulator.game.ui.theme.NssOnPhoto else com.presidentsimulator.game.ui.theme.NssMutedForeground, modifier = Modifier.size(20.dp))
-                Text(name, fontWeight = FontWeight.Black, fontSize = 13.sp, color = if (selected) com.presidentsimulator.game.ui.theme.NssOnPhoto else com.presidentsimulator.game.ui.theme.NssForeground, modifier = Modifier.padding(top = 6.dp))
-                Text("$count units", fontSize = 10.sp, color = if (selected) com.presidentsimulator.game.ui.theme.NssOnPhoto.copy(alpha = 0.7f) else com.presidentsimulator.game.ui.theme.NssMutedForeground)
+                Icon(icon, contentDescription = null, tint = if (selected) com.presidentsimulator.game.ui.theme.NssOnPhoto else com.presidentsimulator.game.ui.theme.NssMutedForeground, modifier = Modifier.size(15.dp))
+                Text(name, fontWeight = FontWeight.Black, fontSize = 9.sp, color = if (selected) com.presidentsimulator.game.ui.theme.NssOnPhoto else com.presidentsimulator.game.ui.theme.NssForeground, modifier = Modifier.padding(top = 4.dp))
+                Text("$count units", fontSize = 8.sp, color = if (selected) com.presidentsimulator.game.ui.theme.NssOnPhoto.copy(alpha = 0.7f) else com.presidentsimulator.game.ui.theme.NssMutedForeground)
             }
         }
     }
 
     Text(
         text = "$branch UNITS",
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         fontWeight = FontWeight.Black,
         color = NssPrimary,
-        letterSpacing = 3.sp,
+        letterSpacing = 8.sp,
         modifier = Modifier.padding(top = Dimens.SpacingSmall, bottom = Dimens.SpacingXSmall),
     )
 
@@ -264,7 +264,7 @@ private fun RecruitmentTab(
                     .padding(Dimens.ContentPadding),
             ) {
                 Text("TOTAL COMMISSION COST", style = androidx.compose.material3.MaterialTheme.typography.labelSmall, color = com.presidentsimulator.game.ui.theme.NssMutedForeground)
-                Text(formatMa2Money(totalCost), color = NssPrimary, fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                Text(formatMa2Money(totalCost), color = NssPrimary, fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
             }
             Column(
                 modifier = Modifier
@@ -274,7 +274,7 @@ private fun RecruitmentTab(
                     .padding(Dimens.ContentPadding),
             ) {
                 Text("AVAILABLE TREASURY", style = androidx.compose.material3.MaterialTheme.typography.labelSmall, color = com.presidentsimulator.game.ui.theme.NssMutedForeground)
-                Text(formatMa2Money(state.vitals.budget), color = com.presidentsimulator.game.ui.theme.NssForeground, fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                Text(formatMa2Money(state.vitals.budget), color = com.presidentsimulator.game.ui.theme.NssForeground, fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     } else {
@@ -287,7 +287,7 @@ private fun RecruitmentTab(
                     .padding(Dimens.ContentPadding),
             ) {
                 Text("TOTAL COMMISSION COST", style = androidx.compose.material3.MaterialTheme.typography.labelSmall, color = com.presidentsimulator.game.ui.theme.NssMutedForeground)
-                Text(formatMa2Money(totalCost), color = NssPrimary, fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                Text(formatMa2Money(totalCost), color = NssPrimary, fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
             }
             Column(
                 modifier = Modifier
@@ -297,7 +297,7 @@ private fun RecruitmentTab(
                     .padding(Dimens.ContentPadding),
             ) {
                 Text("AVAILABLE TREASURY", style = androidx.compose.material3.MaterialTheme.typography.labelSmall, color = com.presidentsimulator.game.ui.theme.NssMutedForeground)
-                Text(formatMa2Money(state.vitals.budget), color = com.presidentsimulator.game.ui.theme.NssForeground, fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                Text(formatMa2Money(state.vitals.budget), color = com.presidentsimulator.game.ui.theme.NssForeground, fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -365,7 +365,7 @@ private fun RecruitmentTab(
         color = if (totalCost > 0) NssPrimary else com.presidentsimulator.game.ui.theme.NssMutedForeground,
         fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center,
-        fontSize = 13.sp,
+        fontSize = 9.sp,
     )
 }
 
@@ -397,10 +397,10 @@ private fun LogisticsTab(
 
     Text(
         text = "DEPLOYMENT POSTURE",
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         fontWeight = FontWeight.Black,
         color = NssPrimary,
-        letterSpacing = 2.sp,
+        letterSpacing = 8.sp,
         modifier = Modifier.padding(top = Dimens.SpacingSmall),
     )
     Row(horizontalArrangement = Arrangement.spacedBy(Dimens.GridGap)) {
@@ -414,7 +414,7 @@ private fun LogisticsTab(
                     .clip(NssCardShape)
                     .background(if (selected) NssPrimary else com.presidentsimulator.game.ui.theme.NssGameCard)
                     .clickable(enabled = enabled) { viewModel.setDeployment(status) }
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 9.dp),
                 color = when {
                     !enabled -> com.presidentsimulator.game.ui.theme.NssMutedForeground
                     selected -> com.presidentsimulator.game.ui.theme.NssOnPhoto
@@ -422,17 +422,17 @@ private fun LogisticsTab(
                 },
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                fontSize = 12.sp,
+                fontSize = 9.sp,
             )
         }
     }
 
     Text(
         text = "SALARY FUNDING  ${(draftSalary * 100f).roundToInt()}%",
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         fontWeight = FontWeight.Black,
         color = NssPrimary,
-        letterSpacing = 2.sp,
+        letterSpacing = 8.sp,
         modifier = Modifier.padding(top = Dimens.SpacingSmall),
     )
     Slider(
@@ -449,17 +449,17 @@ private fun LogisticsTab(
     val forecastMorale = military.copy(salaryFunding = draftSalary).morale
     Text(
         text = "Forecast · upkeep ${forecastUpkeep.toBudgetString()} · morale ${forecastMorale.roundToInt()}%",
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         color = com.presidentsimulator.game.ui.theme.NssMutedForeground,
-        modifier = Modifier.padding(top = 4.dp),
+        modifier = Modifier.padding(top = 3.dp),
     )
 
     Text(
         text = "DEFCON",
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         fontWeight = FontWeight.Black,
         color = NssPrimary,
-        letterSpacing = 2.sp,
+        letterSpacing = 8.sp,
         modifier = Modifier.padding(top = Dimens.SpacingSmall),
     )
     Row(horizontalArrangement = Arrangement.spacedBy(Dimens.GridGap)) {
@@ -472,7 +472,7 @@ private fun LogisticsTab(
                     .clip(NssCardShape)
                     .background(if (selected) NssPrimary else com.presidentsimulator.game.ui.theme.NssGameCard)
                     .clickable { viewModel.setDefcon(level) }
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 9.dp),
                 color = if (selected) {
                     com.presidentsimulator.game.ui.theme.NssOnPhoto
                 } else {
@@ -480,7 +480,7 @@ private fun LogisticsTab(
                 },
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                fontSize = 12.sp,
+                fontSize = 9.sp,
             )
         }
     }

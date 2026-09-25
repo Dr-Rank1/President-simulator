@@ -51,18 +51,18 @@ fun PressDeskSection(
         Text(
             text = "NATIONAL PRESS DESK",
             fontWeight = FontWeight.Black,
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             color = NssPrimary,
-            letterSpacing = 2.sp,
+            letterSpacing = 8.sp,
         )
         Text(
             text = "${press.sentimentLabel} · credibility ${press.credibilityLabel} " +
                 "(${press.credibility.roundToInt()}) · freedom ${press.pressFreedom.roundToInt()}",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 3.dp),
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         NssGameBar(
             percent = press.mediaSentiment,
             color = when {
@@ -74,39 +74,39 @@ fun PressDeskSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp),
+                .padding(top = 6.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
                 "Leak ${press.leakRisk.roundToInt()}%",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = if (press.leakRisk >= 40f) NssRed else NssMutedForeground,
             )
             Text(
                 "Spun ${press.storiesSpun} · Buried ${press.storiesSuppressed} · Leaks ${press.suppressLeaks}",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = NssMutedForeground,
             )
         }
         if (press.lastDeskNote.isNotBlank()) {
             Text(
                 press.lastDeskNote,
-                fontSize = 11.sp,
+                fontSize = 8.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = NssForeground,
-                modifier = Modifier.padding(top = 6.dp),
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
         press.hottestArc?.takeIf { it.intensity >= 35f }?.let { arc ->
             Text(
                 "Arc: ${arc.title} · heat ${arc.intensity.roundToInt()}",
-                fontSize = 11.sp,
+                fontSize = 8.sp,
                 color = NssAccent,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = 3.dp),
             )
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(7.dp))
         press.frontPage.take(4).forEach { headline ->
             PressHeadlineRow(
                 headline = headline,
@@ -123,12 +123,12 @@ fun PressDeskSection(
                 onSpin = { onSpin(headline.id) },
                 onSuppress = { onSuppress(headline.id) },
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
         }
         if (press.headlines.isEmpty()) {
             Text(
                 "No copy on the wire yet — advance a month.",
-                fontSize = 12.sp,
+                fontSize = 9.sp,
                 color = NssMutedForeground,
             )
         }
@@ -157,19 +157,19 @@ private fun PressHeadlineRow(
             .clip(NssCardShape)
             .border(1.dp, NssBorder, NssCardShape)
             .background(NssMuted.copy(alpha = 0.35f))
-            .padding(10.dp),
+            .padding(7.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = headline.tone.name,
-                fontSize = 9.sp,
+                fontSize = 8.sp,
                 fontWeight = FontWeight.Black,
                 color = toneColor,
-                letterSpacing = 1.sp,
+                letterSpacing = 8.sp,
             )
             Text(
                 text = " · ${headline.outlet.displayName}",
-                fontSize = 9.sp,
+                fontSize = 8.sp,
                 color = NssMutedForeground,
             )
             if (headline.handled) {
@@ -179,7 +179,7 @@ private fun PressHeadlineRow(
                         headline.leaked -> " · LEAKED"
                         else -> " · HANDLED"
                     },
-                    fontSize = 9.sp,
+                    fontSize = 8.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (headline.backfired || headline.leaked) NssRed else NssEmerald,
                 )
@@ -188,26 +188,26 @@ private fun PressHeadlineRow(
         Text(
             text = headline.title,
             fontWeight = FontWeight.Bold,
-            fontSize = 13.sp,
+            fontSize = 9.sp,
             color = NssForeground,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 3.dp),
         )
         Text(
             text = headline.lede,
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 2.dp),
+            modifier = Modifier.padding(top = 1.dp),
         )
         if (!headline.handled) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    .padding(top = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 DeskActionChip(
                     label = spinLabel,
@@ -242,10 +242,10 @@ private fun DeskActionChip(
             .clip(NssCardShape)
             .background(if (enabled) color else NssMutedForeground.copy(alpha = 0.35f))
             .clickable(enabled = enabled, onClick = onClick)
-            .padding(vertical = 8.dp),
+            .padding(vertical = 6.dp),
         color = NssOnPhoto,
         fontWeight = FontWeight.Bold,
-        fontSize = 11.sp,
+        fontSize = 8.sp,
         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
     )
 }

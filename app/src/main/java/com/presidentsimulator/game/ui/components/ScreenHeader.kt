@@ -24,24 +24,24 @@ fun ScreenHeader(
             .fillMaxWidth()
             .background(NssBackground)
             .border(1.dp, NssBorder)
-            .padding(16.dp),
+            .padding(12.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = title.uppercase(),
             color = NssOnPhoto,
-            fontSize = 18.sp,
+            fontSize = 13.sp,
             fontWeight = FontWeight.Black,
-            letterSpacing = 2.sp
+            letterSpacing = 8.sp
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(3.dp))
         Text(
             text = subtitle.uppercase(),
             color = NssSky,
-            fontSize = 10.sp,
+            fontSize = 8.sp,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp
+            letterSpacing = 8.sp
         )
     }
 }

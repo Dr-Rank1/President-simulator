@@ -1,4 +1,8 @@
 package com.presidentsimulator.game.ui.screens
+import com.presidentsimulator.game.ui.theme.NssAccent
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.window.Dialog
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -126,13 +130,13 @@ fun DiplomacyScreen(
                 .fillMaxSize()
                 .nssMinistryScrollPadding()
                 .padding(Dimens.ContentPadding),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp),
         ) {
             when (selectedTab) {
                 "RELATIONS" -> {
                     item { RelationsLegend() }
                     itemsIndexed(state.diplomacy.rivals.chunked(layout.gridColumns), key = { i, r -> r.joinToString { it.id } }) { rowIndex, row ->
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             row.forEachIndexed { colIndex, rival ->
                                 val cardIndex = rowIndex * layout.gridColumns + colIndex
                                 NssNationCard(
@@ -159,29 +163,7 @@ fun DiplomacyScreen(
                         }
                     }
 
-                    item { selectedRival?.let { rival ->
-                        RivalActionPanel(
-                            state = state,
-                            rival = rival,
-                            warActive = activeWar != null,
-                            isWarTarget = activeWar?.targetCountryId == rival.id,
-                            onProposeTradeDeal = {
-                                viewModel.proposeTradeDeal(rival.id, TradeCommodity.GRAIN, 100L, TradeType.EXPORT)
-                            },
-                            onSendAid = { viewModel.sendForeignAid(rival.id) },
-                            onStateVisit = { viewModel.conductStateVisit(rival.id) },
-                            onNegotiateTradeTreaty = {
-                                viewModel.negotiateTreaty(rival.id, TreatyType.TRADE)
-                            },
-                            onNegotiateNonAggression = {
-                                viewModel.negotiateTreaty(rival.id, TreatyType.NON_AGGRESSION)
-                            },
-                            onFormAlliance = {
-                                viewModel.formAlliance("Pact with ${rival.name}", listOf(rival.id))
-                            },
-                            onDeclareWar = { goal -> viewModel.declareWar(rival.id, goal) },
-                        )
-                    } }
+                    
                 }
 
                 "TREATIES" -> {
@@ -200,16 +182,16 @@ fun DiplomacyScreen(
                                 treatyLabel,
                                 color = NssMutedForeground,
                                 style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(vertical = 4.dp),
+                                modifier = Modifier.padding(vertical = 3.dp),
                             )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 if (rival.hasTradeTreaty) NssBadge("TRADE")
                                 if (rival.hasNonAggressionPact) NssBadge("NAP")
                                 NssBadge("ACTIVE", large = true)
                             }
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                                modifier = Modifier.padding(top = 10.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.padding(top = 7.dp),
                             ) {
                                 if (rival.hasTradeTreaty) {
                                     OutlinedButton(
@@ -249,16 +231,16 @@ fun DiplomacyScreen(
                             )
                             Text("Relationship normalization talks", style = MaterialTheme.typography.labelSmall, color = NssMutedForeground)
                             Row(
-                                modifier = Modifier.padding(top = 12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.padding(top = 9.dp),
+                                horizontalArrangement = Arrangement.spacedBy(9.dp),
                             ) {
-                                Text("PROGRESS", style = MaterialTheme.typography.labelSmall, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+                                Text("PROGRESS", style = MaterialTheme.typography.labelSmall, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
                                 NssProgressBar(percent = progress.toFloat(), color = prgColor(progress), thick = true, modifier = Modifier.weight(1f))
                                 Text("$progress%", color = relationTextColor(progress), fontWeight = FontWeight.Bold)
                             }
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                                modifier = Modifier.padding(top = 10.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.padding(top = 7.dp),
                             ) {
                                 OutlinedButton(
                                     onClick = {
@@ -306,6 +288,33 @@ fun DiplomacyScreen(
             }
         }
     }
+
+        if (selectedRival != null) {
+            androidx.compose.ui.window.Dialog(onDismissRequest = { selectedRivalId = null }) {
+                Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(Color(0xFF131A26)).padding(16.dp)) {
+                    Column {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Text(selectedRival.name, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black)
+                            Text("CLOSE", color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { selectedRivalId = null })
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        RivalActionPanel(
+                            state = state,
+                            rival = selectedRival,
+                            warActive = activeWar != null,
+                            isWarTarget = activeWar?.targetCountryId == selectedRival.id,
+                            onProposeTradeDeal = { viewModel.proposeTradeDeal(selectedRival.id, TradeCommodity.GRAIN, 100L, TradeType.EXPORT) },
+                            onSendAid = { viewModel.sendForeignAid(selectedRival.id) },
+                            onStateVisit = { viewModel.conductStateVisit(selectedRival.id) },
+                            onNegotiateTradeTreaty = { viewModel.negotiateTreaty(selectedRival.id, TreatyType.TRADE) },
+                            onNegotiateNonAggression = { viewModel.negotiateTreaty(selectedRival.id, TreatyType.NON_AGGRESSION) },
+                            onFormAlliance = { viewModel.formAlliance("Pact with ${selectedRival.name}", listOf(selectedRival.id)) },
+                            onDeclareWar = { goal -> viewModel.declareWar(selectedRival.id, goal); selectedRivalId = null }
+                        )
+                    }
+                }
+            }
+        }
 }
 
 @Composable
@@ -320,17 +329,17 @@ private fun RelationsLegend() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(NssGameCard)
-            .padding(14.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(9.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("RELATIONS:", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground, letterSpacing = 1.sp)
+        Text("RELATIONS:", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground, letterSpacing = 8.sp)
         items.forEach { (label, color) ->
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(color))
-                Text(label, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground)
+            Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(color))
+                Text(label, fontSize = 8.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground)
             }
         }
     }
@@ -367,13 +376,13 @@ private fun RivalActionPanel(
         if (rival.grudgeLevel > 0) {
             Text(
                 "Grudge level ${rival.grudgeLevel}/5 — relations recover slowly.",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = NssMutedForeground,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = 3.dp),
             )
         }
         AnimatedVisibility(visible = true) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
                 if (isWarTarget) {
                     Text("Active war in progress.", color = NssRed, fontWeight = FontWeight.SemiBold)
                 } else {
@@ -407,8 +416,8 @@ private fun RivalActionPanel(
                     OutlinedButton(onClick = onFormAlliance, enabled = canAlliance, modifier = Modifier.fillMaxWidth()) {
                         Text("Form Alliance")
                     }
-                    Text("War objective", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                    Text("War objective", fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
                         WarGoal.entries.forEach { goal ->
                             OutlinedButton(
                                 onClick = { selectedWarGoal = goal },
@@ -417,7 +426,7 @@ private fun RivalActionPanel(
                             ) {
                                 Text(
                                     goal.displayName.split(" ").first(),
-                                    fontSize = 9.sp,
+                                    fontSize = 8.sp,
                                     maxLines = 1,
                                 )
                             }

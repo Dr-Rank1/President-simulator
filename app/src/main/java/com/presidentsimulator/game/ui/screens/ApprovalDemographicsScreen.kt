@@ -145,7 +145,7 @@ fun ApprovalDemographicsScreen(
                 .verticalScroll(rememberScrollState())
                 .nssMinistryScrollPadding()
                 .padding(Dimens.ContentPadding),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp),
         ) {
             NssPanel(modifier = Modifier.fillMaxWidth()) {
                 val electionSeason = viewModel.isElectionSeason()
@@ -153,7 +153,7 @@ fun ApprovalDemographicsScreen(
                     if (state.nextElectionYear <= 0) Int.MAX_VALUE
                     else ((state.nextElectionYear - state.year) * 12 + (12 - state.month)).coerceAtLeast(0)
                 }
-                Text("CAMPAIGN ACTIONS", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+                Text("CAMPAIGN ACTIONS", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
                 Text(
                     text = if (state.nextElectionYear <= 0) {
                         "There is no routine national election. Leadership changes through conclave."
@@ -162,41 +162,41 @@ fun ApprovalDemographicsScreen(
                     } else {
                         "Spend political capital before the ${state.nextElectionYear} election."
                     },
-                    fontSize = 11.sp,
+                    fontSize = 8.sp,
                     color = if (electionSeason) NssAccent else NssMutedForeground,
-                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    modifier = Modifier.padding(top = 3.dp, bottom = 6.dp),
                 )
                 val election = state.demographics.election
                 if (election.challengerName.isNotBlank()) {
                     Text(
                         text = "Challenger: ${election.challengerName} · ${election.challengerParty}",
-                        fontSize = 12.sp,
+                        fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
                         color = NssForeground,
-                        modifier = Modifier.padding(bottom = 4.dp),
+                        modifier = Modifier.padding(bottom = 3.dp),
                     )
                     Text(
                         text = "Debates ${election.debatesHeld} · Your ads ${election.attackAdsRun} · Their ads ${election.oppositionAttackAds}",
-                        fontSize = 11.sp,
+                        fontSize = 8.sp,
                         color = NssMutedForeground,
-                        modifier = Modifier.padding(bottom = 8.dp),
+                        modifier = Modifier.padding(bottom = 6.dp),
                     )
                     election.latestPoll?.let { poll ->
                         Text(
                             text = "Latest poll — You ${poll.playerShare.roundToInt()}% · ${election.challengerName} ${poll.challengerShare.roundToInt()}% · Undecided ${poll.undecided.roundToInt()}%",
-                            fontSize = 11.sp,
+                            fontSize = 8.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = NssPrimary,
-                            modifier = Modifier.padding(bottom = 8.dp),
+                            modifier = Modifier.padding(bottom = 6.dp),
                         )
                     }
                 }
                 if (state.demographics.oppositionMomentum > 0f) {
                     Text(
                         text = "Opposition momentum: ${state.demographics.oppositionMomentum.roundToInt()}",
-                        fontSize = 11.sp,
+                        fontSize = 8.sp,
                         color = NssRed,
-                        modifier = Modifier.padding(bottom = 8.dp),
+                        modifier = Modifier.padding(bottom = 6.dp),
                     )
                 }
                 CampaignAction.entries.forEach { action ->
@@ -213,14 +213,14 @@ fun ApprovalDemographicsScreen(
                         text = label,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp)
+                            .padding(vertical = 3.dp)
                             .clip(NssCardShape)
                             .background(if (canAfford) NssAccent else NssMutedForeground.copy(alpha = 0.3f))
                             .clickable(enabled = canAfford) { viewModel.runCampaignAction(action) }
-                            .padding(vertical = 10.dp),
+                            .padding(vertical = 7.dp),
                         color = NssOnPhoto,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
+                        fontSize = 9.sp,
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -228,13 +228,13 @@ fun ApprovalDemographicsScreen(
 
             demographics.forEach { bloc ->
                 NssPanel(modifier = Modifier.fillMaxWidth()) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                         Icon(bloc.icon, contentDescription = null, tint = NssPrimary)
                         Column(modifier = Modifier.weight(1f)) {
                             Text(bloc.name, fontWeight = FontWeight.Bold, color = NssForeground)
                             Text(
                                 "${(bloc.populationShare * 100f).roundToInt()}% of population",
-                                fontSize = 11.sp,
+                                fontSize = 8.sp,
                                 color = NssMutedForeground,
                             )
                         }
@@ -244,19 +244,19 @@ fun ApprovalDemographicsScreen(
                             color = if (bloc.approval >= 50f) NssEmerald else NssRed,
                         )
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                     NssGameBar(percent = bloc.approval, color = if (bloc.approval >= 50f) NssEmerald else NssRed)
                     bloc.reasons.forEach { reason ->
-                        Text("• $reason", fontSize = 12.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+                        Text("• $reason", fontSize = 9.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
                     }
                 }
             }
 
             if (state.demographics.recentReasons.isNotEmpty()) {
                 NssPanel(modifier = Modifier.fillMaxWidth()) {
-                    Text("RECENT SHIFTS", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+                    Text("RECENT SHIFTS", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
                     state.demographics.recentReasons.takeLast(5).asReversed().forEach { note ->
-                        Text("• $note", fontSize = 12.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+                        Text("• $note", fontSize = 9.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
                     }
                 }
             }
@@ -274,15 +274,15 @@ private fun SpeechAndTermPanel(
     val speech = state.speech
     val term = state.term
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("PODIUM & PRESS", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("PODIUM & PRESS", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         Text(
             speech.summaryLine(),
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+            modifier = Modifier.padding(top = 3.dp, bottom = 6.dp),
         )
         if (speech.lastSpeechNote.isNotBlank()) {
-            Text(speech.lastSpeechNote, fontSize = 12.sp, color = NssForeground, modifier = Modifier.padding(bottom = 8.dp))
+            Text(speech.lastSpeechNote, fontSize = 9.sp, color = NssForeground, modifier = Modifier.padding(bottom = 6.dp))
         }
         val canSpeak = speech.cooldownMonths == 0
         SpeechTheme.entries.forEach { theme ->
@@ -295,14 +295,14 @@ private fun SpeechAndTermPanel(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 4.dp)
+                    .padding(top = 3.dp)
                     .clip(NssCardShape)
                     .background(if (afford) NssAccent else NssMutedForeground.copy(alpha = 0.3f))
                     .clickable(enabled = afford) { viewModel.deliverSpeech(theme) }
-                    .padding(vertical = 10.dp),
+                    .padding(vertical = 7.dp),
                 color = NssOnPhoto,
                 fontWeight = FontWeight.Bold,
-                fontSize = 12.sp,
+                fontSize = 9.sp,
                 textAlign = TextAlign.Center,
             )
         }
@@ -311,48 +311,48 @@ private fun SpeechAndTermPanel(
             text = "Press Conference · ${SpeechEngine.PRESSER_COST.toBudgetString()}",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
+                .padding(top = 6.dp)
                 .clip(NssCardShape)
                 .background(if (canPresser) NssPrimary else NssMutedForeground.copy(alpha = 0.3f))
                 .clickable(enabled = canPresser) { viewModel.holdPressConference() }
-                .padding(vertical = 10.dp),
+                .padding(vertical = 7.dp),
             color = NssOnPhoto,
             fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             textAlign = TextAlign.Center,
         )
     }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("TERM & SUCCESSION", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("TERM & SUCCESSION", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         Text(
             term.summaryLine(state.legal.governmentSystem),
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             color = NssForeground,
-            modifier = Modifier.padding(top = 6.dp),
+            modifier = Modifier.padding(top = 4.dp),
         )
         if (term.lastTermNote.isNotBlank()) {
-            Text(term.lastTermNote, fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+            Text(term.lastTermNote, fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
         }
         if (term.softDefeatHeat > 0f) {
-            Text("Soft-defeat pressure", fontSize = 11.sp, color = NssRed, modifier = Modifier.padding(top = 8.dp))
+            Text("Soft-defeat pressure", fontSize = 8.sp, color = NssRed, modifier = Modifier.padding(top = 6.dp))
             NssGameBar(percent = term.softDefeatHeat, color = NssRed)
         }
         if (term.successorNamed.isNotBlank()) {
-            Text("Successor: ${term.successorNamed}", fontSize = 12.sp, color = NssEmerald, modifier = Modifier.padding(top = 6.dp))
+            Text("Successor: ${term.successorNamed}", fontSize = 9.sp, color = NssEmerald, modifier = Modifier.padding(top = 4.dp))
         }
         if (state.legal.governmentSystem.hasExecutiveTermLimit) Text(
             "Name successor (Alex Rivera)",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 10.dp)
+                .padding(top = 7.dp)
                 .clip(NssCardShape)
                 .background(NssPrimary)
                 .clickable { viewModel.nameSuccessor("Alex Rivera") }
-                .padding(vertical = 10.dp),
+                .padding(vertical = 7.dp),
             color = NssOnPhoto,
             fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             textAlign = TextAlign.Center,
         )
         val canExtend = state.vitals.budget >= 8_000_000_000L
@@ -360,22 +360,22 @@ private fun SpeechAndTermPanel(
             "Extend term limit (8.0B)",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
+                .padding(top = 6.dp)
                 .clip(NssCardShape)
                 .background(if (canExtend) NssRed.copy(alpha = 0.85f) else NssMutedForeground.copy(alpha = 0.3f))
                 .clickable(enabled = canExtend) { viewModel.extendTermLimit() }
-                .padding(vertical = 10.dp),
+                .padding(vertical = 7.dp),
             color = NssOnPhoto,
             fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             textAlign = TextAlign.Center,
         )
         if (state.scenario.title.isNotBlank()) {
             Text(
                 "Scenario: ${state.scenario.title}",
-                fontSize = 11.sp,
+                fontSize = 8.sp,
                 color = NssAccent,
-                modifier = Modifier.padding(top = 10.dp),
+                modifier = Modifier.padding(top = 7.dp),
             )
         }
     }

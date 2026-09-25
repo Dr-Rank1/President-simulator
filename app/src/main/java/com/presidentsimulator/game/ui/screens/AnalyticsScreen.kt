@@ -93,17 +93,17 @@ fun AnalyticsScreen(
                 .verticalScroll(rememberScrollState())
                 .nssMinistryScrollPadding()
                 .padding(Dimens.ContentPadding),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             LegacyLedgerPanel(state = state)
 
             NssPanel(modifier = Modifier.fillMaxWidth()) {
-                Text("SYSTEM CONTROLS", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+                Text("SYSTEM CONTROLS", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
                 Text(
                     text = "Autosave plus three manual slots for the full GameState snapshot.",
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     color = NssMutedForeground,
-                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp),
+                    modifier = Modifier.padding(top = 3.dp, bottom = 9.dp),
                 )
                 Text(
                     text = "SAVE AUTOSAVE",
@@ -112,41 +112,41 @@ fun AnalyticsScreen(
                         .clip(NssCardShape)
                         .background(NssPrimary)
                         .clickable { viewModel.saveGameProgress() }
-                        .padding(vertical = 12.dp),
+                        .padding(vertical = 9.dp),
                     color = NssOnPhoto,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
+                    fontSize = 9.sp,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     text = if (hasSave) "LOAD AUTOSAVE" else "LOAD AUTOSAVE (NONE)",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
+                        .padding(top = 6.dp)
                         .clip(NssCardShape)
                         .background(if (hasSave) NssBorder else NssBorder.copy(alpha = 0.4f))
                         .clickable(enabled = hasSave) { viewModel.loadLastAutomatedSave() }
-                        .padding(vertical = 12.dp),
+                        .padding(vertical = 9.dp),
                     color = NssForeground,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
+                    fontSize = 9.sp,
                     textAlign = TextAlign.Center,
                 )
 
                 Text(
                     text = "MANUAL SLOTS",
                     fontWeight = FontWeight.Black,
-                    fontSize = 11.sp,
+                    fontSize = 8.sp,
                     color = NssPrimary,
-                    letterSpacing = 2.sp,
-                    modifier = Modifier.padding(top = 14.dp, bottom = 8.dp),
+                    letterSpacing = 8.sp,
+                    modifier = Modifier.padding(top = 10.dp, bottom = 6.dp),
                 )
                 viewModel.listSaveSlots().forEach { slot ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            .padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         Text(
                             text = "SAVE ${slot.slotIndex}",
@@ -155,10 +155,10 @@ fun AnalyticsScreen(
                                 .clip(NssCardShape)
                                 .background(NssPrimary.copy(alpha = 0.85f))
                                 .clickable { viewModel.saveToSlot(slot.slotIndex) }
-                                .padding(vertical = 10.dp),
+                                .padding(vertical = 7.dp),
                             color = NssOnPhoto,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
+                            fontSize = 9.sp,
                             textAlign = TextAlign.Center,
                         )
                         Text(
@@ -168,37 +168,37 @@ fun AnalyticsScreen(
                                 .clip(NssCardShape)
                                 .background(if (slot.occupied) NssBorder else NssBorder.copy(alpha = 0.4f))
                                 .clickable(enabled = slot.occupied) { viewModel.loadFromSlot(slot.slotIndex) }
-                                .padding(vertical = 10.dp),
+                                .padding(vertical = 7.dp),
                             color = NssForeground,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
+                            fontSize = 9.sp,
                             textAlign = TextAlign.Center,
                         )
                     }
                     if (slot.occupied) {
                         Text(
                             text = slot.label,
-                            fontSize = 11.sp,
+                            fontSize = 8.sp,
                             color = NssMutedForeground,
-                            modifier = Modifier.padding(top = 2.dp),
+                            modifier = Modifier.padding(top = 1.dp),
                         )
                     }
                 }
 
                 Text(
                     text = feedback.message.ifBlank { "Ready." },
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     color = when {
                         feedback.success -> NssEmerald
                         feedback.message.contains("fail", ignoreCase = true) -> NssRed
                         else -> NssMutedForeground
                     },
-                    modifier = Modifier.padding(top = 10.dp),
+                    modifier = Modifier.padding(top = 7.dp),
                 )
                 if (feedback.payloadBytes > 0) {
                     Text(
                         text = "Package size: ${AnalyticsSaveViewModel.formatBytes(feedback.payloadBytes)}",
-                        fontSize = 11.sp,
+                        fontSize = 8.sp,
                         color = NssMutedForeground,
                     )
                 }
@@ -210,13 +210,13 @@ fun AnalyticsScreen(
                         text = "Insufficient Data",
                         fontWeight = FontWeight.Bold,
                         color = NssForeground,
-                        fontSize = 16.sp
+                        fontSize = 12.sp
                     )
                     Text(
                         text = "Advance time to begin recording historical analytics.",
                         color = NssMutedForeground,
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(top = 4.dp)
+                        fontSize = 9.sp,
+                        modifier = Modifier.padding(top = 3.dp)
                     )
                 }
             } else {
@@ -228,16 +228,16 @@ fun AnalyticsScreen(
                         Text(
                             text = "STRATEGIC ADVISORIES",
                             fontWeight = FontWeight.Black,
-                            fontSize = 12.sp,
+                            fontSize = 9.sp,
                             color = NssPrimary,
-                            letterSpacing = 2.sp,
+                            letterSpacing = 8.sp,
                         )
                         advisories.forEach { tip ->
                             Text(
                                 text = "• $tip",
-                                fontSize = 12.sp,
+                                fontSize = 9.sp,
                                 color = NssForeground,
-                                modifier = Modifier.padding(top = 6.dp),
+                                modifier = Modifier.padding(top = 4.dp),
                             )
                         }
                     }
@@ -293,24 +293,24 @@ private fun LineChartCard(
             Text(
                 text = title,
                 fontWeight = FontWeight.Black,
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 color = NssForeground,
-                letterSpacing = 1.sp,
+                letterSpacing = 8.sp,
             )
             Text(
                 text = formatValue(latest),
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 color = color,
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(120.dp)
+                .height(90.dp)
         ) {
             val width = size.width
             val height = size.height
@@ -355,7 +355,7 @@ private fun LineChartCard(
             drawPath(
                 path = path,
                 color = color,
-                style = Stroke(width = 4.dp.toPx())
+                style = Stroke(width = 3.dp.toPx())
             )
             
             // Draw points
@@ -366,18 +366,18 @@ private fun LineChartCard(
                 
                 drawCircle(
                     color = color,
-                    radius = 3.dp.toPx(),
+                    radius = 2.dp.toPx(),
                     center = Offset(x, y)
                 )
                 drawCircle(
                     color = NssBackground,
-                    radius = 1.5.dp.toPx(),
+                    radius = 1.3.dp.toPx(),
                     center = Offset(x, y)
                 )
             }
         }
         
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -385,12 +385,12 @@ private fun LineChartCard(
         ) {
             Text(
                 text = "Min: ${formatValue(min)}",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = NssMutedForeground
             )
             Text(
                 text = "Max: ${formatValue(max)}",
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 color = NssMutedForeground
             )
         }
@@ -405,25 +405,25 @@ private fun LegacyLedgerPanel(state: GameState) {
         Text(
             "NATIONAL LEGACY",
             fontWeight = FontWeight.Black,
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             color = NssPrimary,
-            letterSpacing = 2.sp,
+            letterSpacing = 8.sp,
         )
         Text(
             "${scores.grade} · overall ${scores.overall}",
             fontWeight = FontWeight.Black,
-            fontSize = 18.sp,
+            fontSize = 13.sp,
             color = NssForeground,
-            modifier = Modifier.padding(top = 6.dp),
+            modifier = Modifier.padding(top = 4.dp),
         )
         Text(
             "Peak approval ${legacy.peakApproval.roundToInt()}% · floor ${legacy.lowestApproval.roundToInt()}% · " +
                 "elections ${legacy.electionsWon} · wars ${legacy.warsWon}W/${legacy.warsLost}L · laws ${legacy.lawsEnacted}",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 3.dp),
         )
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(7.dp))
         LegacyPillar.entries.forEach { pillar ->
             val value = when (pillar) {
                 LegacyPillar.PROSPERITY -> scores.prosperity
@@ -432,7 +432,7 @@ private fun LegacyLedgerPanel(state: GameState) {
                 LegacyPillar.SOCIETY -> scores.society
                 LegacyPillar.MANDATE -> scores.mandate
             }
-            Text(pillar.displayName, fontSize = 11.sp, color = NssMutedForeground)
+            Text(pillar.displayName, fontSize = 8.sp, color = NssMutedForeground)
             NssGameBar(
                 percent = value.toFloat(),
                 color = when {
@@ -441,16 +441,16 @@ private fun LegacyLedgerPanel(state: GameState) {
                     else -> NssRed
                 },
             )
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
         }
         if (legacy.recentEntries.isNotEmpty()) {
             Text(
                 "CHAPTERS",
                 fontWeight = FontWeight.Black,
-                fontSize = 11.sp,
+                fontSize = 8.sp,
                 color = NssPrimary,
-                letterSpacing = 2.sp,
-                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                letterSpacing = 8.sp,
+                modifier = Modifier.padding(top = 6.dp, bottom = 3.dp),
             )
             legacy.recentEntries.take(6).forEach { entry ->
                 val toneColor = when (entry.tone) {
@@ -462,13 +462,13 @@ private fun LegacyLedgerPanel(state: GameState) {
                 Text(
                     "${GameState.monthName(entry.month)} ${entry.year} · ${entry.title}",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     color = toneColor,
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = 3.dp),
                 )
                 Text(
                     entry.detail,
-                    fontSize = 11.sp,
+                    fontSize = 8.sp,
                     color = NssMutedForeground,
                 )
             }

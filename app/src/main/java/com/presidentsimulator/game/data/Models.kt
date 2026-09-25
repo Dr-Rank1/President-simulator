@@ -111,7 +111,7 @@ data class GameState(
             cabinet.combinedEffects().productionMultiplier
 
     companion object {
-        fun initial(countryId: String = "veltra"): GameState =
+        fun initial(countryId: String = "us"): GameState =
             PlayableNationCatalog.initialState(countryId)
 
         fun monthName(month: Int): String = MONTH_NAMES.getOrElse(month - 1) { "?" }

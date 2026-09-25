@@ -95,14 +95,14 @@ fun SettingsAudioScreen(
                 .verticalScroll(rememberScrollState())
                 .nssMinistryScrollPadding()
                 .padding(Dimens.ContentPadding),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp),
         ) {
             NssPanel(modifier = Modifier.fillMaxWidth()) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Master Music", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = NssForeground)
+                    Text("Master Music", fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
                     Switch(checked = musicEnabled, onCheckedChange = { musicEnabled = it; audio.musicEnabled = it; diagnosticsTick++ })
                 }
-                Text("${(musicVolume * 100f).roundToInt()}%", fontSize = 22.sp, fontWeight = FontWeight.Black, color = NssPrimary)
+                Text("${(musicVolume * 100f).roundToInt()}%", fontSize = 16.sp, fontWeight = FontWeight.Black, color = NssPrimary)
                 Slider(
                     value = musicVolume,
                     onValueChange = { musicVolume = it; audio.musicVolume = it },
@@ -115,10 +115,10 @@ fun SettingsAudioScreen(
 
             NssPanel(modifier = Modifier.fillMaxWidth()) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("SFX Volume", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = NssForeground)
+                    Text("SFX Volume", fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
                     Switch(checked = sfxEnabled, onCheckedChange = { sfxEnabled = it; audio.sfxEnabled = it; diagnosticsTick++ })
                 }
-                Text("${(sfxVolume * 100f).roundToInt()}%", fontSize = 22.sp, fontWeight = FontWeight.Black, color = NssPrimary)
+                Text("${(sfxVolume * 100f).roundToInt()}%", fontSize = 16.sp, fontWeight = FontWeight.Black, color = NssPrimary)
                 Slider(
                     value = sfxVolume,
                     onValueChange = { sfxVolume = it; audio.sfxVolume = it },
@@ -127,7 +127,7 @@ fun SettingsAudioScreen(
                     enabled = sfxEnabled,
                     colors = SliderDefaults.colors(thumbColor = NssPrimary, activeTrackColor = NssPrimary, inactiveTrackColor = NssBorder),
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "🔊 Test Sound",
                     modifier = Modifier
@@ -135,31 +135,31 @@ fun SettingsAudioScreen(
                         .clip(NssCardShape)
                         .background(if (sfxEnabled) NssAccent else NssAccent.copy(alpha = 0.35f))
                         .clickable(enabled = sfxEnabled) { audio.playSfx(SfxType.CLICK); diagnosticsTick++ }
-                        .padding(vertical = 10.dp),
+                        .padding(vertical = 7.dp),
                     color = NssOnPhoto,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     textAlign = TextAlign.Center,
                 )
             }
 
             NssPanel(modifier = Modifier.fillMaxWidth()) {
-                Text("Audio Diagnostics", fontWeight = FontWeight.Black, fontSize = 14.sp, color = NssForeground)
-                Text("Loaded SFX handles", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground, modifier = Modifier.padding(top = 10.dp))
+                Text("Audio Diagnostics", fontWeight = FontWeight.Black, fontSize = 10.sp, color = NssForeground)
+                Text("Loaded SFX handles", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground, modifier = Modifier.padding(top = 7.dp))
                 if (loadedHandles.isEmpty()) {
-                    Text("No SFX assets loaded (add files under res/raw).", fontSize = 11.sp, color = NssMutedForeground)
+                    Text("No SFX assets loaded (add files under res/raw).", fontSize = 8.sp, color = NssMutedForeground)
                 } else {
                     loadedHandles.forEach { (type, handle) ->
-                        Text("• ${type.name}: handle $handle", fontSize = 11.sp, color = NssMutedForeground)
+                        Text("• ${type.name}: handle $handle", fontSize = 8.sp, color = NssMutedForeground)
                     }
                 }
-                HorizontalDivider(color = NssBorder, modifier = Modifier.padding(vertical = 10.dp))
-                Text("Engine log", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground)
+                HorizontalDivider(color = NssBorder, modifier = Modifier.padding(vertical = 7.dp))
+                Text("Engine log", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground)
                 if (diagnostics.isEmpty()) {
-                    Text("No events yet.", fontSize = 11.sp, color = NssMutedForeground)
+                    Text("No events yet.", fontSize = 8.sp, color = NssMutedForeground)
                 } else {
                     diagnostics.take(16).forEach { line ->
-                        Text(line, fontSize = 11.sp, color = NssMutedForeground)
+                        Text(line, fontSize = 8.sp, color = NssMutedForeground)
                     }
                 }
             }
@@ -177,12 +177,12 @@ private fun SettingsSavePanel(viewModel: GameViewModel) {
     val hasSave by viewModel.hasSave.collectAsState()
     val slots = viewModel.listSaveSlots()
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("SAVE / LOAD", fontWeight = FontWeight.Black, fontSize = 14.sp, color = NssForeground)
+        Text("SAVE / LOAD", fontWeight = FontWeight.Black, fontSize = 10.sp, color = NssForeground)
         Text(
             text = "Autosave plus three manual slots. Also available from Analytics.",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 4.dp, bottom = 10.dp),
+            modifier = Modifier.padding(top = 3.dp, bottom = 7.dp),
         )
         Text(
             text = "SAVE AUTOSAVE",
@@ -191,40 +191,40 @@ private fun SettingsSavePanel(viewModel: GameViewModel) {
                 .clip(NssCardShape)
                 .background(NssPrimary)
                 .clickable { viewModel.saveGameProgress() }
-                .padding(vertical = 12.dp),
+                .padding(vertical = 9.dp),
             color = NssOnPhoto,
             fontWeight = FontWeight.Bold,
-            fontSize = 13.sp,
+            fontSize = 9.sp,
             textAlign = TextAlign.Center,
         )
         Text(
             text = if (hasSave) "LOAD AUTOSAVE" else "LOAD AUTOSAVE (NONE)",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
+                .padding(top = 6.dp)
                 .clip(NssCardShape)
                 .background(NssBorder)
                 .clickable(enabled = hasSave) { viewModel.loadLastAutomatedSave() }
-                .padding(vertical = 12.dp),
+                .padding(vertical = 9.dp),
             color = NssForeground,
             fontWeight = FontWeight.Bold,
-            fontSize = 13.sp,
+            fontSize = 9.sp,
             textAlign = TextAlign.Center,
         )
         Text(
             text = "MANUAL SLOTS",
             fontWeight = FontWeight.Black,
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssPrimary,
-            letterSpacing = 2.sp,
-            modifier = Modifier.padding(top = 14.dp, bottom = 6.dp),
+            letterSpacing = 8.sp,
+            modifier = Modifier.padding(top = 10.dp, bottom = 4.dp),
         )
         slots.forEach { slot ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Text(
                     text = "SAVE ${slot.slotIndex}",
@@ -233,10 +233,10 @@ private fun SettingsSavePanel(viewModel: GameViewModel) {
                         .clip(NssCardShape)
                         .background(NssPrimary.copy(alpha = 0.85f))
                         .clickable { viewModel.saveToSlot(slot.slotIndex) }
-                        .padding(vertical = 10.dp),
+                        .padding(vertical = 7.dp),
                     color = NssOnPhoto,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     textAlign = TextAlign.Center,
                 )
                 Text(
@@ -246,31 +246,31 @@ private fun SettingsSavePanel(viewModel: GameViewModel) {
                         .clip(NssCardShape)
                         .background(if (slot.occupied) NssBorder else NssBorder.copy(alpha = 0.4f))
                         .clickable(enabled = slot.occupied) { viewModel.loadFromSlot(slot.slotIndex) }
-                        .padding(vertical = 10.dp),
+                        .padding(vertical = 7.dp),
                     color = NssForeground,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     textAlign = TextAlign.Center,
                 )
             }
             if (slot.occupied) {
                 Text(
                     text = slot.label,
-                    fontSize = 11.sp,
+                    fontSize = 8.sp,
                     color = NssMutedForeground,
-                    modifier = Modifier.padding(top = 2.dp),
+                    modifier = Modifier.padding(top = 1.dp),
                 )
             }
         }
         Text(
             text = feedback.message.ifBlank { "Ready." },
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             color = when {
                 feedback.success -> NssEmerald
                 feedback.message.contains("fail", ignoreCase = true) -> NssRed
                 else -> NssMutedForeground
             },
-            modifier = Modifier.padding(top = 10.dp),
+            modifier = Modifier.padding(top = 7.dp),
         )
     }
 }

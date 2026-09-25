@@ -86,24 +86,24 @@ fun CabinetScreen(
                 .verticalScroll(rememberScrollState())
                 .nssMinistryScrollPadding()
                 .padding(Dimens.ContentPadding),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp),
         ) {
             NssPanel(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     "CABINET ROOM",
                     fontWeight = FontWeight.Black,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     color = NssPrimary,
-                    letterSpacing = 2.sp,
+                    letterSpacing = 8.sp,
                 )
                 Text(
                     cabinet.lastCabinetNote.ifBlank { "No overnight cables." },
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     color = NssForeground,
-                    modifier = Modifier.padding(top = 6.dp),
+                    modifier = Modifier.padding(top = 4.dp),
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text("Cohesion ${cabinet.cohesion.roundToInt()}%", fontSize = 11.sp, color = NssMutedForeground)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text("Cohesion ${cabinet.cohesion.roundToInt()}%", fontSize = 8.sp, color = NssMutedForeground)
                 NssGameBar(
                     percent = cabinet.cohesion,
                     color = when {
@@ -115,32 +115,32 @@ fun CabinetScreen(
                 Text(
                     "Prod ×${"%.2f".format(effects.productionMultiplier)} · Sci ×${"%.2f".format(effects.scienceMultiplier)} · " +
                         "Mil ×${"%.2f".format(effects.militaryStrengthMultiplier)} · Society ×${"%.2f".format(effects.societyGainMultiplier)}",
-                    fontSize = 11.sp,
+                    fontSize = 8.sp,
                     color = NssMutedForeground,
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.padding(top = 6.dp),
                 )
                 if (effects.budgetSkimPerMonth > 0L) {
                     Text(
                         "Corruption skim ${effects.budgetSkimPerMonth.toBudgetString()}/mo",
-                        fontSize = 11.sp,
+                        fontSize = 8.sp,
                         color = NssRed,
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier.padding(top = 3.dp),
                     )
                 }
                 Text(
                     "Resignations ${cabinet.resignationsThisTerm} · Firings ${cabinet.firingsThisTerm} · Scandals ${cabinet.scandalsThisTerm}",
-                    fontSize = 10.sp,
+                    fontSize = 8.sp,
                     color = NssMutedForeground,
-                    modifier = Modifier.padding(top = 6.dp),
+                    modifier = Modifier.padding(top = 4.dp),
                 )
             }
 
             Text(
                 "SITTING MINISTERS",
                 fontWeight = FontWeight.Black,
-                fontSize = 12.sp,
+                fontSize = 9.sp,
                 color = NssPrimary,
-                letterSpacing = 2.sp,
+                letterSpacing = 8.sp,
             )
             CabinetPortfolio.entries.forEach { portfolio ->
                 val minister = cabinet.ministerFor(portfolio)
@@ -170,9 +170,9 @@ fun CabinetScreen(
                     Text(
                         "SHORTLIST",
                         fontWeight = FontWeight.Black,
-                        fontSize = 12.sp,
+                        fontSize = 9.sp,
                         color = NssPrimary,
-                        letterSpacing = 2.sp,
+                        letterSpacing = 8.sp,
                     )
                     val canReshuffle = cabinet.reshuffleCooldownMonths == 0 &&
                         state.vitals.budget >= 800_000_000L
@@ -186,10 +186,10 @@ fun CabinetScreen(
                             .clip(NssCardShape)
                             .background(if (canReshuffle) NssAccent else NssMutedForeground.copy(alpha = 0.35f))
                             .clickable(enabled = canReshuffle) { viewModel.reshuffleCabinetCandidates() }
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                            .padding(horizontal = 7.dp, vertical = 4.dp),
                         color = NssOnPhoto,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        fontSize = 8.sp,
                     )
                 }
                 if (cabinet.candidates.isEmpty()) {
@@ -199,9 +199,9 @@ fun CabinetScreen(
                         } else {
                             "No candidates. Refresh the shortlist."
                         },
-                        fontSize = 12.sp,
+                        fontSize = 9.sp,
                         color = NssMutedForeground,
-                        modifier = Modifier.padding(top = 8.dp),
+                        modifier = Modifier.padding(top = 6.dp),
                     )
                 } else {
                     cabinet.candidates.forEach { candidate ->
@@ -221,16 +221,16 @@ fun CabinetScreen(
                     Text(
                         "CABINET LOG",
                         fontWeight = FontWeight.Black,
-                        fontSize = 12.sp,
+                        fontSize = 9.sp,
                         color = NssPrimary,
-                        letterSpacing = 2.sp,
+                        letterSpacing = 8.sp,
                     )
                     cabinet.cabinetLog.takeLast(8).asReversed().forEach { line ->
                         Text(
                             "• $line",
-                            fontSize = 11.sp,
+                            fontSize = 8.sp,
                             color = NssMutedForeground,
-                            modifier = Modifier.padding(top = 4.dp),
+                            modifier = Modifier.padding(top = 3.dp),
                         )
                     }
                 }
@@ -253,18 +253,18 @@ private fun MinisterCard(
             verticalAlignment = Alignment.Top,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(minister.portfolio.displayName, fontSize = 10.sp, color = NssPrimary, fontWeight = FontWeight.Bold)
-                Text(minister.name, fontWeight = FontWeight.Black, fontSize = 16.sp, color = NssForeground)
+                Text(minister.portfolio.displayName, fontSize = 8.sp, color = NssPrimary, fontWeight = FontWeight.Bold)
+                Text(minister.name, fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssForeground)
                 Text(
                     "Grade ${minister.grade} · ${minister.monthsInOffice}mo in office",
-                    fontSize = 11.sp,
+                    fontSize = 8.sp,
                     color = NssMutedForeground,
                 )
             }
             Text(
                 minister.grade,
                 fontWeight = FontWeight.Black,
-                fontSize = 22.sp,
+                fontSize = 16.sp,
                 color = when {
                     minister.competence >= 65f -> NssEmerald
                     minister.competence >= 45f -> NssAccent
@@ -272,7 +272,7 @@ private fun MinisterCard(
                 },
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         StatRow("Competence", minister.competence)
         StatRow("Loyalty", minister.loyalty)
         StatRow(
@@ -283,23 +283,23 @@ private fun MinisterCard(
         if (minister.traits.isNotEmpty()) {
             Text(
                 minister.traits.joinToString(" · ") { it.displayName },
-                fontSize = 11.sp,
+                fontSize = 8.sp,
                 color = NssAccent,
-                modifier = Modifier.padding(top = 6.dp),
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
         Text(
             text = fireLabel,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 10.dp)
+                .padding(top = 7.dp)
                 .clip(NssCardShape)
                 .background(if (canFire) NssRed.copy(alpha = 0.85f) else NssMutedForeground.copy(alpha = 0.35f))
                 .clickable(enabled = canFire, onClick = onFire)
-                .padding(vertical = 10.dp),
+                .padding(vertical = 7.dp),
             color = NssOnPhoto,
             fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             textAlign = TextAlign.Center,
         )
     }
@@ -313,11 +313,11 @@ private fun VacancyCard(portfolio: CabinetPortfolio) {
             .clip(NssCardShape)
             .border(1.dp, NssBorder, NssCardShape)
             .background(NssMuted.copy(alpha = 0.4f))
-            .padding(12.dp),
+            .padding(9.dp),
     ) {
-        Text(portfolio.displayName, fontSize = 10.sp, color = NssRed, fontWeight = FontWeight.Bold)
-        Text("VACANT", fontWeight = FontWeight.Black, fontSize = 15.sp, color = NssForeground)
-        Text("Appoint from the shortlist below.", fontSize = 11.sp, color = NssMutedForeground)
+        Text(portfolio.displayName, fontSize = 8.sp, color = NssRed, fontWeight = FontWeight.Bold)
+        Text("VACANT", fontWeight = FontWeight.Black, fontSize = 11.sp, color = NssForeground)
+        Text("Appoint from the shortlist below.", fontSize = 8.sp, color = NssMutedForeground)
     }
 }
 
@@ -330,34 +330,34 @@ private fun CandidateCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 10.dp)
+            .padding(top = 7.dp)
             .clip(NssCardShape)
             .border(1.dp, NssBorder, NssCardShape)
             .background(NssMuted.copy(alpha = 0.3f))
-            .padding(12.dp),
+            .padding(9.dp),
     ) {
-        Text(candidate.portfolio.displayName, fontSize = 10.sp, color = NssPrimary, fontWeight = FontWeight.Bold)
-        Text(candidate.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = NssForeground)
-        Text(candidate.pitch, fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+        Text(candidate.portfolio.displayName, fontSize = 8.sp, color = NssPrimary, fontWeight = FontWeight.Bold)
+        Text(candidate.name, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
+        Text(candidate.pitch, fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
         Text(
             "Competence ${candidate.competence.roundToInt()} · Loyalty ${candidate.loyalty.roundToInt()} · " +
                 candidate.traits.joinToString { it.displayName },
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssAccent,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 3.dp),
         )
         Text(
             text = "Appoint (${candidate.hireCost.toBudgetString()})",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
+                .padding(top = 6.dp)
                 .clip(NssCardShape)
                 .background(if (canAppoint) NssPrimary else NssMutedForeground.copy(alpha = 0.35f))
                 .clickable(enabled = canAppoint, onClick = onAppoint)
-                .padding(vertical = 10.dp),
+                .padding(vertical = 7.dp),
             color = NssOnPhoto,
             fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             textAlign = TextAlign.Center,
         )
     }
@@ -368,13 +368,13 @@ private fun StatRow(label: String, value: Float, warn: Boolean = false) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 4.dp),
+            .padding(top = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(label, fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.weight(1f))
+        Text(label, fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.weight(1f))
         Text(
             "${value.roundToInt()}",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             fontWeight = FontWeight.Bold,
             color = if (warn) NssRed else NssForeground,
         )

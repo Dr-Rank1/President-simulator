@@ -108,72 +108,72 @@ fun GameTutorialDialog(
             it.setDimAmount(0.0f) // Removed dimming so it doesn't overshadow // very light dim so we don't overshadow the UI
         }
         
-        Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
+        Box(modifier = Modifier.fillMaxSize().padding(12.dp), contentAlignment = Alignment.BottomCenter) {
 
         Column(
             modifier = Modifier.fillMaxWidth(0.85f).clip(NssCardShape)
-                .background(Color(0xE6050A0F)).border(1.dp, NssBorder, NssCardShape).padding(22.dp),
+                .background(Color(0xE6050A0F)).border(1.dp, NssBorder, NssCardShape).padding(16.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("FIRST DAY BRIEFING", color = NssAccent, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
+                Text("FIRST DAY BRIEFING", color = NssAccent, fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = 1.8.sp)
                 Spacer(Modifier.weight(1f))
-                Text("${page + 1} / ${tutorialPages.size}", color = NssMutedForeground, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text("${page + 1} / ${tutorialPages.size}", color = NssMutedForeground, fontSize = 8.sp, fontWeight = FontWeight.Bold)
             }
             Row(
-                modifier = Modifier.padding(top = 22.dp),
+                modifier = Modifier.padding(top = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Icon(current.icon, contentDescription = null, tint = NssOnPhoto, modifier = Modifier.size(26.dp))
-                Text(current.title, color = NssForeground, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                Icon(current.icon, contentDescription = null, tint = NssOnPhoto, modifier = Modifier.size(19.dp))
+                Text(current.title, color = NssForeground, fontSize = 16.sp, fontWeight = FontWeight.Black)
             }
-            Text(current.body, color = NssMutedForeground, fontSize = 14.sp, lineHeight = 21.sp, modifier = Modifier.padding(top = 12.dp))
+            Text(current.body, color = NssMutedForeground, fontSize = 10.sp, lineHeight = 15.sp, modifier = Modifier.padding(top = 9.dp))
             Column(
-                modifier = Modifier.fillMaxWidth().padding(top = 18.dp).clip(NssCardShape)
-                    .background(NssBackground).padding(14.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 13.dp).clip(NssCardShape)
+                    .background(NssBackground).padding(10.dp),
             ) {
-                Text("ADVISOR NOTE", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                Text(current.tip, color = NssForeground, fontSize = 12.sp, lineHeight = 18.sp, modifier = Modifier.padding(top = 5.dp))
+                Text("ADVISOR NOTE", color = NssAccent, fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = 8.sp)
+                Text(current.tip, color = NssForeground, fontSize = 9.sp, lineHeight = 13.sp, modifier = Modifier.padding(top = 3.dp))
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 22.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
                     "Skip tour",
-                    modifier = Modifier.clip(NssCardShape).clickable(onClick = onSkip).padding(horizontal = 8.dp, vertical = 12.dp),
+                    modifier = Modifier.clip(NssCardShape).clickable(onClick = onSkip).padding(horizontal = 6.dp, vertical = 9.dp),
                     color = NssMutedForeground,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
                 if (page > 0) {
                     Text(
                         "Back",
-                        modifier = Modifier.clip(NssCardShape).clickable(onClick = onBack).padding(horizontal = 10.dp, vertical = 12.dp),
+                        modifier = Modifier.clip(NssCardShape).clickable(onClick = onBack).padding(horizontal = 7.dp, vertical = 9.dp),
                         color = NssPrimary,
-                        fontSize = 12.sp,
+                        fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
                     )
                 }
                 Text(
                     if (page == tutorialPages.lastIndex) "Enter the game" else "Next",
                     modifier = Modifier.clip(NssCardShape).background(NssPrimary).clickable(onClick = onNext)
-                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                        .padding(horizontal = 13.dp, vertical = 9.dp),
                     color = NssOnPhoto,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                     fontWeight = FontWeight.Black,
                     textAlign = TextAlign.Center,
                 )
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 repeat(tutorialPages.size) { index ->
                     Spacer(
-                        Modifier.padding(horizontal = 3.dp).size(if (index == page) 8.dp else 6.dp)
+                        Modifier.padding(horizontal = 2.dp).size(if (index == page) 6.dp else 4.dp)
                             .clip(CircleShape).background(if (index == page) NssAccent else NssMutedForeground.copy(alpha = 0.28f)),
                     )
                 }

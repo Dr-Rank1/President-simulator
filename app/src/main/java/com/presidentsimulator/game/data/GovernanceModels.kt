@@ -26,7 +26,7 @@ enum class GovernmentSystem(
 
 @Serializable
 data class PlayerNation(
-    val id: String = "veltra",
+    val id: String = "us",
     val name: String = "Veltra",
     val flagEmoji: String = "🏛",
     val governmentLabel: String = "Republic",

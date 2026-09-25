@@ -744,7 +744,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun playableNations(): List<PlayableNationCatalog.NationDefinition> =
         PlayableNationCatalog.all()
 
-    fun startNewGame(countryId: String = "veltra", scenarioId: String = "standard", challengeId: String = "standard") {
+    fun startNewGame(countryId: String = "us", scenarioId: String = "standard", challengeId: String = "standard") {
         val seeded = ScenarioCatalog.apply(GameState.initial(countryId), scenarioId, challengeId = challengeId)
         _state.value = seeded
         _currentActiveEvent.value = null

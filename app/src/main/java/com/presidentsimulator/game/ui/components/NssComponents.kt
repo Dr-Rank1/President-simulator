@@ -116,7 +116,7 @@ fun NssGameBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(if (thick) 12.dp else 8.dp)
+            .height(if (thick) 9.dp else 6.dp)
             .clip(RoundedCornerShape(50))
             .background(Color(0xFFF5F5F4)),
     ) {
@@ -149,7 +149,7 @@ fun NssXpBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(8.dp)
+            .height(6.dp)
             .clip(RoundedCornerShape(50))
             .background(Color(0xFFFEF3C7)),
     ) {
@@ -172,11 +172,11 @@ fun NssLvBadge(level: Int, modifier: Modifier = Modifier) {
         modifier = modifier
             .clip(MaterialTheme.shapes.extraSmall)
             .background(NssPrimary)
-            .padding(horizontal = Dimens.SpacingSmall, vertical = 2.dp),
+            .padding(horizontal = Dimens.SpacingSmall, vertical = 1.dp),
         color = NssOnPhoto,
-        fontSize = 10.sp,
+        fontSize = 8.sp,
         fontWeight = FontWeight.Black,
-        letterSpacing = 1.sp,
+        letterSpacing = 8.sp,
     )
 }
 
@@ -190,7 +190,7 @@ fun NssScreenHeader(
 ) {
     val layout = rememberNssLayoutSpec()
     val headerHeight = layout.screenHeaderHeight
-    val titleSize = if (layout.isLandscape || layout.isCompactHeight) 22.sp else 28.sp
+    val titleSize = if (layout.isLandscape || layout.isCompactHeight) 16.sp else 21.sp
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -204,34 +204,34 @@ fun NssScreenHeader(
         )
         if (layout.isLandscape) {
             Row(
-                modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(horizontal = Dimens.ContentPadding, vertical = 8.dp),
+                modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(horizontal = Dimens.ContentPadding, vertical = 6.dp),
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Column {
-                    Text("MINISTRY OF", style = MaterialTheme.typography.labelSmall, color = NssOnPhoto.copy(alpha = 0.65f), letterSpacing = 3.sp, fontSize = 8.sp)
+                    Text("MINISTRY OF", style = MaterialTheme.typography.labelSmall, color = NssOnPhoto.copy(alpha = 0.65f), letterSpacing = 8.sp, fontSize = 8.sp)
                     Text(title.uppercase(), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontWeight = FontWeight.Black,
-                        fontSize = titleSize, color = NssOnPhoto, letterSpacing = 1.sp, maxLines = 1)
+                        fontSize = titleSize, color = NssOnPhoto, letterSpacing = 8.sp, maxLines = 1)
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     statPills.take(3).forEach { (label, value) ->
-                        Column(Modifier.clip(MaterialTheme.shapes.small).background(NssOnPhoto.copy(alpha = 0.15f)).padding(horizontal = 9.dp, vertical = 4.dp)) {
+                        Column(Modifier.clip(MaterialTheme.shapes.small).background(NssOnPhoto.copy(alpha = 0.15f)).padding(horizontal = 6.dp, vertical = 3.dp)) {
                             Text(label, fontSize = 8.sp, color = NssOnPhoto.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold, maxLines = 1)
-                            Text(value, fontSize = 11.sp, color = NssOnPhoto, fontWeight = FontWeight.Black, maxLines = 1)
+                            Text(value, fontSize = 8.sp, color = NssOnPhoto, fontWeight = FontWeight.Black, maxLines = 1)
                         }
                     }
                 }
             }
         } else {
             Column(modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(Dimens.ContentPadding)) {
-                Text("MINISTRY OF", style = MaterialTheme.typography.labelSmall, color = NssOnPhoto.copy(alpha = 0.6f), letterSpacing = 4.sp, fontSize = 10.sp)
+                Text("MINISTRY OF", style = MaterialTheme.typography.labelSmall, color = NssOnPhoto.copy(alpha = 0.6f), letterSpacing = 8.sp, fontSize = 8.sp)
                 Text(title.uppercase(), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontWeight = FontWeight.Black,
-                    fontSize = titleSize, color = NssOnPhoto, letterSpacing = 1.sp, modifier = Modifier.padding(bottom = Dimens.SpacingSmall))
+                    fontSize = titleSize, color = NssOnPhoto, letterSpacing = 8.sp, modifier = Modifier.padding(bottom = Dimens.SpacingSmall))
                 Row(horizontalArrangement = Arrangement.spacedBy(Dimens.SpacingSmall)) {
                     statPills.take(3).forEach { (label, value) ->
-                        Column(Modifier.clip(MaterialTheme.shapes.small).background(NssOnPhoto.copy(alpha = 0.15f)).padding(horizontal = 12.dp, vertical = 6.dp)) {
-                            Text(label, fontSize = 9.sp, color = NssOnPhoto.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold)
-                            Text(value, fontSize = 13.sp, color = NssOnPhoto, fontWeight = FontWeight.Black)
+                        Column(Modifier.clip(MaterialTheme.shapes.small).background(NssOnPhoto.copy(alpha = 0.15f)).padding(horizontal = 9.dp, vertical = 4.dp)) {
+                            Text(label, fontSize = 8.sp, color = NssOnPhoto.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold)
+                            Text(value, fontSize = 9.sp, color = NssOnPhoto, fontWeight = FontWeight.Black)
                         }
                     }
                 }
@@ -254,7 +254,7 @@ fun NssPanel(
         tonalElevation = Dimens.CardTonalElevation,
         shadowElevation = Dimens.CardElevation,
         border = if (highlighted) {
-            BorderStroke(2.dp, NssAccent.copy(alpha = 0.4f))
+            BorderStroke(1.dp, NssAccent.copy(alpha = 0.4f))
         } else {
             null
         },
@@ -292,14 +292,14 @@ fun NssSectionHead(
     subtitle: String? = null,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.padding(bottom = 12.dp)) {
+    Column(modifier = modifier.padding(bottom = 9.dp)) {
         Text(text = title, style = MaterialTheme.typography.titleMedium, color = NssForeground)
         if (!subtitle.isNullOrBlank()) {
             Text(
                 text = subtitle.uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = NssMutedForeground,
-                modifier = Modifier.padding(top = 2.dp),
+                modifier = Modifier.padding(top = 1.dp),
             )
         }
     }
@@ -320,13 +320,13 @@ fun NssBadge(
             .border(1.dp, colors.border, shape)
             .background(colors.background)
             .padding(
-                horizontal = if (large) Dimens.SpacingSmall else 6.dp,
-                vertical = if (large) 2.dp else 1.dp,
+                horizontal = if (large) Dimens.SpacingSmall else 4.dp,
+                vertical = if (large) 1.dp else 1.dp,
             ),
         color = colors.text,
-        fontSize = if (large) 10.sp else 9.sp,
+        fontSize = if (large) 8.sp else 8.sp,
         fontWeight = FontWeight.SemiBold,
-        letterSpacing = 1.sp,
+        letterSpacing = 8.sp,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
     )
@@ -343,7 +343,7 @@ fun NssProgressBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(if (thick) 8.dp else 3.dp)
+            .height(if (thick) 6.dp else 2.dp)
             .background(NssSecondary),
     ) {
         Box(
@@ -374,22 +374,22 @@ fun NssTabBar(
                 Box(
                     modifier = Modifier
                         .clickable { onTabSelected(tab) }
-                        .padding(horizontal = if (tabs.size > 4) 14.dp else 20.dp, vertical = 10.dp),
+                        .padding(horizontal = if (tabs.size > 4) 10.dp else 15.dp, vertical = 7.dp),
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = tab,
                             style = MaterialTheme.typography.labelLarge,
-                            fontSize = 10.sp,
+                            fontSize = 8.sp,
                             maxLines = 1,
                             color = if (selected) NssPrimary else NssMutedForeground,
                         )
                         if (selected) {
-                            Spacer(modifier = Modifier.height(6.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
                             Box(
                                 modifier = Modifier
-                                    .width(40.dp)
-                                    .height(2.dp)
+                                    .width(30.dp)
+                                    .height(1.dp)
                                     .background(NssAccent),
                             )
                         }
@@ -407,13 +407,13 @@ fun NssStars(
     max: Int = 5,
     modifier: Modifier = Modifier,
 ) {
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(1.dp)) {
         repeat(max) { index ->
             Icon(
                 imageVector = if (index < count) Icons.Default.Star else Icons.Outlined.StarOutline,
                 contentDescription = null,
                 tint = if (index < count) NssAccent else NssBorder,
-                modifier = Modifier.size(12.dp),
+                modifier = Modifier.size(9.dp),
             )
         }
     }
@@ -443,7 +443,7 @@ fun NssMinistryBanner(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .fillMaxWidth()
-                .padding(20.dp),
+                .padding(15.dp),
             verticalAlignment = Alignment.Bottom,
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -451,28 +451,28 @@ fun NssMinistryBanner(
                     text = "MINISTRY OF",
                     style = MaterialTheme.typography.labelSmall,
                     color = NssPrimary.copy(alpha = 0.7f),
-                    letterSpacing = 4.sp,
+                    letterSpacing = 8.sp,
                 )
                 Text(
                     text = ministryLabel.uppercase(),
                     style = MaterialTheme.typography.headlineSmall,
                     color = NssPrimary,
-                    letterSpacing = 2.sp,
+                    letterSpacing = 8.sp,
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 statPills.take(3).forEach { pill ->
                     Column(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(6.dp))
                             .background(StarkWhite.copy(alpha = 0.82f))
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                            .padding(horizontal = 9.dp, vertical = 4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
                             text = pill,
                             color = NssForeground,
-                            fontSize = 11.sp,
+                            fontSize = 8.sp,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                         )
@@ -495,19 +495,19 @@ fun NssCompactKpi(
         modifier = modifier
             .border(1.dp, NssBorder)
             .background(NssCard)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 12.dp, vertical = 9.dp),
     ) {
         Text(text = label.uppercase(), style = MaterialTheme.typography.labelSmall, color = NssMutedForeground)
         Text(
             text = value,
             color = NssForeground,
-            fontSize = 22.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(vertical = 2.dp),
+            modifier = Modifier.padding(vertical = 1.dp),
         )
         Text(
             text = delta,
-            fontSize = 10.sp,
+            fontSize = 8.sp,
             color = if (positive) NssEmerald else NssRed,
         )
     }
@@ -518,7 +518,7 @@ fun NssStripPhotoCard(
     imageUrl: String?,
     fallbackGradient: List<Color> = listOf(NssSecondary, NssCard),
     modifier: Modifier = Modifier,
-    headerHeight: Dp = 72.dp,
+    headerHeight: Dp = 54.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
@@ -534,7 +534,7 @@ fun NssStripPhotoCard(
                 .height(headerHeight),
             scrimTopToBottom = StripHeaderBottomScrim,
         )
-        Column(modifier = Modifier.padding(16.dp), content = content)
+        Column(modifier = Modifier.padding(12.dp), content = content)
     }
 }
 
@@ -569,31 +569,31 @@ fun NssSectorCard(
             )
             NssLvBadge(
                 level = level,
-                modifier = Modifier.align(Alignment.TopStart).padding(8.dp),
+                modifier = Modifier.align(Alignment.TopStart).padding(6.dp),
             )
             Text(
                 text = "${if (growth >= 0) "▲" else "▼"} ${"%.1f".format(kotlin.math.abs(growth))}%",
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(8.dp)
+                    .padding(6.dp)
                     .clip(RoundedCornerShape(50))
                     .background(if (growth >= 0) NssEmerald else NssRed)
-                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                    .padding(horizontal = 6.dp, vertical = 1.dp),
                 color = NssOnPhoto,
-                fontSize = 10.sp,
+                fontSize = 8.sp,
                 fontWeight = FontWeight.Bold,
             )
-            Column(modifier = Modifier.align(Alignment.BottomStart).padding(12.dp)) {
+            Column(modifier = Modifier.align(Alignment.BottomStart).padding(9.dp)) {
                 Text(
                     text = name,
                     color = NssOnPhoto,
                     fontWeight = FontWeight.Black,
-                    fontSize = 14.sp,
+                    fontSize = 10.sp,
                 )
                 NssStars(count = level)
             }
         }
-        Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(modifier = Modifier.padding(7.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -603,7 +603,7 @@ fun NssSectorCard(
                 Text(
                     "${"%.1f".format(gdpShare)}%",
                     color = NssForeground,
-                    fontSize = 16.sp,
+                    fontSize = 12.sp,
                     fontWeight = FontWeight.Black,
                 )
             }
@@ -611,14 +611,14 @@ fun NssSectorCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("XP to Level ${level + 1}", fontSize = 9.sp, color = NssMutedForeground, fontWeight = FontWeight.Bold)
-                Text("$xpPercent%", fontSize = 9.sp, color = NssMutedForeground, fontWeight = FontWeight.Bold)
+                Text("XP to Level ${level + 1}", fontSize = 8.sp, color = NssMutedForeground, fontWeight = FontWeight.Bold)
+                Text("$xpPercent%", fontSize = 8.sp, color = NssMutedForeground, fontWeight = FontWeight.Bold)
             }
             NssXpBar(percent = xpPercent.toFloat())
             if (revenueLabel != null) {
                 Text(
                     text = "💰 $revenueLabel",
-                    fontSize = 10.sp,
+                    fontSize = 8.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = NssMutedForeground,
                 )
@@ -632,9 +632,9 @@ fun NssSectorCard(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp)
-                .padding(bottom = 12.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .padding(horizontal = 9.dp)
+                .padding(bottom = 9.dp)
+                .clip(RoundedCornerShape(9.dp))
                 .clickable(enabled = investEnabled) {
                     invested = !invested
                     onInvest()
@@ -646,9 +646,9 @@ fun NssSectorCard(
                         else -> NssAccent
                     },
                 )
-                .padding(vertical = 10.dp),
+                .padding(vertical = 7.dp),
             color = NssOnPhoto,
-            fontSize = 13.sp,
+            fontSize = 9.sp,
             fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center,
         )
@@ -666,15 +666,15 @@ fun NssBranchHeader(
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Icon(icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(16.dp))
+        Icon(icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(12.dp))
         Text(
             text = "$branch BRANCH",
             color = accentColor,
             fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
-            letterSpacing = 1.sp,
+            fontSize = 10.sp,
+            letterSpacing = 8.sp,
         )
         Box(modifier = Modifier.weight(1f).height(1.dp).background(NssBorder))
         Text(
@@ -703,45 +703,45 @@ fun NssUnitCard(
             .border(1.dp, NssBorder)
             .background(NssCard),
     ) {
-        Box(modifier = Modifier.fillMaxWidth().height(100.dp)) {
+        Box(modifier = Modifier.fillMaxWidth().height(75.dp)) {
             NssPhotoHeader(
                 imageUrl = imageUrl,
                 fallbackGradient = headerGradient,
                 modifier = Modifier.matchParentSize(),
                 scrimTopToBottom = CardHeaderBottomScrim,
             )
-            NssBadge(label = branch, modifier = Modifier.align(Alignment.TopStart).padding(8.dp))
+            NssBadge(label = branch, modifier = Modifier.align(Alignment.TopStart).padding(6.dp))
             Text(
                 text = "×$count",
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(8.dp)
+                    .padding(6.dp)
                     .background(NssForeground.copy(alpha = 0.72f))
-                    .padding(horizontal = 8.dp, vertical = 2.dp),
+                    .padding(horizontal = 6.dp, vertical = 1.dp),
                 color = NssOnPhoto,
                 fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
+                fontSize = 9.sp,
             )
             Text(
                 text = unitName,
                 color = NssOnPhoto,
                 fontWeight = FontWeight.Bold,
-                fontSize = 12.sp,
-                modifier = Modifier.align(Alignment.BottomStart).padding(12.dp),
+                fontSize = 9.sp,
+                modifier = Modifier.align(Alignment.BottomStart).padding(9.dp),
             )
         }
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("STRENGTH", style = MaterialTheme.typography.labelSmall, color = NssMutedForeground, modifier = Modifier.width(56.dp))
+        Column(modifier = Modifier.padding(9.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("STRENGTH", style = MaterialTheme.typography.labelSmall, color = NssMutedForeground, modifier = Modifier.width(42.dp))
                 NssProgressBar(percent = strength.toFloat(), color = strengthBarColor(strength), thick = true, modifier = Modifier.weight(1f))
                 Text(
                     text = "$strength%",
                     color = strengthTextColor(strength),
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
+                    fontSize = 9.sp,
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -754,17 +754,17 @@ fun NssUnitCard(
         Row(modifier = Modifier.fillMaxWidth().border(width = 0.dp, color = Color.Transparent)) {
             Text(
                 text = "REDEPLOY",
-                modifier = Modifier.weight(1f).padding(vertical = 8.dp),
+                modifier = Modifier.weight(1f).padding(vertical = 6.dp),
                 color = NssPrimary,
-                fontSize = 9.sp,
+                fontSize = 8.sp,
                 textAlign = TextAlign.Center,
             )
-            Box(modifier = Modifier.width(1.dp).height(32.dp).background(NssBorder))
+            Box(modifier = Modifier.width(1.dp).height(24.dp).background(NssBorder))
             Text(
                 text = "UPGRADE ▸",
-                modifier = Modifier.weight(1f).padding(vertical = 8.dp),
+                modifier = Modifier.weight(1f).padding(vertical = 6.dp),
                 color = NssAmber,
-                fontSize = 9.sp,
+                fontSize = 8.sp,
                 textAlign = TextAlign.Center,
             )
         }
@@ -793,34 +793,34 @@ fun NssRecruitCard(
             )
             .background(NssCard),
     ) {
-        Box(modifier = Modifier.fillMaxWidth().height(90.dp)) {
+        Box(modifier = Modifier.fillMaxWidth().height(67.dp)) {
             NssPhotoHeader(
                 imageUrl = imageUrl,
                 fallbackGradient = headerGradient,
                 modifier = Modifier.matchParentSize(),
                 scrimTopToBottom = CardHeaderBottomScrim,
             )
-            NssBadge(label = branch, modifier = Modifier.align(Alignment.TopStart).padding(8.dp))
+            NssBadge(label = branch, modifier = Modifier.align(Alignment.TopStart).padding(6.dp))
             if (quantity > 0) {
                 Text(
                     text = "×$quantity QUEUED",
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(8.dp)
+                        .padding(6.dp)
                         .background(NssPrimary)
-                        .padding(horizontal = 8.dp, vertical = 2.dp),
+                        .padding(horizontal = 6.dp, vertical = 1.dp),
                     color = NssOnPhoto,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
+                    fontSize = 8.sp,
                 )
             }
-            Column(modifier = Modifier.align(Alignment.BottomStart).padding(12.dp)) {
-                Text(name, color = NssOnPhoto, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                Text(costLabel, color = NssOnPhoto.copy(alpha = 0.9f), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Column(modifier = Modifier.align(Alignment.BottomStart).padding(9.dp)) {
+                Text(name, color = NssOnPhoto, fontWeight = FontWeight.Bold, fontSize = 9.sp)
+                Text(costLabel, color = NssOnPhoto.copy(alpha = 0.9f), fontWeight = FontWeight.Bold, fontSize = 13.sp)
             }
         }
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(modifier = Modifier.padding(9.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 Text("${buildMonths}mo build", style = MaterialTheme.typography.labelSmall, color = NssMutedForeground)
                 Text(maintLabel, style = MaterialTheme.typography.labelSmall, color = NssMutedForeground)
             }
@@ -828,42 +828,42 @@ fun NssRecruitCard(
                 Text(
                     text = "SUBTOTAL: $costLabel",
                     color = NssPrimary,
-                    fontSize = 10.sp,
-                    modifier = Modifier.padding(top = 4.dp),
+                    fontSize = 8.sp,
+                    modifier = Modifier.padding(top = 3.dp),
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .size(24.dp)
+                        .clip(RoundedCornerShape(6.dp))
                         .background(NssSecondary)
                         .clickable { onQuantityChange(-1) },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(Icons.Default.Remove, contentDescription = null, tint = NssForeground, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Default.Remove, contentDescription = null, tint = NssForeground, modifier = Modifier.size(10.dp))
                 }
                 Text(
                     text = quantity.toString(),
                     modifier = Modifier
                         .weight(1f)
                         .border(1.dp, NssBorder.copy(alpha = 0.5f))
-                        .padding(vertical = 6.dp),
+                        .padding(vertical = 4.dp),
                     textAlign = TextAlign.Center,
                     color = NssForeground,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
+                    fontSize = 13.sp,
                 )
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .size(24.dp)
+                        .clip(RoundedCornerShape(6.dp))
                         .background(NssPrimary)
                         .clickable { onQuantityChange(1) },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = NssOnPhoto, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Default.Add, contentDescription = null, tint = NssOnPhoto, modifier = Modifier.size(10.dp))
                 }
             }
         }
@@ -908,28 +908,28 @@ fun NssNationCard(
                 modifier = Modifier.matchParentSize(),
                 scrimTopToBottom = CardHeaderBottomScrim,
             )
-            Text(text = flagEmoji, fontSize = 36.sp)
-            NssBadge(label = status, large = true, modifier = Modifier.align(Alignment.TopStart).padding(8.dp))
-            NssBadge(label = threat, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
+            Text(text = flagEmoji, fontSize = 27.sp)
+            NssBadge(label = status, large = true, modifier = Modifier.align(Alignment.TopStart).padding(6.dp))
+            NssBadge(label = threat, modifier = Modifier.align(Alignment.TopEnd).padding(6.dp))
             Text(
                 text = nationName,
                 color = NssOnPhoto,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.BottomStart).padding(12.dp),
+                modifier = Modifier.align(Alignment.BottomStart).padding(9.dp),
             )
         }
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("RELATIONS", style = MaterialTheme.typography.labelSmall, color = NssMutedForeground, modifier = Modifier.width(64.dp))
+        Column(modifier = Modifier.padding(9.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("RELATIONS", style = MaterialTheme.typography.labelSmall, color = NssMutedForeground, modifier = Modifier.width(48.dp))
                 NssProgressBar(percent = relations.toFloat(), color = relationBarColor(relations), thick = true, modifier = Modifier.weight(1f))
                 Text(
                     text = relations.toString(),
                     color = relationTextColor(relations),
                     fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
+                    fontSize = 10.sp,
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("TRADE", style = MaterialTheme.typography.labelSmall, color = NssMutedForeground)
                 Text(tradeLabel, style = MaterialTheme.typography.labelSmall, color = NssForeground)
@@ -943,9 +943,9 @@ fun NssNationCard(
             text = if (isHostile) "ESCALATE / NEGOTIATE ▸" else "OPEN DIALOGUE ▸",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 10.dp),
+                .padding(vertical = 7.dp),
             color = if (isHostile) NssRed else NssPrimary,
-            fontSize = 10.sp,
+            fontSize = 8.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
         )
@@ -962,7 +962,7 @@ fun NssKpiCard(
 ) {
     NssCard(modifier = modifier) {
         Text(text = label.uppercase(), style = MaterialTheme.typography.labelMedium, color = NssMutedForeground)
-        Text(text = value, color = NssForeground, fontSize = 22.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(vertical = 4.dp))
+        Text(text = value, color = NssForeground, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(vertical = 3.dp))
         Text(
             text = delta,
             style = MaterialTheme.typography.bodySmall,
@@ -985,11 +985,11 @@ fun NssAlertBanner(
             .fillMaxWidth()
             .border(1.dp, NssAmber.copy(alpha = 0.3f))
             .background(NssAmber.copy(alpha = 0.12f))
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 12.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(9.dp),
     ) {
-        Text(text = "⚠", color = NssAmber, fontSize = 14.sp)
+        Text(text = "⚠", color = NssAmber, fontSize = 10.sp)
         Text(text = message.uppercase(), style = MaterialTheme.typography.labelMedium, color = NssAmber)
     }
 }

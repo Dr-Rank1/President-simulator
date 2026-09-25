@@ -126,7 +126,7 @@ fun LawsScreen(
                     top = Dimens.ContentPadding,
                     bottom = Dimens.ContentPadding + Dimens.MinistryScrollBottomPadding,
                 ),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(9.dp),
             ) {
                 item {
                     if (state.legal.policyInsights.observations.isNotEmpty() || state.legal.policyInsights.reports.isNotEmpty()) {
@@ -145,7 +145,7 @@ fun LawsScreen(
                     top = Dimens.ContentPadding,
                     bottom = Dimens.ContentPadding + Dimens.MinistryScrollBottomPadding,
                 ),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(9.dp),
             ) {
                 item { OppositionChamberPanel(state = state, viewModel = viewModel) }
                 if (state.legal.pendingLaws.isNotEmpty()) item { PendingLawsPanel(state = state, viewModel = viewModel) }
@@ -160,7 +160,7 @@ fun LawsScreen(
                     top = Dimens.ContentPadding,
                     bottom = Dimens.ContentPadding + Dimens.MinistryScrollBottomPadding,
                 ),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(7.dp),
             ) {
                 if (state.legal.policyInsights.observations.isNotEmpty() || state.legal.policyInsights.reports.isNotEmpty()) {
                     item { PolicyInsightsPanel(state) }
@@ -217,12 +217,12 @@ private fun OppositionChamberPanel(
 ) {
     val opp = state.opposition
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("CHAMBER", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("CHAMBER", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         Text(
             text = opp.summaryLine(),
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             color = NssForeground,
-            modifier = Modifier.padding(top = 6.dp),
+            modifier = Modifier.padding(top = 4.dp),
         )
         Text(
             text = if (opp.hasMajority) {
@@ -230,36 +230,36 @@ private fun OppositionChamberPanel(
             } else {
                 "MINORITY GOVERNMENT — bills face a ${opp.lawSupportPenalty().roundToInt()}pt support penalty"
             },
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = if (opp.hasMajority) NssEmerald else NssRed,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 3.dp),
         )
         if (opp.filibusterActive) {
             Text(
                 "Filibuster active · ${opp.filibusterMonths} mo left",
-                fontSize = 11.sp,
+                fontSize = 8.sp,
                 color = NssAccent,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = 3.dp),
             )
         }
         if (opp.noConfidenceHeat > 0f) {
-            Text("No-confidence heat", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 8.dp))
+            Text("No-confidence heat", fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 6.dp))
             NssGameBar(percent = opp.noConfidenceHeat, color = NssRed)
         }
         if (opp.lastOppositionAction.isNotBlank()) {
             Text(
                 opp.lastOppositionAction,
-                fontSize = 11.sp,
+                fontSize = 8.sp,
                 color = NssMutedForeground,
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = 6.dp),
             )
         }
         if (opp.lastPlayerCounter.isNotBlank()) {
             Text(
                 "Your last move: ${opp.lastPlayerCounter}",
-                fontSize = 11.sp,
+                fontSize = 8.sp,
                 color = NssPrimary,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = 3.dp),
             )
         }
     }
@@ -273,48 +273,48 @@ private fun OppositionChamberPanel(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         if (party.isRuling) "RULING" else "OPPOSITION",
-                        fontSize = 10.sp,
+                        fontSize = 8.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (party.isRuling) NssEmerald else NssAccent,
                     )
-                    Text(party.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = NssForeground)
+                    Text(party.name, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
                     Text(
                         "${party.leaderName} · ${party.lean.displayName}",
-                        fontSize = 11.sp,
+                        fontSize = 8.sp,
                         color = NssMutedForeground,
                     )
                 }
                 Text(
                     "${party.seats}",
                     fontWeight = FontWeight.Black,
-                    fontSize = 22.sp,
+                    fontSize = 16.sp,
                     color = NssForeground,
                 )
             }
-            Text("Popularity ${party.popularity.roundToInt()}%", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 6.dp))
+            Text("Popularity ${party.popularity.roundToInt()}%", fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
             NssGameBar(percent = party.popularity, color = if (party.isRuling) NssEmerald else NssAccent)
             if (!party.isRuling) {
                 Text(
                     "Hostility ${party.hostility.roundToInt()}%",
-                    fontSize = 11.sp,
+                    fontSize = 8.sp,
                     color = if (party.hostility >= 60f) NssRed else NssMutedForeground,
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = 3.dp),
                 )
                 NssGameBar(percent = party.hostility, color = NssRed)
             }
             if (party.platformTags.isNotEmpty()) {
                 Text(
                     party.platformTags.joinToString(" · "),
-                    fontSize = 10.sp,
+                    fontSize = 8.sp,
                     color = NssMutedForeground,
-                    modifier = Modifier.padding(top = 6.dp),
+                    modifier = Modifier.padding(top = 4.dp),
                 )
             }
         }
     }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("COUNTERMOVES", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("COUNTERMOVES", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         val canNegotiate = opp.negotiateCooldownMonths == 0 && state.vitals.budget >= OppositionEngine.NEGOTIATE_COST
         val canSmear = opp.smearCooldownMonths == 0 && state.vitals.budget >= OppositionEngine.SMEAR_COST
         val canConcede = opp.concessionCooldownMonths == 0 && state.vitals.budget >= OppositionEngine.CONCESSION_COST
@@ -343,9 +343,9 @@ private fun OppositionChamberPanel(
             onClick = { viewModel.concedeToOpposition() },
         )
         if (opp.oppositionLog.isNotEmpty()) {
-            Text("RECENT", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 10.dp))
+            Text("RECENT", fontWeight = FontWeight.Bold, fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 7.dp))
             opp.oppositionLog.takeLast(5).asReversed().forEach { line ->
-                Text("• $line", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 2.dp))
+                Text("• $line", fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 1.dp))
             }
         }
     }
@@ -361,14 +361,14 @@ private fun CounterMoveButton(
         text = label,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 8.dp)
+            .padding(top = 6.dp)
             .clip(NssCardShape)
             .background(if (enabled) NssPrimary else NssMutedForeground.copy(alpha = 0.35f))
             .clickable(enabled = enabled, onClick = onClick)
-            .padding(vertical = 10.dp),
+            .padding(vertical = 7.dp),
         color = NssOnPhoto,
         fontWeight = FontWeight.Bold,
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         textAlign = TextAlign.Center,
     )
 }
@@ -379,21 +379,21 @@ private fun IdeologyPanel(
     viewModel: GameViewModel,
 ) {
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("IDEOLOGY", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("IDEOLOGY", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         Text(
             text = "Shift cost ${ProductionLawViewModel.IDEOLOGY_SHIFT_COST.toBudgetString()}",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+            modifier = Modifier.padding(top = 3.dp, bottom = 6.dp),
         )
         Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Ideology.entries.forEach { ideology ->
                 FilterChip(
                     selected = state.legal.ideology == ideology,
                     onClick = { viewModel.setIdeology(ideology) },
-                    label = { Text(ideology.displayName, fontSize = 10.sp) },
+                    label = { Text(ideology.displayName, fontSize = 8.sp) },
                 )
             }
         }
@@ -406,38 +406,38 @@ private fun PendingLawsPanel(
     viewModel: GameViewModel,
 ) {
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("PARLIAMENT QUEUE", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("PARLIAMENT QUEUE", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         Text(
             text = "Bills resolve over months unless rushed (${ProductionLawViewModel.RUSH_LAW_COST.toBudgetString()}).",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+            modifier = Modifier.padding(top = 3.dp, bottom = 6.dp),
         )
         state.legal.pendingLaws.forEach { pending ->
             val lawName = LawCatalog.byId(pending.lawId)?.name ?: pending.lawId
             val verb = if (pending.enabling) "Enact" else "Repeal"
-            Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+            Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                 Text(
                     "$verb $lawName · ${pending.ticksRemaining} mo left",
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp,
+                    fontSize = 9.sp,
                     color = NssForeground,
                 )
                 if (pending.enabling) {
                     val support = LawCatalog.byId(pending.lawId)?.let { ParliamentarySupport.score(state, it) } ?: 0f
                     Text("Vote support ${support.roundToInt()}% · ${pending.compromises}/3 compromises · each compromise adds 8 support and trims the law’s effects by 15%.",
-                        fontSize = 10.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+                        fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
                     Text(
                         text = if (pending.compromises >= ProductionLawViewModel.MAX_BILL_COMPROMISES) "MAX COMPROMISES REACHED" else "OFFER COMPROMISE · ${ProductionLawViewModel.BILL_COMPROMISE_COST.toBudgetString()}",
-                        modifier = Modifier.padding(top = 6.dp).clip(NssCardShape).background(if (pending.compromises >= ProductionLawViewModel.MAX_BILL_COMPROMISES || state.vitals.budget < ProductionLawViewModel.BILL_COMPROMISE_COST) NssMutedForeground.copy(alpha = 0.25f) else NssPrimary)
+                        modifier = Modifier.padding(top = 4.dp).clip(NssCardShape).background(if (pending.compromises >= ProductionLawViewModel.MAX_BILL_COMPROMISES || state.vitals.budget < ProductionLawViewModel.BILL_COMPROMISE_COST) NssMutedForeground.copy(alpha = 0.25f) else NssPrimary)
                             .clickable(enabled = pending.compromises < ProductionLawViewModel.MAX_BILL_COMPROMISES && state.vitals.budget >= ProductionLawViewModel.BILL_COMPROMISE_COST) { viewModel.negotiatePendingLaw(pending.lawId) }
-                            .padding(horizontal = 10.dp, vertical = 7.dp),
-                        color = NssOnPhoto, fontWeight = FontWeight.Bold, fontSize = 9.sp,
+                            .padding(horizontal = 7.dp, vertical = 5.dp),
+                        color = NssOnPhoto, fontWeight = FontWeight.Bold, fontSize = 8.sp,
                     )
                 }
                 Row(
-                    modifier = Modifier.padding(top = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(top = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     Text(
                         text = "Rush",
@@ -445,10 +445,10 @@ private fun PendingLawsPanel(
                             .clip(NssCardShape)
                             .background(NssAccent)
                             .clickable { viewModel.rushPendingLaw(pending.lawId) }
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                            .padding(horizontal = 9.dp, vertical = 6.dp),
                         color = NssOnPhoto,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        fontSize = 8.sp,
                     )
                     Text(
                         text = "Cancel",
@@ -456,10 +456,10 @@ private fun PendingLawsPanel(
                             .clip(NssCardShape)
                             .background(NssMutedForeground.copy(alpha = 0.35f))
                             .clickable { viewModel.cancelPendingLaw(pending.lawId) }
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                            .padding(horizontal = 9.dp, vertical = 6.dp),
                         color = NssForeground,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        fontSize = 8.sp,
                     )
                 }
             }
@@ -470,17 +470,17 @@ private fun PendingLawsPanel(
 @Composable
 private fun PolicyInsightsPanel(state: com.presidentsimulator.game.data.GameState) {
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("POLICY IMPACT REVIEW", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 1.5.sp)
+        Text("POLICY IMPACT REVIEW", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 1.8.sp)
         Text("Observed changes after laws take effect. Other events also influence these measures, so this is a trend report rather than proof of cause.",
-            fontSize = 10.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
+            fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp, bottom = 6.dp))
         state.legal.policyInsights.observations.forEach { observation ->
             val lawName = LawCatalog.byId(observation.lawId)?.name ?: observation.lawId
-            Text("Monitoring · $lawName · since ${observation.startedMonth}/${observation.startedYear} · ${observation.monthsObserved}/12 months", fontSize = 10.sp, color = NssAccent, modifier = Modifier.padding(top = 3.dp))
+            Text("Monitoring · $lawName · since ${observation.startedMonth}/${observation.startedYear} · ${observation.monthsObserved}/12 months", fontSize = 8.sp, color = NssAccent, modifier = Modifier.padding(top = 2.dp))
         }
         state.legal.policyInsights.reports.takeLast(3).asReversed().forEach { report ->
-            Column(modifier = Modifier.fillMaxWidth().padding(top = 7.dp)) {
-                Text("${report.lawName} · ${report.monthsObserved}-month review · ${report.month}/${report.year}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = NssForeground)
-                Text(report.summary(), fontSize = 10.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 2.dp))
+            Column(modifier = Modifier.fillMaxWidth().padding(top = 5.dp)) {
+                Text("${report.lawName} · ${report.monthsObserved}-month review · ${report.month}/${report.year}", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = NssForeground)
+                Text(report.summary(), fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 1.dp))
             }
         }
     }
@@ -497,7 +497,7 @@ private fun SocietyMinistriesPanel(
     var culture by remember(society.cultureFunding) { mutableFloatStateOf(society.cultureFunding) }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("MINISTRY FUNDING", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("MINISTRY FUNDING", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         FundingSlider("Health", health, society.healthLevel) {
             health = it
             viewModel.adjustMinistryFunding(SocietyMinistry.HEALTH, it)
@@ -512,35 +512,35 @@ private fun SocietyMinistriesPanel(
         }
         Text(
             text = "Monthly social upkeep ${society.totalMinistryUpkeep.toBudgetString()}",
-            fontSize = 11.sp,
+            fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(top = 6.dp),
         )
     }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("STATE RELIGION", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("STATE RELIGION", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         Row(
-            modifier = Modifier.padding(top = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(top = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             StateReligion.entries.forEach { religion ->
                 FilterChip(
                     selected = society.stateReligion == religion,
                     onClick = { viewModel.changeStateReligion(religion) },
-                    label = { Text(religion.displayName, fontSize = 10.sp) },
+                    label = { Text(religion.displayName, fontSize = 8.sp) },
                 )
             }
         }
     }
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text("UNIVERSITIES", fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssPrimary, letterSpacing = 2.sp)
+        Text("UNIVERSITIES", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
         Text(
             text = "${society.universities} campuses · next build ${AdvancementViewModel.UNIVERSITY_COST.toBudgetString()}",
-            fontSize = 12.sp,
+            fontSize = 9.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 6.dp, bottom = 10.dp),
+            modifier = Modifier.padding(top = 4.dp, bottom = 7.dp),
         )
         Text(
             text = "BUILD UNIVERSITY",
@@ -549,10 +549,10 @@ private fun SocietyMinistriesPanel(
                 .clip(NssCardShape)
                 .background(NssPrimary)
                 .clickable { viewModel.buildUniversity() }
-                .padding(vertical = 12.dp),
+                .padding(vertical = 9.dp),
             color = NssOnPhoto,
             fontWeight = FontWeight.Bold,
-            fontSize = 13.sp,
+            fontSize = 9.sp,
             textAlign = TextAlign.Center,
         )
     }
@@ -568,10 +568,10 @@ private fun FundingSlider(
     var draft by remember(value) { mutableFloatStateOf(value) }
     Text(
         text = "$label  ${(draft * 100f).roundToInt()}% · Level ${level.roundToInt()}",
-        fontSize = 12.sp,
+        fontSize = 9.sp,
         fontWeight = FontWeight.SemiBold,
         color = NssForeground,
-        modifier = Modifier.padding(top = 10.dp),
+        modifier = Modifier.padding(top = 7.dp),
     )
     Slider(
         value = draft,
@@ -605,11 +605,11 @@ private fun PolicyLawRow(
             .then(
                 if (isActive) Modifier
                     .background(NssGameCard)
-                    .border(2.dp, NssAccent.copy(alpha = 0.4f), NssCardShape)
+                    .border(1.dp, NssAccent.copy(alpha = 0.4f), NssCardShape)
                 else Modifier.background(NssGameCard),
             ),
     ) {
-        Box(modifier = Modifier.fillMaxWidth().height(64.dp)) {
+        Box(modifier = Modifier.fillMaxWidth().height(48.dp)) {
             NssPhotoHeader(
                 imageUrl = NssCardImages.lawCategoryImage(category),
                 fallbackGradient = NssGradients.Indigo,
@@ -622,29 +622,29 @@ private fun PolicyLawRow(
                 .fillMaxWidth()
                 .padding(Dimens.ContentPadding),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(9.dp),
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(law.name, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = NssForeground)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(law.name, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
                     if (isActive) NssBadge(label = "ACTIVE")
                     if (pendingLabel != null) NssBadge(label = "QUEUED")
                 }
                 if (pendingLabel != null) {
-                    Text(pendingLabel, fontSize = 11.sp, color = NssAccent, modifier = Modifier.padding(top = 4.dp))
+                    Text(pendingLabel, fontSize = 8.sp, color = NssAccent, modifier = Modifier.padding(top = 3.dp))
                 }
-                Text(effectSummary, fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+                Text(effectSummary, fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
                 Text(
                     text = "Parliament support ${parliamentSupport.roundToInt()}% · need ${law.approvalThreshold.roundToInt()}%",
-                    fontSize = 10.sp,
+                    fontSize = 8.sp,
                     color = if (parliamentSupport >= law.approvalThreshold) NssEmerald else NssAccent,
-                    modifier = Modifier.padding(top = 2.dp),
+                    modifier = Modifier.padding(top = 1.dp),
                 )
-                Text("Current $supportModel bloc read · $coalitionRead", fontSize = 9.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+                Text("Current $supportModel bloc read · $coalitionRead", fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 2.dp))
                 if (isActive && compromiseStrength < 0.999f) {
-                    Text("Compromised bill · ${(compromiseStrength * 100).roundToInt()}% policy strength", fontSize = 9.sp, color = NssAccent, modifier = Modifier.padding(top = 3.dp))
+                    Text("Compromised bill · ${(compromiseStrength * 100).roundToInt()}% policy strength", fontSize = 8.sp, color = NssAccent, modifier = Modifier.padding(top = 2.dp))
                 }
-                Text("Upkeep ${law.upkeepCost.toBudgetString()}/mo", fontSize = 10.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 2.dp))
+                Text("Upkeep ${law.upkeepCost.toBudgetString()}/mo", fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 1.dp))
             }
             Switch(
                 checked = isActive,
