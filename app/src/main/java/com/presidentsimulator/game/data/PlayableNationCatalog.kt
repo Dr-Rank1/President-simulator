@@ -90,7 +90,7 @@ object PlayableNationCatalog {
         }
     }
 
-    fun all(): List<NationDefinition> = RealCountryCatalog.all.map(::fromRealProfile)
+    fun all(): List<NationDefinition> = RealCountryCatalog.all.map(::fromRealProfile).sortedBy { it.name }
 
     fun byId(id: String): NationDefinition? = all().find { it.id == id }
 
