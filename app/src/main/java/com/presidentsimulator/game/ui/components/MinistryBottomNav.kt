@@ -64,74 +64,144 @@ fun MinistryBottomNav(
     sideRail: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    // In Modern Age 2, the bottom navigation is made of chunky metallic/dark tiles.
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Color(0xFF0F172A)) // Dark slate background
-            .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-            .windowInsetsPadding(
-                WindowInsets.safeDrawing.only(
-                    WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
-                )
-            )
-            .padding(horizontal = 4.dp, vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        bottomNavItems.forEach { item ->
-            val selected = currentRoute == item.destination.route
-            val alerts = bottomNavAlertCount(state, item.destination)
-            
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 4.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(if (selected) Color(0xFF1E293B) else Color.Transparent)
-                    .border(
-                        1.dp,
-                        if (selected) NssAccent.copy(alpha = 0.5f) else Color.Transparent,
-                        RoundedCornerShape(6.dp)
-                    )
-                    .clickable { onNavigate(item.destination) }
-                    .padding(vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.label,
-                        tint = if (selected) NssAccent else Color.Gray,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    if (alerts > 0) {
-                        Box(
-                            Modifier
-                                .align(Alignment.TopEnd)
-                                .offset(x = 8.dp, y = (-6).dp)
-                                .size(14.dp)
-                                .clip(CircleShape)
-                                .background(NssRed),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = alerts.coerceAtMost(9).toString(),
-                                color = Color.White,
-                                fontSize = 8.sp,
-                                fontWeight = FontWeight.Black
-                            )
+    if (sideRail) {
+        Column(
+            modifier = modifier
+                .fillMaxHeight()
+                .width(76.dp)
+                .background(Color(0xFF0C1322))
+                .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp))
+                .padding(vertical = 4.dp, horizontal = 2.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            bottomNavItems.forEach { item ->
+                val selected = currentRoute == item.destination.route
+                val alerts = bottomNavAlertCount(state, item.destination)
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(vertical = 2.dp, horizontal = 2.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(if (selected) Color(0xFF1E293B) else Color.Transparent)
+                        .border(
+                            1.dp,
+                            if (selected) NssAccent.copy(alpha = 0.6f) else Color.Transparent,
+                            RoundedCornerShape(6.dp)
+                        )
+                        .clickable { onNavigate(item.destination) }
+                        .padding(vertical = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.label,
+                            tint = if (selected) NssAccent else Color.LightGray,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        if (alerts > 0) {
+                            Box(
+                                Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = 6.dp, y = (-4).dp)
+                                    .size(12.dp)
+                                    .clip(CircleShape)
+                                    .background(NssRed),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = alerts.coerceAtMost(9).toString(),
+                                    color = Color.White,
+                                    fontSize = 7.sp,
+                                    fontWeight = FontWeight.Black
+                                )
+                            }
                         }
                     }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = item.label.uppercase(),
+                        color = if (selected) NssAccent else Color.LightGray,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
+                    )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = item.label.uppercase(),
-                    color = if (selected) NssAccent else Color.Gray,
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.Bold
+            }
+        }
+    } else {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .background(Color(0xFF0F172A))
+                .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(
+                        WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
+                    )
                 )
+                .padding(horizontal = 4.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            bottomNavItems.forEach { item ->
+                val selected = currentRoute == item.destination.route
+                val alerts = bottomNavAlertCount(state, item.destination)
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 4.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(if (selected) Color(0xFF1E293B) else Color.Transparent)
+                        .border(
+                            1.dp,
+                            if (selected) NssAccent.copy(alpha = 0.5f) else Color.Transparent,
+                            RoundedCornerShape(6.dp)
+                        )
+                        .clickable { onNavigate(item.destination) }
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.label,
+                            tint = if (selected) NssAccent else Color.Gray,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        if (alerts > 0) {
+                            Box(
+                                Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = 8.dp, y = (-6).dp)
+                                    .size(14.dp)
+                                    .clip(CircleShape)
+                                    .background(NssRed),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = alerts.coerceAtMost(9).toString(),
+                                    color = Color.White,
+                                    fontSize = 8.sp,
+                                    fontWeight = FontWeight.Black
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = item.label.uppercase(),
+                        color = if (selected) NssAccent else Color.Gray,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

@@ -1098,8 +1098,7 @@ fun InteractiveWorldMap(
             contentDescription = "World Map",
             contentScale = androidx.compose.ui.layout.ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
-            alpha = 0.35f,
-            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(com.presidentsimulator.game.ui.theme.NssPrimary)
+            alpha = 0.65f
         )
     }
 }

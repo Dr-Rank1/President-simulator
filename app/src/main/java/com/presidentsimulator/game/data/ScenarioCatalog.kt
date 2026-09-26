@@ -4,10 +4,10 @@ import kotlin.random.Random
 
 object ScenarioCatalog {
     val CHALLENGES = listOf(
-        CampaignChallenge("standard", "Classic Rules", "Play with the scenario's normal starting conditions.", 1f),
-        CampaignChallenge("austerity", "Austerity Mandate", "Begin with a smaller treasury and weaker public support.", 1.2f),
-        CampaignChallenge("hostile_press", "Hostile Press", "Begin under intense media scrutiny and low government credibility.", 1.2f),
-        CampaignChallenge("snap_election", "Snap Election", "Face an election next year with a modest approval penalty.", 1.25f),
+        CampaignChallenge("standard", "EASY - Classic", "Balanced treasury and calm borders. Recommended for new leaders.", 1f),
+        CampaignChallenge("austerity", "NORMAL - Austerity", "Constrained national budget with reduced treasury and public unrest.", 1.2f),
+        CampaignChallenge("hostile_press", "HARD - Hostile Press", "Intense investigative media scrutiny and low government credibility.", 1.2f),
+        CampaignChallenge("snap_election", "EXTREME - Crisis", "Emergency election in 12 months with strong opposition momentum.", 1.25f),
     )
 
     val ALL = listOf(
