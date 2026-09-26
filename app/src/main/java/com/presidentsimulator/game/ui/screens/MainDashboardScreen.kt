@@ -66,13 +66,16 @@ fun MainDashboardScreen(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(
-                text = state.playerNation.name.uppercase(),
-                color = Color.White,
-                fontWeight = FontWeight.Black,
-                fontSize = 18.sp,
-                letterSpacing = 2.sp
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(state.playerNation.flagEmoji, fontSize = 22.sp)
+                Text(
+                    text = state.playerNation.name.uppercase(),
+                    color = Color.White,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 20.sp,
+                    letterSpacing = 1.sp
+                )
+            }
             Text(
                 text = "${state.playerNation.governmentLabel} · Year ${state.year}",
                 color = Color.Gray,
@@ -207,18 +210,18 @@ private fun DashboardQuickWidget(
             .background(Color(0xEE0B131F))
             .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp)
     ) {
-        Text(title, color = NssMutedForeground, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Text(title, color = NssMutedForeground, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
         Text(
             stat,
             color = if (isPositive) Color.White else NssRed,
-            fontSize = 11.sp,
+            fontSize = 12.5.sp,
             fontWeight = FontWeight.Black,
             maxLines = 1
         )
-        Text(sub, color = Color.Gray, fontSize = 9.sp, maxLines = 1)
+        Text(sub, color = Color.LightGray, fontSize = 9.5.sp, maxLines = 1)
     }
 }
 

@@ -1,4 +1,4 @@
-package com.presidentsimulator.game
+﻿package com.presidentsimulator.game
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
                         PresidentSimulatorTheme {
                 val currentDensity = LocalDensity.current
                 CompositionLocalProvider(
-                    LocalDensity provides Density(currentDensity.density * 0.85f, currentDensity.fontScale * 0.85f)
+                    LocalDensity provides Density(currentDensity.density * 1.0f, currentDensity.fontScale * 1.0f)
                 ) {
                     Surface(
                         modifier = Modifier

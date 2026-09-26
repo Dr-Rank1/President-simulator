@@ -580,7 +580,7 @@ fun NssSectorCard(
                     .background(if (growth >= 0) NssEmerald else NssRed)
                     .padding(horizontal = 6.dp, vertical = 1.dp),
                 color = NssOnPhoto,
-                fontSize = 8.sp,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
             )
             Column(modifier = Modifier.align(Alignment.BottomStart).padding(9.dp)) {
@@ -588,7 +588,7 @@ fun NssSectorCard(
                     text = name,
                     color = NssOnPhoto,
                     fontWeight = FontWeight.Black,
-                    fontSize = 10.sp,
+                    fontSize = 13.sp,
                 )
                 NssStars(count = level)
             }
@@ -611,8 +611,8 @@ fun NssSectorCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("XP to Level ${level + 1}", fontSize = 8.sp, color = NssMutedForeground, fontWeight = FontWeight.Bold)
-                Text("$xpPercent%", fontSize = 8.sp, color = NssMutedForeground, fontWeight = FontWeight.Bold)
+                Text("XP to Level ${level + 1}", fontSize = 10.sp, color = NssMutedForeground, fontWeight = FontWeight.Bold)
+                Text("$xpPercent%", fontSize = 10.sp, color = NssMutedForeground, fontWeight = FontWeight.Bold)
             }
             NssXpBar(percent = xpPercent.toFloat())
             if (revenueLabel != null) {
@@ -646,9 +646,9 @@ fun NssSectorCard(
                         else -> NssAccent
                     },
                 )
-                .padding(vertical = 7.dp),
+                .padding(vertical = 10.dp),
             color = NssOnPhoto,
-            fontSize = 9.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Black,
             textAlign = TextAlign.Center,
         )
@@ -1082,34 +1082,17 @@ object NssNationColors {
     val Hostile = Color(0xFFFECACA)
 }
 
-@Composable
-fun InteractiveWorldMap(
-    modifier: Modifier = Modifier,
-    onOpenDiplomacy: () -> Unit = {}
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color(0xFF031626))
-            .clickable { onOpenDiplomacy() }
-    ) {
-        androidx.compose.foundation.Image(
-            painter = androidx.compose.ui.res.painterResource(id = com.presidentsimulator.game.R.drawable.world_map),
-            contentDescription = "World Map",
-            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-            modifier = Modifier.fillMaxSize(),
-            alpha = 0.65f
-        )
-    }
-}
+
 
 
 fun formatCompactMoney(value: Long): String {
-    if (value >= 1_000_000_000_000L) return String.format("$%.1fT", value / 1_000_000_000_000.0)
-    if (value >= 1_000_000_000L) return String.format("$%.1fB", value / 1_000_000_000.0)
-    if (value >= 1_000_000L) return String.format("$%.1fM", value / 1_000_000.0)
-    if (value >= 1_000L) return String.format("$%.1fK", value / 1_000.0)
-    return "$$value"
+    val sign = if (value < 0) "-" else ""
+    val absVal = kotlin.math.abs(value)
+    if (absVal >= 1_000_000_000_000L) return String.format("%s$%.1fT", sign, absVal / 1_000_000_000_000.0)
+    if (absVal >= 1_000_000_000L) return String.format("%s$%.1fB", sign, absVal / 1_000_000_000.0)
+    if (absVal >= 1_000_000L) return String.format("%s$%.1fM", sign, absVal / 1_000_000.0)
+    if (absVal >= 1_000L) return String.format("%s$%.1fK", sign, absVal / 1_000.0)
+    return "$sign$$absVal"
 }
 
 fun formatCompactMil(value: Long): String {
