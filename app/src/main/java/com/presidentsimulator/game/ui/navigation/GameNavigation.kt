@@ -1,4 +1,4 @@
-package com.presidentsimulator.game.ui.navigation
+﻿package com.presidentsimulator.game.ui.navigation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -252,7 +252,7 @@ fun GameNavigation(
                 state.nextElectionYear > 0 && state.nextElectionYear - state.year <= 1 -> "The next election is approaching. Check the latest cohort polling and identify a group you need to win back."
                 else -> "The government enters ${state.dateLabel} with ${state.vitals.approval.toInt()}% approval. Choose one priority and follow its effects through the next turn."
             },
-            storyline = state.storyArc.activeArcId?.let { "${state.storyArc.lastStoryNote} · chapter ${state.storyArc.chapter} of 3" },
+            storyline = state.storyArc.activeArcId?.let { "${state.storyArc.lastStoryNote} Â· chapter ${state.storyArc.chapter} of 3" },
             onDismiss = {
                 audio.playClick()
                 viewModel.acknowledgeBriefing()
@@ -311,7 +311,7 @@ fun GameNavigation(
 
         Row(modifier = Modifier.weight(1f).fillMaxSize()) {
             Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                com.presidentsimulator.game.ui.components.InteractiveWorldMap(modifier = Modifier.fillMaxSize())
+                com.presidentsimulator.game.ui.components.InteractiveWorldMap(state = state, onOpenDiplomacy = { navigate(GameDestination.Diplomacy) }, modifier = Modifier.fillMaxSize())
             NavHost(
                 navController = navController,
                 startDestination = GameDestination.Dashboard.route,
@@ -415,9 +415,9 @@ private fun CampaignEndDialog(
             NssPanel(modifier = Modifier.fillMaxWidth()) {
                 val scores = campaign.legacy.scores
                 val finalScore = (scores.overall * campaign.scenario.scoreMultiplier).roundToInt()
-                Text("NATIONAL LEADERSHIP LEGACY · ${scores.grade.uppercase()}", fontSize = 10.sp, fontWeight = FontWeight.Black, color = accent, letterSpacing = 1.5.sp)
+                Text("NATIONAL LEADERSHIP LEGACY Â· ${scores.grade.uppercase()}", fontSize = 10.sp, fontWeight = FontWeight.Black, color = accent, letterSpacing = 1.5.sp)
                 Text("Campaign score  $finalScore", fontSize = 20.sp, fontWeight = FontWeight.Black, color = NssForeground, modifier = Modifier.padding(top = 4.dp))
-                Text("${scores.overall} base × ${campaign.scenario.scoreMultiplier} challenge modifier", fontSize = 10.sp, color = NssMutedForeground)
+                Text("${scores.overall} base Ã— ${campaign.scenario.scoreMultiplier} challenge modifier", fontSize = 10.sp, color = NssMutedForeground)
                 listOf(
                     "Prosperity" to scores.prosperity,
                     "Security" to scores.security,
@@ -425,17 +425,17 @@ private fun CampaignEndDialog(
                     "Society" to scores.society,
                     "Mandate" to scores.mandate,
                 ).forEach { (pillar, value) ->
-                    Text("$pillar  ·  $value", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+                    Text("$pillar  Â·  $value", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
                 }
                 val honors = campaignHonors(campaign, isVictory)
                 if (honors.isNotEmpty()) {
                     Text("HONORS", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
-                    honors.forEach { honor -> Text("✦  $honor", fontSize = 11.sp, color = NssForeground, modifier = Modifier.padding(top = 3.dp)) }
+                    honors.forEach { honor -> Text("âœ¦  $honor", fontSize = 11.sp, color = NssForeground, modifier = Modifier.padding(top = 3.dp)) }
                 }
                 if (campaign.mandate.lastReview.isNotEmpty()) {
                     Text("TERM PROMISE REVIEW", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
                     campaign.mandate.lastReview.forEach { result ->
-                        Text("${if (result.fulfilled) "✓" else "×"} ${result.goal.title} · ${result.review}", fontSize = 10.sp, color = if (result.fulfilled) NssEmerald else NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+                        Text("${if (result.fulfilled) "âœ“" else "Ã—"} ${result.goal.title} Â· ${result.review}", fontSize = 10.sp, color = if (result.fulfilled) NssEmerald else NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
                     }
                 }
             }
@@ -472,12 +472,12 @@ private fun CampaignEndDialog(
 }
 
 private fun campaignHonors(state: GameState, victory: Boolean): List<String> = buildList {
-    if (state.legacy.electionsWon >= 2) add("Long Mandate · won ${state.legacy.electionsWon} elections")
-    if (state.legacy.warsWon >= 1 && state.legacy.warsLost == 0) add("Unbeaten Commander · no wars lost")
-    if (state.legacy.disastersHandled >= 3) add("Steady Hand · contained ${state.legacy.disastersHandled} disasters")
-    if (state.legacy.lawsEnacted >= 5) add("Reformer · enacted ${state.legacy.lawsEnacted} laws")
-    if (state.legacy.peakApproval >= 80f) add("People's Mandate · reached ${state.legacy.peakApproval.toInt()}% approval")
-    if (state.storyArc.completedArcIds.isNotEmpty()) add("Crisis Storyteller · closed ${state.storyArc.completedArcIds.size} political story arc(s)")
-    if (victory && state.scenario.challengeId != "standard") add("Challenge cleared · ${state.scenario.challengeId.replace('_', ' ')}")
-    if (victory && state.legacy.scores.overall >= 80) add("Historic Leader · legacy score above 80")
+    if (state.legacy.electionsWon >= 2) add("Long Mandate Â· won ${state.legacy.electionsWon} elections")
+    if (state.legacy.warsWon >= 1 && state.legacy.warsLost == 0) add("Unbeaten Commander Â· no wars lost")
+    if (state.legacy.disastersHandled >= 3) add("Steady Hand Â· contained ${state.legacy.disastersHandled} disasters")
+    if (state.legacy.lawsEnacted >= 5) add("Reformer Â· enacted ${state.legacy.lawsEnacted} laws")
+    if (state.legacy.peakApproval >= 80f) add("People's Mandate Â· reached ${state.legacy.peakApproval.toInt()}% approval")
+    if (state.storyArc.completedArcIds.isNotEmpty()) add("Crisis Storyteller Â· closed ${state.storyArc.completedArcIds.size} political story arc(s)")
+    if (victory && state.scenario.challengeId != "standard") add("Challenge cleared Â· ${state.scenario.challengeId.replace('_', ' ')}")
+    if (victory && state.legacy.scores.overall >= 80) add("Historic Leader Â· legacy score above 80")
 }

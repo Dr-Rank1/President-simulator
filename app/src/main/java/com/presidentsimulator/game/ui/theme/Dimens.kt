@@ -1,41 +1,41 @@
-package com.presidentsimulator.game.ui.theme
+﻿package com.presidentsimulator.game.ui.theme
 
 import androidx.compose.ui.unit.dp
 
-/** Dense layout metrics for gritty grand-strategy feel */
+/** Clear, comfortable layout metrics for presidential grand-strategy */
 object Dimens {
     val SpacingXSmall = 2.dp
-    val SpacingSmall = 3.dp
-    val SpacingMedium = 6.dp
-    val SpacingLarge = 9.dp
-    val SpacingXLarge = 12.dp
+    val SpacingSmall = 4.dp
+    val SpacingMedium = 8.dp
+    val SpacingLarge = 12.dp
+    val SpacingXLarge = 16.dp
 
     val ContentPadding = SpacingSmall
-    val GridGap = 3.dp
-    val SectionGap = 6.dp
+    val GridGap = 4.dp
+    val SectionGap = 8.dp
 
     // Sharp edges instead of heavy rounding
-    val CardRadius = 2.dp
+    val CardRadius = 4.dp
     val CardElevation = 0.dp
     val CardTonalElevation = 0.dp
 
-    val BadgeCorner = 2.dp
-    val PillCorner = 2.dp
+    val BadgeCorner = 3.dp
+    val PillCorner = 3.dp
 
-    val HudHeight = 36.dp
-    val CompactScreenHeaderHeight = 48.dp
-    val MinistryScrollBottomPadding = 9.dp
+    val HudHeight = 40.dp
+    val CompactScreenHeaderHeight = 54.dp
+    val MinistryScrollBottomPadding = 12.dp
 
-    val TabBarHeight = 27.dp
-    val BottomNavHeight = 36.dp
-    val ScreenHeaderHeight = 48.dp
-    val DashboardHeroHeight = 60.dp
+    val TabBarHeight = 32.dp
+    val BottomNavHeight = 44.dp
+    val ScreenHeaderHeight = 56.dp
+    val DashboardHeroHeight = 72.dp
 
-    val SectorCardPhotoHeight = 48.dp
-    val MinistryTilePhotoHeight = 48.dp
-    val NationCardHeaderHeight = 48.dp
-    val UnitCardPhotoHeight = 48.dp
-    val SituationThumbWidth = 48.dp
+    val SectorCardPhotoHeight = 68.dp
+    val MinistryTilePhotoHeight = 68.dp
+    val NationCardHeaderHeight = 68.dp
+    val UnitCardPhotoHeight = 68.dp
+    val SituationThumbWidth = 64.dp
 }
 
 object PhotoScrimAlpha {
