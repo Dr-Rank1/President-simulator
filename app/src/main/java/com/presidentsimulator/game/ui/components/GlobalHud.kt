@@ -47,7 +47,7 @@ fun GlobalHud(
             .clip(hudShape)
             .background(Color(0xEE050A0F)) // Dark sleek background
             .windowInsetsPadding(
-                WindowInsets.statusBars.only(WindowInsetsSides.Top)
+                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
             )
             .padding(horizontal = 12.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
