@@ -1,6 +1,8 @@
 package com.presidentsimulator.game.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import com.presidentsimulator.game.ui.theme.NssMutedForeground
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -53,13 +55,12 @@ fun MainDashboardScreen(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Transparent)
-            .padding(16.dp)
+            .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 6.dp)
     ) {
         // Top Left: Quick Country Summary
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(top = 16.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(Color(0xCC050A0F))
                 .padding(12.dp),
@@ -104,7 +105,6 @@ fun MainDashboardScreen(
         Column(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 16.dp)
                 .width(200.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(Color(0xCC050A0F))
@@ -139,6 +139,86 @@ fun MainDashboardScreen(
                 }
             }
         }
+
+        // Bottom Area: Key National Indicators & Direct Ministry Shortcuts
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(bottom = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            DashboardQuickWidget(
+                modifier = Modifier.weight(1f),
+                title = "ECONOMY",
+                stat = formatCompactMoney(state.netIncome) + "/mo",
+                sub = "Tax: ${(state.economy.taxRate * 100).roundToInt()}%",
+                isPositive = state.netIncome >= 0,
+                onClick = { onNavigate(GameDestination.Economy) }
+            )
+            DashboardQuickWidget(
+                modifier = Modifier.weight(1f),
+                title = "MILITARY",
+                stat = "${com.presidentsimulator.game.ui.components.formatCompactMil(state.military.personnel)} Troops",
+                sub = if (state.diplomacy.activeWar != null) "AT WAR" else "DEFCON ${state.military.defcon} - ${state.military.morale.roundToInt()}%",
+                isPositive = state.diplomacy.activeWar == null,
+                onClick = { onNavigate(GameDestination.Military) }
+            )
+            DashboardQuickWidget(
+                modifier = Modifier.weight(1f),
+                title = "FOREIGN",
+                stat = "${state.diplomacy.rivals.size} Rivals",
+                sub = "Influence: ${state.diplomacy.diplomaticInfluence} pts",
+                isPositive = state.diplomacy.activeWar == null,
+                onClick = { onNavigate(GameDestination.Diplomacy) }
+            )
+            DashboardQuickWidget(
+                modifier = Modifier.weight(1f),
+                title = "GOVERNANCE",
+                stat = "Approval: ${state.vitals.approval.roundToInt()}%",
+                sub = "Coup Risk: ${state.internalSecurity.coupRisk.roundToInt()}%",
+                isPositive = state.vitals.approval >= 50f,
+                onClick = { onNavigate(GameDestination.LawsSociety) }
+            )
+            DashboardQuickWidget(
+                modifier = Modifier.weight(1f),
+                title = "RESEARCH",
+                stat = state.research.activeTechnology?.name?.take(14) ?: "Idle",
+                sub = "${state.research.sciencePoints} Tech Pts",
+                isPositive = state.research.activeTechnology != null,
+                onClick = { onNavigate(GameDestination.Science) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DashboardQuickWidget(
+    title: String,
+    stat: String,
+    sub: String,
+    isPositive: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color(0xEE0B131F))
+            .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        Text(title, color = NssMutedForeground, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Text(
+            stat,
+            color = if (isPositive) Color.White else NssRed,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Black,
+            maxLines = 1
+        )
+        Text(sub, color = Color.Gray, fontSize = 9.sp, maxLines = 1)
     }
 }
 

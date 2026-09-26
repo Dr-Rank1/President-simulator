@@ -116,9 +116,11 @@ fun CountrySelectScreen(
                         
                         // Stats Grid
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            StatBlock("POPULATION", "${nation.vitals.population / 1_000_000}M")
-                            StatBlock("BUDGET", "$${nation.vitals.budget / 1_000}B")
-                            StatBlock("MILITARY", "${nation.militaryStrength / 1000}K")
+                            val popM = String.format("%.1fM", nation.vitals.population / 1_000_000.0)
+                            StatBlock("POPULATION", popM)
+                            StatBlock("BUDGET", com.presidentsimulator.game.ui.components.formatCompactMoney(nation.vitals.budget))
+                            val milStr = if (nation.militaryStrength >= 1000) String.format("%.0fK", nation.militaryStrength) else String.format("%.0f", nation.militaryStrength * 1000)
+                            StatBlock("MILITARY", milStr)
                         }
                         
                         Spacer(Modifier.height(16.dp))
@@ -133,7 +135,7 @@ fun CountrySelectScreen(
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(if (isSelected) NssAccent else Color(0xFF131A26))
                                         .clickable { selectedChallengeId = challenge.id }
-                                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                                        .padding(horizontal = 14.dp, vertical = 8.dp)
                                 ) {
                                     Text(
                                         challenge.title,
@@ -144,6 +146,15 @@ fun CountrySelectScreen(
                                 }
                             }
                         }
+                        
+                        val activeChallenge = challenges.find { it.id == selectedChallengeId } ?: challenges.first()
+                        Text(
+                            text = activeChallenge.description,
+                            color = Color(0xFF94A3B8),
+                            fontSize = 10.sp,
+                            lineHeight = 14.sp,
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
                         
                         Spacer(Modifier.weight(1f))
                         
