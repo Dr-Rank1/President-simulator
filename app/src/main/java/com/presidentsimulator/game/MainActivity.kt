@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
                         PresidentSimulatorTheme {
                 val currentDensity = LocalDensity.current
                 CompositionLocalProvider(
-                    LocalDensity provides Density(currentDensity.density * 0.7f, currentDensity.fontScale * 0.7f)
+                    LocalDensity provides Density(currentDensity.density * 0.85f, currentDensity.fontScale * 0.85f)
                 ) {
                     Surface(
                         modifier = Modifier

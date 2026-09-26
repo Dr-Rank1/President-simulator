@@ -46,10 +46,11 @@ fun CountrySelectScreen(
     onSelectCountry: (countryId: String, scenarioId: String, challengeId: String) -> Unit,
 ) {
     val layout = rememberNssLayoutSpec()
-    var selectedNationId by remember(nations) { mutableStateOf(nations.firstOrNull()?.id.orEmpty()) }
+    val sortedNations = remember(nations) { nations.sortedBy { it.name } }
+    var selectedNationId by remember(sortedNations) { mutableStateOf(sortedNations.firstOrNull()?.id.orEmpty()) }
     var selectedChallengeId by remember { mutableStateOf(ScenarioCatalog.CHALLENGES.first().id) }
     
-    val nation = nations.firstOrNull { it.id == selectedNationId } ?: nations.firstOrNull()
+    val nation = sortedNations.firstOrNull { it.id == selectedNationId } ?: sortedNations.firstOrNull()
     val challenges = remember { ScenarioCatalog.CHALLENGES }
     
     BackHandler { onBack() }
@@ -189,7 +190,7 @@ fun CountrySelectScreen(
                         contentPadding = PaddingValues(12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(nations) { n ->
+                        items(sortedNations, key = { it.id }) { n ->
                             val isSelected = selectedNationId == n.id
                             Row(
                                 modifier = Modifier
@@ -225,3 +226,4 @@ private fun StatBlock(label: String, value: String) {
         Text(value, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black)
     }
 }
+
