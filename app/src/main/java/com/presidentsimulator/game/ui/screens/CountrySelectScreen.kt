@@ -1,19 +1,29 @@
 package com.presidentsimulator.game.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,14 +32,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.presidentsimulator.game.data.PlayableNationCatalog
 import com.presidentsimulator.game.data.ScenarioCatalog
 import com.presidentsimulator.game.ui.components.rememberNssLayoutSpec
@@ -53,189 +66,170 @@ fun CountrySelectScreen(
     BackHandler(onBack = onBack)
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // MA2-style hex background
+        // Hex grid background like Modern Age 2
         HexBackground()
-
-        // Dark vignette overlay
+        
+        // Gradient overlay
         Box(modifier = Modifier.fillMaxSize().background(
-            Brush.radialGradient(
-                colors = listOf(Color(0x55060D14), Color(0xCC060D14))
+            Brush.verticalGradient(
+                colors = listOf(Color(0x33000000), Color(0x99000000))
             )
         ))
 
-        Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
-            // Header bar — MA2 style
+        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            // Header
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(Color(0xCC030A12))
-                    .border(1.dp, NssBorder, RoundedCornerShape(4.dp))
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(NssPrimary)
-                        .border(1.dp, NssBorder, RoundedCornerShape(4.dp))
-                        .clickable(onClick = onBack),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = NssAccent, modifier = Modifier.size(16.dp))
+                IconButton(onClick = onBack, modifier = Modifier.size(24.dp)) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                 }
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(16.dp))
                 Text(
                     text = "SELECT YOUR NATION",
-                    color = NssAccent,
-                    fontSize = 13.sp,
+                    color = Color.White,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 2.sp
                 )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    text = "${nations.size} NATIONS AVAILABLE",
-                    color = NssMutedForeground,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp
-                )
             }
 
-            Spacer(Modifier.height(10.dp))
-
             if (nation != null) {
-                Row(modifier = Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-
-                    // LEFT PANEL: Nation details — MA2 dossier style
+                Row(modifier = Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    
+                    // LEFT PANEL: Nation details and launch
                     Column(
                         modifier = Modifier
                             .weight(1.1f)
                             .fillMaxHeight()
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(Color(0xEE030A12))
-                            .border(1.dp, NssBorder, RoundedCornerShape(4.dp))
-                            .padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Brush.linearGradient(listOf(Color(0xEE0B1521), Color(0xEE122030))))
+                            .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(12.dp))
+                            .padding(16.dp)
                     ) {
-                        // Nation identity
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Box(
                                 modifier = Modifier
-                                    .size(56.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(NssSecondary)
-                                    .border(1.dp, NssBorder, RoundedCornerShape(4.dp)),
+                                    .size(64.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color(0xFF070B11))
+                                    .border(1.dp, Color(0xFF2C3E50), RoundedCornerShape(8.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(nation.flagEmoji, fontSize = 36.sp)
+                                Text(nation.flagEmoji, fontSize = 42.sp)
                             }
                             Column {
-                                Text(nation.name.uppercase(), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
-                                Text(nation.officialName, color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                                Text(nation.governmentSystem.name.replace("_", " "), color = NssMutedForeground, fontSize = 9.sp)
+                                Text(nation.name.uppercase(), color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                                Text(nation.officialName, color = NssSky, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             }
                         }
-
-                        // Divider
-                        Box(Modifier.fillMaxWidth().height(1.dp).background(NssBorder))
-
-                        // Stats — MA2 data row style
-                        Text("NATIONAL OVERVIEW", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
-                        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                            DossierRow("Population", "${nation.vitals.population / 1_000_000}M")
-                            DossierRow("State Budget", "\$${nation.vitals.budget / 1_000}B")
-                            DossierRow("Military Strength", "${nation.militaryStrength.toLong() / 1000}K")
-                            DossierRow("Ideology", nation.ideology.name)
-                            DossierRow("Government", nation.governmentSystem.name.replace("_", " "))
+                        
+                        Spacer(Modifier.height(16.dp))
+                        
+                        // Stats Grid (Sleek)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                            StatBlock("POPULATION", "${nation.vitals.population / 1_000_000}M")
+                            StatBlock("BUDGET", "$${nation.vitals.budget / 1_000}B")
+                            StatBlock("MILITARY", "${nation.militaryStrength / 1000}K")
                         }
-
-                        // Divider
-                        Box(Modifier.fillMaxWidth().height(1.dp).background(NssBorder))
-
-                        // Difficulty selector — MA2 style chips
-                        Text("CAMPAIGN DIFFICULTY", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        
+                        Spacer(Modifier.height(20.dp))
+                        Text("DIFFICULTY", color = NssMutedForeground, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                        Spacer(Modifier.height(6.dp))
+                        
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             challenges.forEach { challenge ->
                                 val isSelected = selectedChallengeId == challenge.id
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(if (isSelected) NssAccent else NssSecondary)
-                                        .border(1.dp, if (isSelected) NssAccent else NssBorder, RoundedCornerShape(4.dp))
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (isSelected) NssEmerald else Color(0xFF131A26))
+                                        .border(1.dp, if (isSelected) Color(0x88FFFFFF) else Color.Transparent, RoundedCornerShape(6.dp))
                                         .clickable { selectedChallengeId = challenge.id }
                                         .padding(vertical = 8.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
                                         challenge.title.uppercase(),
-                                        color = if (isSelected) Color(0xFF000000) else NssMutedForeground,
+                                        color = if (isSelected) Color.White else NssMutedForeground,
                                         fontSize = 9.sp,
-                                        fontWeight = FontWeight.Black
+                                        fontWeight = FontWeight.Bold
                                     )
                                 }
                             }
                         }
-
+                        
                         Spacer(Modifier.weight(1f))
-
-                        // Launch button — MA2 accent CTA
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(Brush.horizontalGradient(listOf(NssAccent, Color(0xFF0096D6))))
-                                .clickable {
-                                    onSelectCountry(nation.id, ScenarioCatalog.ALL.first().id, selectedChallengeId)
+                        
+                        Text("IDEOLOGY & GOVERNMENT", color = NssMutedForeground, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                        Spacer(Modifier.height(6.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(modifier = Modifier.weight(1f).clip(RoundedCornerShape(6.dp)).background(Color(0xFF131A26)).padding(8.dp)) {
+                                Column {
+                                    Text("IDEOLOGY", color = NssSky, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                                    Text(nation.ideology.name, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
-                                .padding(vertical = 12.dp),
-                            contentAlignment = Alignment.Center
+                            }
+                            Box(modifier = Modifier.weight(1f).clip(RoundedCornerShape(6.dp)).background(Color(0xFF131A26)).padding(8.dp)) {
+                                Column {
+                                    Text("RULING SYSTEM", color = NssSky, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                                    Text(nation.governmentSystem.name.replace("_", " "), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                        
+                        Spacer(Modifier.weight(1f))
+                        
+                        Button(
+                            onClick = { 
+                                onSelectCountry(nation.id, ScenarioCatalog.ALL.first().id, selectedChallengeId)
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = NssEmerald, contentColor = Color.White),
+                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                            shape = RoundedCornerShape(6.dp)
                         ) {
-                            Text(
-                                "▶  COMMENCE COMMAND",
-                                color = Color(0xFF000000),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Black,
-                                letterSpacing = 1.5.sp
-                            )
+                            Text("COMMENCE COMMAND", fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
                         }
                     }
-
-                    // RIGHT PANEL: Nation grid — MA2 compact tile grid
+                    
+                    // RIGHT PANEL: Grid of Nations
                     LazyVerticalGrid(
-                        columns = GridCells.Fixed(4),
+                        columns = GridCells.Fixed(3),
                         modifier = Modifier
-                            .weight(1.6f)
+                            .weight(1.3f)
                             .fillMaxHeight()
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(Color(0xCC030A12))
-                            .border(1.dp, NssBorder, RoundedCornerShape(4.dp)),
-                        contentPadding = PaddingValues(8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0x66000000))
+                            .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(12.dp)),
+                        contentPadding = PaddingValues(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(nations) { n ->
                             val isSelected = selectedNationId == n.id
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .aspectRatio(1.2f)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(if (isSelected) NssAccent.copy(alpha = 0.15f) else NssSecondary.copy(alpha = 0.6f))
-                                    .border(if (isSelected) 2.dp else 1.dp, if (isSelected) NssAccent else NssBorder, RoundedCornerShape(4.dp))
+                                    .aspectRatio(1f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(
+                                        if (isSelected) Brush.verticalGradient(listOf(Color(0xFF2C3E50), Color(0xFF1A252F)))
+                                        else SolidColor(Color(0xFF0F151B))
+                                    )
+                                    .border(if (isSelected) 2.dp else 1.dp, if (isSelected) NssSky else Color(0xFF1C2733), RoundedCornerShape(8.dp))
                                     .clickable { selectedNationId = n.id }
-                                    .padding(6.dp),
+                                    .padding(8.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(n.flagEmoji, fontSize = 22.sp)
-                                    Spacer(Modifier.height(3.dp))
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                                    Text(n.flagEmoji, fontSize = 28.sp)
+                                    Spacer(Modifier.height(4.dp))
                                     Text(
-                                        n.name,
-                                        color = if (isSelected) NssAccent else NssMutedForeground,
-                                        fontSize = 8.sp,
+                                        n.name, 
+                                        color = if (isSelected) Color.White else NssMutedForeground,
+                                        fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         textAlign = TextAlign.Center,
                                         maxLines = 1,
@@ -252,29 +246,35 @@ fun CountrySelectScreen(
 }
 
 @Composable
-private fun DossierRow(label: String, value: String) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = NssMutedForeground, fontSize = 10.sp)
-        Text(value, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+private fun StatBlock(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label, color = NssSky, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Text(value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
     }
 }
 
 @Composable
 fun HexBackground() {
-    Canvas(modifier = Modifier.fillMaxSize().background(Color(0xFF040B11))) {
-        val hexRadius = 36f
+    Canvas(modifier = Modifier.fillMaxSize().background(Color(0xFF050A10))) {
+        val hexRadius = 40f
         val hexHeight = hexRadius * 2f
-        val hexWidth = (kotlin.math.sqrt(3.0) * hexRadius).toFloat()
+        val hexWidth = (Math.sqrt(3.0) * hexRadius).toFloat()
+        
         val vertDist = hexHeight * 0.75f
         val horizDist = hexWidth
+        
         val cols = (size.width / horizDist).toInt() + 2
         val rows = (size.height / vertDist).toInt() + 2
+        
         val path = Path()
-        val strokeColor = Color(0x1829B6F6) // Very faint cyan
+        val paintStroke = Stroke(width = 2f)
+        val strokeColor = Color(0x1A456B86) // Very faint NssSky
+        
         for (r in 0 until rows) {
             for (c in 0 until cols) {
                 val x = c * horizDist + if (r % 2 == 1) horizDist / 2f else 0f
                 val y = r * vertDist
+                
                 path.reset()
                 for (i in 0..5) {
                     val angle = Math.PI / 3 * i - Math.PI / 2
@@ -283,7 +283,7 @@ fun HexBackground() {
                     if (i == 0) path.moveTo(px, py) else path.lineTo(px, py)
                 }
                 path.close()
-                drawPath(path, color = strokeColor, style = Stroke(width = 1.5f))
+                drawPath(path, color = strokeColor, style = paintStroke)
             }
         }
     }

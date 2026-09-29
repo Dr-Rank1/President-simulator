@@ -132,7 +132,7 @@ private fun AssemblyPanel(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .nssMinistryScrollPadding()
-            .padding(Dimens.ContentPadding),
+            .padding(4.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (state.governance.lastResolutionResult.isNotBlank()) {
@@ -408,7 +408,7 @@ private fun CoalitionsPanel(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .nssMinistryScrollPadding()
-            .padding(Dimens.ContentPadding),
+            .padding(4.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(

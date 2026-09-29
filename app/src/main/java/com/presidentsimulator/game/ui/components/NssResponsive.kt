@@ -83,7 +83,7 @@ fun rememberNssLayoutSpec(): NssLayoutSpec {
 
 /** Bottom padding so scroll content clears the ministry nav bar. */
 fun Modifier.nssMinistryScrollPadding(): Modifier =
-    this.then(Modifier.padding(bottom = Dimens.MinistryScrollBottomPadding))
+    this.then(Modifier.padding(bottom = 12.dp))
 
 val NssLazyListPadding: PaddingValues
-    get() = PaddingValues(bottom = Dimens.MinistryScrollBottomPadding)
+    get() = PaddingValues(bottom = 12.dp)
