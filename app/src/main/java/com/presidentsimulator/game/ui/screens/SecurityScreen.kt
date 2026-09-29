@@ -1,26 +1,31 @@
 package com.presidentsimulator.game.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,10 +36,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,17 +48,8 @@ import com.presidentsimulator.game.data.MissionType
 import com.presidentsimulator.game.data.RivalNation
 import com.presidentsimulator.game.data.SecurityProtocol
 import com.presidentsimulator.game.ui.components.ActiveOperationCard
-import com.presidentsimulator.game.ui.components.CardHeaderBottomScrim
 import com.presidentsimulator.game.ui.components.NssAlertBanner
-import com.presidentsimulator.game.ui.components.NssBadge
-import com.presidentsimulator.game.ui.components.NssCardImages
-import com.presidentsimulator.game.ui.components.NssCardShape
-import com.presidentsimulator.game.ui.components.NssGameBar
-import com.presidentsimulator.game.ui.components.NssGradients
-import com.presidentsimulator.game.ui.components.NssPanel
-import com.presidentsimulator.game.ui.components.NssPhotoHeader
-import com.presidentsimulator.game.ui.components.NssScreenHeader
-import com.presidentsimulator.game.ui.components.NssTabBar
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.presidentsimulator.game.ui.components.graphics.CountryFlag
 import com.presidentsimulator.game.ui.components.graphics.rivalIdToCountryCode
 import com.presidentsimulator.game.ui.theme.NssAccent
@@ -63,19 +58,19 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import com.presidentsimulator.game.ui.theme.Dimens
-import com.presidentsimulator.game.ui.theme.NssBackground
+import com.presidentsimulator.game.ui.theme.NssBorder
+import com.presidentsimulator.game.ui.theme.NssCard
 import com.presidentsimulator.game.ui.theme.NssEmerald
 import com.presidentsimulator.game.ui.theme.NssForeground
 import com.presidentsimulator.game.ui.theme.NssMutedForeground
-import com.presidentsimulator.game.ui.theme.NssOnPhoto
-import com.presidentsimulator.game.ui.theme.NssPrimary
 import com.presidentsimulator.game.ui.theme.NssRed
 import com.presidentsimulator.game.viewmodel.EspionageSecurityViewModel
 import com.presidentsimulator.game.viewmodel.GameViewModel
 import com.presidentsimulator.game.viewmodel.toBudgetString
 import com.presidentsimulator.game.viewmodel.toRiskString
 import kotlin.math.roundToInt
+
+private val SecCardShape = RoundedCornerShape(4.dp)
 
 /**
  * Secret Service hub: Internal Security and Foreign Intelligence tabs.
@@ -92,25 +87,63 @@ fun SecurityScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(androidx.compose.ui.graphics.Color(0xCC050A0F))
+            .background(Color(0xFF060D14))
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
-        NssScreenHeader(
-            title = "Intelligence",
-            imageUrl = NssCardImages.BANNER_INTELLIGENCE,
-            statPills = listOf(
-                "Missions" to "${state.espionage.activeMissionCount}",
-                "Risk" to "${state.internalSecurity.coupRisk.roundToInt()}%",
-                "Budget" to state.internalSecurity.monthlyUpkeep.toBudgetString(),
-            ),
-            gradientColors = NssGradients.Violet,
-        )
+        // Title bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF030A12))
+                .border(width = 1.dp, color = NssBorder, shape = RoundedCornerShape(0.dp))
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "INTELLIGENCE",
+                color = NssAccent,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.5.sp,
+            )
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = "${state.espionage.activeMissionCount} missions · ${state.internalSecurity.coupRisk.roundToInt()}% risk",
+                color = NssMutedForeground,
+                fontSize = 9.sp,
+            )
+        }
 
-        NssTabBar(
-            tabs = tabs,
-            selectedTab = selectedTab,
-            onTabSelected = { selectedTab = it },
-        )
+        // Tab bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF030A12))
+                .horizontalScroll(rememberScrollState())
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            tabs.forEach { tab ->
+                val selected = selectedTab == tab
+                Box(
+                    modifier = Modifier
+                        .clip(SecCardShape)
+                        .background(if (selected) NssAccent else Color.Transparent)
+                        .border(1.dp, if (selected) NssAccent else NssBorder, SecCardShape)
+                        .clickable { selectedTab = tab }
+                        .padding(horizontal = 12.dp, vertical = 5.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = tab,
+                        color = if (selected) Color(0xFF000000) else NssMutedForeground,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 0.8.sp,
+                    )
+                }
+            }
+        }
 
         when (selectedTab) {
             "INTERNAL" -> InternalSecurityView(state = state, viewModel = viewModel)
@@ -132,21 +165,16 @@ private fun InternalSecurityView(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = Dimens.ContentPadding,
-            end = Dimens.ContentPadding,
-            top = Dimens.ContentPadding,
-            bottom = Dimens.ContentPadding + Dimens.MinistryScrollBottomPadding,
-        ),
-        verticalArrangement = Arrangement.spacedBy(9.dp),
+        contentPadding = PaddingValues(10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item {
             Text(
                 text = "VITALS DASHBOARD",
                 fontSize = 9.sp,
                 fontWeight = FontWeight.Black,
-                color = NssPrimary,
-                letterSpacing = 8.sp,
+                color = NssAccent,
+                letterSpacing = 1.5.sp,
             )
         }
 
@@ -173,62 +201,96 @@ private fun InternalSecurityView(
         }
 
         item {
-            NssPanel(modifier = Modifier.fillMaxWidth()) {
-                Text("Emergency Security Funding", fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
+            // Emergency funding panel
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(SecCardShape)
+                    .background(NssCard)
+                    .border(1.dp, NssBorder, SecCardShape)
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text("EMERGENCY SECURITY FUNDING", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
                 Text(
                     text = "Each unit costs ${EspionageSecurityViewModel.SECURITY_FUND_UNIT_COST.toBudgetString()} and lowers instability and coup risk. Cap ${EspionageSecurityViewModel.MONTHLY_SECURITY_FUND_CAP}/mo (used ${security.securityFundsThisMonth}).",
                     fontSize = 8.sp,
                     color = NssMutedForeground,
-                    modifier = Modifier.padding(top = 3.dp),
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                // Amount chips
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     listOf(1, 5, 10).forEach { amount ->
-                        FilterChip(
-                            selected = fundAmount == amount,
-                            onClick = { if (maxFund >= amount) fundAmount = amount },
-                            enabled = maxFund >= amount,
-                            label = { Text("${amount}x") },
+                        val sel = fundAmount == amount
+                        Box(
+                            modifier = Modifier
+                                .clip(SecCardShape)
+                                .background(if (sel) NssAccent else NssBorder)
+                                .clickable(enabled = maxFund >= amount) { if (maxFund >= amount) fundAmount = amount }
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                "${amount}x",
+                                color = if (sel) Color(0xFF000000) else NssMutedForeground,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                    val selMax = fundAmount == maxFund && maxFund > 10
+                    Box(
+                        modifier = Modifier
+                            .clip(SecCardShape)
+                            .background(if (selMax) NssAccent else NssBorder)
+                            .clickable(enabled = maxFund > 0) { if (maxFund > 0) fundAmount = maxFund }
+                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            if (maxFund > 0) "Max ($maxFund)" else "Max",
+                            color = if (selMax) Color(0xFF000000) else NssMutedForeground,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
                         )
                     }
-                    FilterChip(
-                        selected = fundAmount == maxFund && maxFund > 10,
-                        onClick = { if (maxFund > 0) fundAmount = maxFund },
-                        enabled = maxFund > 0,
-                        label = { Text(if (maxFund > 0) "Max ($maxFund)" else "Max") },
-                    )
                 }
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = "Allocate ${(fundAmount * EspionageSecurityViewModel.SECURITY_FUND_UNIT_COST).toBudgetString()}",
+                val canFund = fundAmount > 0 && maxFund >= fundAmount
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(NssCardShape)
-                        .background(if (fundAmount > 0 && maxFund >= fundAmount) NssPrimary else NssPrimary.copy(alpha = 0.35f))
-                        .clickable(enabled = fundAmount > 0 && maxFund >= fundAmount) { viewModel.fundInternalSecurity(fundAmount) }
-                        .padding(vertical = 7.dp),
-                    color = NssOnPhoto,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 9.sp,
-                    textAlign = TextAlign.Center,
-                )
+                        .clip(SecCardShape)
+                        .background(if (canFund) NssAccent else NssAccent.copy(alpha = 0.35f))
+                        .clickable(enabled = canFund) { viewModel.fundInternalSecurity(fundAmount) }
+                        .padding(10.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        "ALLOCATE ${(fundAmount * EspionageSecurityViewModel.SECURITY_FUND_UNIT_COST).toBudgetString()}",
+                        color = Color(0xFF000000),
+                        fontWeight = FontWeight.Black,
+                        fontSize = 9.sp,
+                        letterSpacing = 1.sp,
+                    )
+                }
             }
         }
 
         item {
-            Text(
-                text = "DOMESTIC OPERATIONS",
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Black,
-                color = NssPrimary,
-                letterSpacing = 8.sp,
-            )
-            Text(
-                text = "Protocol upkeep: ${security.monthlyUpkeep.toBudgetString()}/mo",
-                fontSize = 8.sp,
-                color = NssMutedForeground,
-                modifier = Modifier.padding(top = 3.dp),
-            )
+            Column {
+                Text(
+                    text = "DOMESTIC OPERATIONS",
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Black,
+                    color = NssAccent,
+                    letterSpacing = 1.5.sp,
+                )
+                Text(
+                    text = "Protocol upkeep: ${security.monthlyUpkeep.toBudgetString()}/mo",
+                    fontSize = 8.sp,
+                    color = NssMutedForeground,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
         }
 
         items(SecurityProtocol.entries, key = { it.name }) { protocol ->
@@ -262,6 +324,11 @@ private fun RiskMeterCard(
         value >= 40f -> "ELEVATED"
         else -> "STABLE"
     }
+    val labelColor = when {
+        value >= 75f -> NssRed
+        value >= 40f -> NssAccent
+        else -> NssEmerald
+    }
 
     val infiniteTransition = rememberInfiniteTransition(label = "coupFlash")
     val flashAlpha by infiniteTransition.animateFloat(
@@ -275,21 +342,48 @@ private fun RiskMeterCard(
     )
     val alpha = if (flashWhenCritical && value >= 75f) flashAlpha else 1f
 
-    NssPanel(modifier = Modifier.fillMaxWidth().alpha(alpha)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(alpha)
+            .clip(SecCardShape)
+            .background(NssCard)
+            .border(1.dp, NssBorder, SecCardShape)
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(title, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
-            NssBadge(label = "$label · ${value.toRiskString()}")
+            Text(
+                "$label · ${value.toRiskString()}",
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Black,
+                color = labelColor,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(labelColor.copy(alpha = 0.12f))
+                    .padding(horizontal = 5.dp, vertical = 2.dp),
+            )
         }
-        Spacer(modifier = Modifier.height(6.dp))
-        NssGameBar(
-            percent = (value / 100f).coerceIn(0f, 1f),
-            color = barColor,
-            thick = true,
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(NssBorder),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth((value / 100f).coerceIn(0f, 1f))
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(barColor),
+            )
+        }
     }
 }
 
@@ -301,7 +395,15 @@ private fun SecurityMeasureCard(
     onToggle: () -> Unit,
 ) {
     val canToggle = cooldownMonths <= 0
-    NssPanel(modifier = Modifier.fillMaxWidth(), highlighted = isActive) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(SecCardShape)
+            .background(NssCard)
+            .border(1.dp, if (isActive) NssAccent.copy(alpha = 0.5f) else NssBorder, SecCardShape)
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -314,44 +416,50 @@ private fun SecurityMeasureCard(
                 color = NssForeground,
                 modifier = Modifier.weight(1f),
             )
-            NssBadge(label = if (isActive) "ACTIVE" else "OFF")
+            val statusColor = if (isActive) NssEmerald else NssMutedForeground
+            Text(
+                if (isActive) "ACTIVE" else "OFF",
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Black,
+                color = statusColor,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(statusColor.copy(alpha = 0.12f))
+                    .padding(horizontal = 5.dp, vertical = 2.dp),
+            )
         }
-        Text(
-            text = protocol.description,
-            fontSize = 8.sp,
-            color = NssMutedForeground,
-            modifier = Modifier.padding(top = 3.dp),
-        )
+        Text(text = protocol.description, fontSize = 8.sp, color = NssMutedForeground)
         Text(
             text = "Upkeep ${protocol.monthlyUpkeep.toBudgetString()}/mo · Instability -${protocol.instabilityReduction.toRiskString()} · Approval ${protocol.approvalPenalty.toRiskString()}",
             fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 3.dp),
         )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = when {
-                !canToggle -> "Cooldown ($cooldownMonths mo)"
-                isActive -> "Deactivate Protocol"
-                else -> "Activate Protocol"
-            },
+        val btnBg = when {
+            !canToggle -> NssMutedForeground.copy(alpha = 0.25f)
+            isActive -> NssRed
+            else -> NssAccent
+        }
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(NssCardShape)
-                .background(
-                    when {
-                        !canToggle -> NssPrimary.copy(alpha = 0.35f)
-                        isActive -> NssRed.copy(alpha = 0.85f)
-                        else -> NssPrimary
-                    },
-                )
+                .clip(SecCardShape)
+                .background(btnBg)
                 .clickable(enabled = canToggle, onClick = onToggle)
-                .padding(vertical = 7.dp),
-            color = NssOnPhoto,
-            fontWeight = FontWeight.Bold,
-            fontSize = 9.sp,
-            textAlign = TextAlign.Center,
-        )
+                .padding(vertical = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = when {
+                    !canToggle -> "Cooldown ($cooldownMonths mo)"
+                    isActive -> "Deactivate Protocol"
+                    else -> "Activate Protocol"
+                },
+                color = if (canToggle) Color(0xFF000000) else NssMutedForeground,
+                fontWeight = FontWeight.Black,
+                fontSize = 9.sp,
+                letterSpacing = 1.sp,
+            )
+        }
     }
 }
 
@@ -369,40 +477,51 @@ private fun ForeignIntelligenceView(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            start = Dimens.ContentPadding,
-            end = Dimens.ContentPadding,
-            top = Dimens.ContentPadding,
-            bottom = Dimens.ContentPadding + Dimens.MinistryScrollBottomPadding,
-        ),
-        verticalArrangement = Arrangement.spacedBy(9.dp),
+        contentPadding = PaddingValues(10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item {
-            NssPanel(modifier = Modifier.fillMaxWidth()) {
-                Text("Spy Network", fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
-                Text("Available spies: ${espionage.availableSpies} / ${espionage.spyCount}", fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
-                Text("Intelligence budget: ${espionage.intelligencePoints} pts", fontSize = 8.sp, color = NssMutedForeground)
-                Text("Active operations: ${espionage.activeMissionCount}", fontSize = 8.sp, color = NssMutedForeground)
-                Text(
-                    text = "Global exposure: ${espionage.exposureLevel.roundToInt()}%",
-                    fontSize = 8.sp,
-                    color = if (espionage.exposureLevel >= 55f) NssRed else NssMutedForeground,
-                )
-                Spacer(modifier = Modifier.height(6.dp))
+            // Spy network summary card
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(SecCardShape)
+                    .background(NssCard)
+                    .border(1.dp, NssBorder, SecCardShape)
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                Text("SPY NETWORK", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
+                SecDataRow("Available spies", "${espionage.availableSpies} / ${espionage.spyCount}")
+                SecDataRow("Intelligence budget", "${espionage.intelligencePoints} pts")
+                SecDataRow("Active operations", "${espionage.activeMissionCount}")
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Global exposure", fontSize = 10.sp, color = NssMutedForeground)
+                    Text(
+                        "${espionage.exposureLevel.roundToInt()}%",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (espionage.exposureLevel >= 55f) NssRed else Color.White,
+                    )
+                }
                 val canRecruit = state.vitals.budget >= EspionageSecurityViewModel.SPY_RECRUIT_COST
-                Text(
-                    text = "Recruit Spy (${EspionageSecurityViewModel.SPY_RECRUIT_COST.toBudgetString()})",
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(NssCardShape)
-                        .background(if (canRecruit) NssPrimary else NssPrimary.copy(alpha = 0.35f))
+                        .clip(SecCardShape)
+                        .background(if (canRecruit) NssAccent else NssAccent.copy(alpha = 0.35f))
                         .clickable(enabled = canRecruit) { viewModel.recruitSpy() }
-                        .padding(vertical = 7.dp),
-                    color = NssOnPhoto,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 9.sp,
-                    textAlign = TextAlign.Center,
-                )
+                        .padding(10.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        "RECRUIT SPY (${EspionageSecurityViewModel.SPY_RECRUIT_COST.toBudgetString()})",
+                        color = Color(0xFF000000),
+                        fontWeight = FontWeight.Black,
+                        fontSize = 9.sp,
+                        letterSpacing = 1.sp,
+                    )
+                }
             }
         }
 
@@ -412,8 +531,8 @@ private fun ForeignIntelligenceView(
                     text = "ONGOING MISSIONS",
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Black,
-                    color = NssPrimary,
-                    letterSpacing = 8.sp,
+                    color = NssAccent,
+                    letterSpacing = 1.5.sp,
                 )
             }
             items(activeMissions, key = { it.id }) { mission ->
@@ -431,8 +550,8 @@ private fun ForeignIntelligenceView(
                     text = "RECENT OUTCOMES",
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Black,
-                    color = NssPrimary,
-                    letterSpacing = 8.sp,
+                    color = NssAccent,
+                    letterSpacing = 1.5.sp,
                 )
             }
             items(recentOutcomes.take(4), key = { "done-${it.id}" }) { mission ->
@@ -449,8 +568,8 @@ private fun ForeignIntelligenceView(
                 text = "TARGET SELECTION",
                 fontSize = 9.sp,
                 fontWeight = FontWeight.Black,
-                color = NssPrimary,
-                letterSpacing = 8.sp,
+                color = NssAccent,
+                letterSpacing = 1.5.sp,
             )
         }
 
@@ -477,6 +596,18 @@ private fun ForeignIntelligenceView(
 }
 
 @Composable
+private fun SecDataRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, color = NssMutedForeground, fontSize = 10.sp)
+        Text(value, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
 private fun RivalIntelTargetCard(
     state: GameState,
     rival: RivalNation,
@@ -486,15 +617,15 @@ private fun RivalIntelTargetCard(
     canDeploy: (MissionType) -> Boolean,
     onDeploy: (MissionType) -> Unit,
 ) {
-    NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Box(modifier = Modifier.fillMaxWidth().height(54.dp).padding(bottom = 6.dp)) {
-            NssPhotoHeader(
-                imageUrl = NssCardImages.nationCardImage(rival.name.hashCode().mod(6).let { if (it < 0) -it else it }),
-                fallbackGradient = NssGradients.Violet,
-                modifier = Modifier.fillMaxSize(),
-                scrimTopToBottom = CardHeaderBottomScrim,
-            )
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(SecCardShape)
+            .background(NssCard)
+            .border(1.dp, NssBorder, SecCardShape)
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -504,7 +635,8 @@ private fun RivalIntelTargetCard(
                 countryCode = rivalIdToCountryCode(rival.id),
                 size = 27.dp,
             )
-            Column(modifier = Modifier.weight(1f).padding(horizontal = 7.dp)) {
+            Spacer(Modifier.width(7.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = rival.name,
                     fontWeight = FontWeight.Bold,
@@ -517,30 +649,32 @@ private fun RivalIntelTargetCard(
                     color = NssMutedForeground,
                 )
             }
-            Text(
-                text = if (expanded) "Hide" else "Ops",
+            Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(NssPrimary.copy(alpha = 0.12f))
+                    .clip(SecCardShape)
+                    .background(NssAccent.copy(alpha = 0.15f))
+                    .border(1.dp, NssAccent.copy(alpha = 0.4f), SecCardShape)
                     .clickable(onClick = onToggle)
                     .padding(horizontal = 9.dp, vertical = 4.dp),
-                color = NssPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = 8.sp,
-            )
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    if (expanded) "Hide" else "Ops",
+                    color = NssAccent,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 8.sp,
+                )
+            }
         }
 
         AnimatedVisibility(visible = expanded) {
-            Column(
-                modifier = Modifier.padding(top = 7.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = "COVERT OPERATIONS",
                     fontSize = 8.sp,
                     fontWeight = FontWeight.Black,
-                    color = NssPrimary,
-                    letterSpacing = 8.sp,
+                    color = NssAccent,
+                    letterSpacing = 1.5.sp,
                 )
                 MissionType.entries.forEach { missionType ->
                     CovertOperationRow(
@@ -562,7 +696,15 @@ private fun CovertOperationRow(
     enabled: Boolean,
     onDeploy: () -> Unit,
 ) {
-    NssPanel(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(SecCardShape)
+            .background(Color(0xFF0A1520))
+            .border(1.dp, NssBorder, SecCardShape)
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
         Text(
             text = missionType.displayName,
             fontWeight = FontWeight.Bold,
@@ -573,27 +715,28 @@ private fun CovertOperationRow(
             text = missionType.description,
             fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 1.dp),
         )
         Text(
             text = "Cost ${missionType.budgetCost.toBudgetString()} · Intel -${missionType.intelCost} · ${missionType.durationTicks} mo · ${(successChance * 100f).roundToInt()}% success",
             fontSize = 8.sp,
             color = NssMutedForeground,
-            modifier = Modifier.padding(top = 3.dp),
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = if (enabled) "Deploy Spy" else "Unavailable",
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(NssCardShape)
-                .background(if (enabled) NssPrimary else NssPrimary.copy(alpha = 0.35f))
+                .clip(SecCardShape)
+                .background(if (enabled) NssAccent else NssAccent.copy(alpha = 0.25f))
                 .clickable(enabled = enabled, onClick = onDeploy)
                 .padding(vertical = 6.dp),
-            color = NssOnPhoto,
-            fontWeight = FontWeight.Bold,
-            fontSize = 8.sp,
-            textAlign = TextAlign.Center,
-        )
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = if (enabled) "Deploy Spy" else "Unavailable",
+                color = if (enabled) Color(0xFF000000) else NssMutedForeground,
+                fontWeight = FontWeight.Black,
+                fontSize = 8.sp,
+                letterSpacing = 1.sp,
+            )
+        }
     }
 }

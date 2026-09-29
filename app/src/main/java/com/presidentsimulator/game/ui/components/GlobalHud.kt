@@ -1,33 +1,27 @@
 package com.presidentsimulator.game.ui.components
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.viewmodel.TimeSpeedMode
-import com.presidentsimulator.game.ui.theme.NssAccent
-import com.presidentsimulator.game.ui.theme.NssRed
-import com.presidentsimulator.game.ui.components.formatCompactMoney
-import com.presidentsimulator.game.ui.components.formatCompactMil
+import com.presidentsimulator.game.ui.theme.*
 import kotlin.math.roundToInt
 
 @Composable
@@ -39,83 +33,149 @@ fun GlobalHud(
     onTimeSpeedModeSelected: (TimeSpeedMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val hudShape = RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)
+    val approval = state.vitals.approval
+    val approvalColor = when {
+        approval >= 65f -> NssEmerald
+        approval >= 45f -> NssAmber
+        else -> NssRed
+    }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(hudShape)
-            .background(Color(0xEE050A0F)) // Dark sleek background
-            .windowInsetsPadding(
-                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
+            .background(
+                Brush.verticalGradient(listOf(Color(0xFF030A12), Color(0xFF060F1A)))
             )
-            .padding(horizontal = 12.dp, vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+            .border(
+                width = 1.dp,
+                brush = Brush.horizontalGradient(listOf(Color.Transparent, NssAccent.copy(alpha = 0.3f), Color.Transparent)),
+                shape = RoundedCornerShape(0.dp)
+            )
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Date and Flag (Modern Age 2 style)
-        Column {
-            Text(
-                text = "${state.monthName()} ${state.year}",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
-            Text(
-                text = state.playerNation.name,
-                color = Color.LightGray,
-                fontSize = 11.sp
-            )
-        }
-
-        // Vitals
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            // Money
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.AttachMoney, contentDescription = null, tint = NssAccent, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
+        // LEFT: Flag + Country + Date
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(state.playerNation.flagEmoji, fontSize = 18.sp)
+            Column {
                 Text(
-                    text = formatCompactMoney(state.vitals.budget),
+                    state.playerNation.name.uppercase(),
                     color = Color.White,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 11.sp,
+                    letterSpacing = 1.sp
+                )
+                Text(
+                    "${state.monthName()} ${state.year}",
+                    color = NssAccent,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp
-                )
-            }
-            
-            // Approval/Population
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "Pop: ${formatCompactMil(state.vitals.population)}",
-                    color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 11.sp
+                    fontSize = 10.sp,
+                    letterSpacing = 0.5.sp
                 )
             }
         }
 
-        // Time Controls
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.background(Color(0xFF1E293B), RoundedCornerShape(4.dp)).padding(2.dp)
-        ) {
-            val playIconColor = if (!timeSpeedEnabled) Color.DarkGray else if (timeSpeedMode == TimeSpeedMode.NORMAL) NssAccent else Color.LightGray
-            val ffIconColor = if (!timeSpeedEnabled) Color.DarkGray else if (timeSpeedMode == TimeSpeedMode.FAST) NssAccent else Color.LightGray
+        // CENTER: Key resource stats — MA2 style compact strips
+        Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            HudStat(icon = Icons.Default.AttachMoney,   label = "BUDGET",   value = formatCompactMoney(state.vitals.budget), color = if (state.netIncome >= 0) NssEmerald else NssRed)
+            HudDivider()
+            HudStat(icon = Icons.Default.TrendingUp,    label = "INCOME",   value = (if (state.netIncome >= 0) "+" else "") + formatCompactMoney(state.netIncome), color = if (state.netIncome >= 0) NssEmerald else NssRed)
+            HudDivider()
+            HudStat(icon = Icons.Default.People,        label = "POP",      value = formatCompactMil(state.vitals.population), color = Color.White)
+            HudDivider()
+            HudStat(icon = Icons.Default.FavoriteBorder, label = "APPROVAL", value = "${approval.roundToInt()}%", color = approvalColor)
+            HudDivider()
+            HudStat(icon = Icons.Default.Shield,        label = "DEFCON",   value = "${state.military.defcon}", color = when (state.military.defcon) { 1, 2 -> NssRed; 3 -> NssAmber; else -> NssEmerald })
+        }
 
-            Box(modifier = Modifier.size(28.dp).clip(RoundedCornerShape(4.dp)).clickable(enabled = timeSpeedEnabled) {
-                onTimeSpeedModeSelected(if (timeSpeedMode == TimeSpeedMode.PAUSED) TimeSpeedMode.NORMAL else TimeSpeedMode.PAUSED)
-            }, contentAlignment = Alignment.Center) {
-                Icon(if (timeSpeedMode == TimeSpeedMode.PAUSED) Icons.Default.PlayArrow else Icons.Default.Pause, contentDescription = null, tint = playIconColor, modifier = Modifier.size(20.dp))
+        // RIGHT: Time controls — MA2 has pause / play / fast-forward
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (alertCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(NssRed.copy(alpha = 0.2f))
+                        .border(1.dp, NssRed.copy(alpha = 0.5f), RoundedCornerShape(3.dp))
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = NssRed, modifier = Modifier.size(10.dp))
+                        Text("$alertCount", color = NssRed, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                    }
+                }
+                Spacer(Modifier.width(4.dp))
             }
-            Box(modifier = Modifier.size(28.dp).clip(RoundedCornerShape(4.dp)).clickable(enabled = timeSpeedEnabled) {
-                onTimeSpeedModeSelected(if (timeSpeedMode == TimeSpeedMode.FAST) TimeSpeedMode.NORMAL else TimeSpeedMode.FAST)
-            }, contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.FastForward, contentDescription = null, tint = ffIconColor, modifier = Modifier.size(20.dp))
+            TimeBtn(Icons.Default.Pause,       active = timeSpeedMode == TimeSpeedMode.PAUSED, enabled = timeSpeedEnabled) {
+                onTimeSpeedModeSelected(if (timeSpeedMode == TimeSpeedMode.PAUSED) TimeSpeedMode.NORMAL else TimeSpeedMode.PAUSED)
+            }
+            TimeBtn(Icons.Default.PlayArrow,   active = timeSpeedMode == TimeSpeedMode.NORMAL,  enabled = timeSpeedEnabled) {
+                onTimeSpeedModeSelected(TimeSpeedMode.NORMAL)
+            }
+            TimeBtn(Icons.Default.FastForward, active = timeSpeedMode == TimeSpeedMode.FAST,    enabled = timeSpeedEnabled) {
+                onTimeSpeedModeSelected(TimeSpeedMode.FAST)
             }
         }
     }
 }
 
+@Composable
+private fun HudStat(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    color: Color,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(horizontal = 6.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            Icon(icon, contentDescription = null, tint = NssMutedForeground, modifier = Modifier.size(9.dp))
+            Text(label, color = NssMutedForeground, fontSize = 7.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
+        }
+        Text(value, color = color, fontWeight = FontWeight.Black, fontSize = 11.sp, letterSpacing = 0.3.sp)
+    }
+}
+
+@Composable
+private fun HudDivider() {
+    Box(
+        modifier = Modifier
+            .width(1.dp)
+            .height(28.dp)
+            .background(NssBorder)
+    )
+}
+
+@Composable
+private fun TimeBtn(
+    icon: ImageVector,
+    active: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(28.dp)
+            .clip(RoundedCornerShape(3.dp))
+            .background(if (active) NssAccent.copy(alpha = 0.18f) else Color.Transparent)
+            .border(1.dp, if (active) NssAccent.copy(alpha = 0.6f) else NssBorder, RoundedCornerShape(3.dp))
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(icon, contentDescription = null,
+            tint = if (!enabled) Color.DarkGray else if (active) NssAccent else Color.Gray,
+            modifier = Modifier.size(16.dp))
+    }
+}
+
 private fun GameState.monthName(): String {
-    val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-    return months.getOrElse(month - 1) { "Unknown" }
+    val months = listOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+    return months.getOrElse(month - 1) { "?" }
 }
