@@ -116,15 +116,15 @@ fun NssGameBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(if (thick) 6.dp else 4.dp)
-            .clip(RoundedCornerShape(2.dp))
-            .background(NssBorder),
+            .height(if (thick) 9.dp else 6.dp)
+            .clip(RoundedCornerShape(50))
+            .background(Color(0xFFF5F5F4)),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(animatedPct / 100f)
-                .clip(RoundedCornerShape(2.dp))
+                .clip(RoundedCornerShape(50))
                 .background(color),
         )
     }
@@ -172,7 +172,7 @@ fun NssLvBadge(level: Int, modifier: Modifier = Modifier) {
         modifier = modifier
             .clip(MaterialTheme.shapes.extraSmall)
             .background(NssPrimary)
-            .padding(horizontal = Dimens.SpacingSmall, vertical = 1.dp),
+            .padding(horizontal = 4.dp, vertical = 1.dp),
         color = NssOnPhoto,
         fontSize = 8.sp,
         fontWeight = FontWeight.Black,
@@ -188,27 +188,53 @@ fun NssScreenHeader(
     gradientColors: List<Color> = listOf(NssPrimary, NssPrimary.copy(alpha = 0.7f)),
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    val layout = rememberNssLayoutSpec()
+    val headerHeight = layout.screenHeaderHeight
+    val titleSize = if (layout.isLandscape || layout.isCompactHeight) 16.sp else 21.sp
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFF030A12))
-            .border(1.dp, NssBorder, RoundedCornerShape(0.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .height(headerHeight),
     ) {
-        Text(
-            text = title.uppercase(),
-            color = NssAccent,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 1.5.sp
+        NssPhotoHeader(
+            imageUrl = imageUrl,
+            fallbackGradient = gradientColors,
+            modifier = Modifier.matchParentSize(),
+            scrimTopToBottom = ScreenHeaderScrim,
         )
-        Spacer(Modifier.weight(1f))
-        statPills.forEach { (label, value) ->
-            Row(modifier = Modifier.padding(start = 12.dp)) {
-                Text(label.uppercase(), color = NssMutedForeground, fontSize = 9.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.width(4.dp))
-                Text(value, color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        if (layout.isLandscape) {
+            Row(
+                modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(horizontal = 4.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column {
+                    Text("MINISTRY OF", style = MaterialTheme.typography.labelSmall, color = NssOnPhoto.copy(alpha = 0.65f), letterSpacing = 8.sp, fontSize = 8.sp)
+                    Text(title.uppercase(), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontWeight = FontWeight.Black,
+                        fontSize = titleSize, color = NssOnPhoto, letterSpacing = 8.sp, maxLines = 1)
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    statPills.take(3).forEach { (label, value) ->
+                        Column(Modifier.clip(MaterialTheme.shapes.small).background(NssOnPhoto.copy(alpha = 0.15f)).padding(horizontal = 6.dp, vertical = 3.dp)) {
+                            Text(label, fontSize = 8.sp, color = NssOnPhoto.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold, maxLines = 1)
+                            Text(value, fontSize = 8.sp, color = NssOnPhoto, fontWeight = FontWeight.Black, maxLines = 1)
+                        }
+                    }
+                }
+            }
+        } else {
+            Column(modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(4.dp)) {
+                Text("MINISTRY OF", style = MaterialTheme.typography.labelSmall, color = NssOnPhoto.copy(alpha = 0.6f), letterSpacing = 8.sp, fontSize = 8.sp)
+                Text(title.uppercase(), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontWeight = FontWeight.Black,
+                    fontSize = titleSize, color = NssOnPhoto, letterSpacing = 8.sp, modifier = Modifier.padding(bottom = 4.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    statPills.take(3).forEach { (label, value) ->
+                        Column(Modifier.clip(MaterialTheme.shapes.small).background(NssOnPhoto.copy(alpha = 0.15f)).padding(horizontal = 9.dp, vertical = 4.dp)) {
+                            Text(label, fontSize = 8.sp, color = NssOnPhoto.copy(alpha = 0.7f), fontWeight = FontWeight.SemiBold)
+                            Text(value, fontSize = 9.sp, color = NssOnPhoto, fontWeight = FontWeight.Black)
+                        }
+                    }
+                }
             }
         }
     }
@@ -234,7 +260,7 @@ fun NssPanel(
         },
     ) {
         Column(
-            modifier = Modifier.padding(Dimens.ContentPadding),
+            modifier = Modifier.padding(4.dp),
             content = content,
         )
     }
@@ -254,7 +280,7 @@ fun NssCard(
         shadowElevation = Dimens.CardElevation,
         border = BorderStroke(1.dp, NssBorder),
     ) {
-        Column(modifier = Modifier.padding(Dimens.ContentPadding)) {
+        Column(modifier = Modifier.padding(4.dp)) {
             content()
         }
     }
@@ -294,7 +320,7 @@ fun NssBadge(
             .border(1.dp, colors.border, shape)
             .background(colors.background)
             .padding(
-                horizontal = if (large) Dimens.SpacingSmall else 4.dp,
+                horizontal = if (large) 4.dp else 4.dp,
                 vertical = if (large) 1.dp else 1.dp,
             ),
         color = colors.text,
@@ -492,16 +518,24 @@ fun NssStripPhotoCard(
     imageUrl: String?,
     fallbackGradient: List<Color> = listOf(NssSecondary, NssCard),
     modifier: Modifier = Modifier,
-    headerHeight: Dp = 0.dp,
+    headerHeight: Dp = 54.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier = modifier
-            .border(1.dp, NssBorder, RoundedCornerShape(4.dp))
-            .background(NssCard, RoundedCornerShape(4.dp))
-            .padding(12.dp),
-        content = content
-    )
+            .border(1.dp, NssBorder)
+            .background(NssCard),
+    ) {
+        NssPhotoHeader(
+            imageUrl = imageUrl,
+            fallbackGradient = fallbackGradient,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(headerHeight),
+            scrimTopToBottom = StripHeaderBottomScrim,
+        )
+        Column(modifier = Modifier.padding(12.dp), content = content)
+    }
 }
 
 @Composable

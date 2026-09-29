@@ -94,7 +94,7 @@ fun SettingsAudioScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .nssMinistryScrollPadding()
-                .padding(Dimens.ContentPadding),
+                .padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp),
         ) {
             NssPanel(modifier = Modifier.fillMaxWidth()) {

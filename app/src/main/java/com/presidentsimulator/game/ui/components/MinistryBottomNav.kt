@@ -68,18 +68,10 @@ fun MinistryBottomNav(
         Column(
             modifier = modifier
                 .fillMaxHeight()
-                .width(72.dp)
-                .background(
-                    androidx.compose.ui.graphics.Brush.verticalGradient(
-                        listOf(Color(0xFF030A12), Color(0xFF05101A))
-                    )
-                )
-                .border(
-                    width = 1.dp,
-                    color = Color(0xFF102030),
-                    shape = RoundedCornerShape(0.dp)
-                )
-                .padding(vertical = 4.dp, horizontal = 3.dp),
+                .width(76.dp)
+                .background(Color(0xFF0C1322))
+                .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp))
+                .padding(vertical = 4.dp, horizontal = 2.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly,
         ) {
@@ -87,67 +79,57 @@ fun MinistryBottomNav(
                 val selected = currentRoute == item.destination.route
                 val alerts = bottomNavAlertCount(state, item.destination)
 
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .padding(vertical = 1.dp)
-                ) {
-                    if (selected) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.CenterStart)
-                                .width(3.dp)
-                                .fillMaxHeight(0.7f)
-                                .clip(RoundedCornerShape(topEnd = 2.dp, bottomEnd = 2.dp))
-                                .background(NssAccent)
+                        .padding(vertical = 2.dp, horizontal = 2.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(if (selected) Color(0xFF1E293B) else Color.Transparent)
+                        .border(
+                            1.dp,
+                            if (selected) NssAccent.copy(alpha = 0.6f) else Color.Transparent,
+                            RoundedCornerShape(6.dp)
                         )
-                    }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(if (selected) NssAccent.copy(alpha = 0.1f) else Color.Transparent)
-                            .clickable { onNavigate(item.destination) }
-                            .padding(vertical = 6.dp, horizontal = 4.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.label,
-                                tint = if (selected) NssAccent else Color(0xFF3A5060),
-                                modifier = Modifier.size(20.dp)
-                            )
-                            if (alerts > 0) {
-                                Box(
-                                    Modifier
-                                        .align(Alignment.TopEnd)
-                                        .offset(x = 5.dp, y = (-4).dp)
-                                        .size(11.dp)
-                                        .clip(CircleShape)
-                                        .background(NssRed),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = alerts.coerceAtMost(9).toString(),
-                                        color = Color.White,
-                                        fontSize = 6.sp,
-                                        fontWeight = FontWeight.Black
-                                    )
-                                }
+                        .clickable { onNavigate(item.destination) }
+                        .padding(vertical = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.label,
+                            tint = if (selected) NssAccent else Color.LightGray,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        if (alerts > 0) {
+                            Box(
+                                Modifier
+                                    .align(Alignment.TopEnd)
+                                    .offset(x = 6.dp, y = (-4).dp)
+                                    .size(12.dp)
+                                    .clip(CircleShape)
+                                    .background(NssRed),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = alerts.coerceAtMost(9).toString(),
+                                    color = Color.White,
+                                    fontSize = 7.sp,
+                                    fontWeight = FontWeight.Black
+                                )
                             }
                         }
-                        Spacer(modifier = Modifier.height(3.dp))
-                        Text(
-                            text = item.label.uppercase(),
-                            color = if (selected) NssAccent else Color(0xFF3A5060),
-                            fontSize = 7.sp,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1
-                        )
                     }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = item.label.uppercase(),
+                        color = if (selected) NssAccent else Color.LightGray,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
+                    )
                 }
             }
         }

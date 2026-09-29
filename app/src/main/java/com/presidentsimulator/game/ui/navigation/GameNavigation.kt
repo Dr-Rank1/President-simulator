@@ -1,4 +1,4 @@
-package com.presidentsimulator.game.ui.navigation
+﻿package com.presidentsimulator.game.ui.navigation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -367,7 +367,7 @@ fun GameNavigation(
                 currentRoute = currentRoute,
                 onNavigate = navigate,
                 sideRail = true,
-                modifier = Modifier.width(72.dp).fillMaxHeight(),
+                modifier = Modifier.width(80.dp).fillMaxHeight(),
             )
         }
     }

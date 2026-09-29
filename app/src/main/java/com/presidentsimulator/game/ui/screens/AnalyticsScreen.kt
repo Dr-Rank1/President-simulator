@@ -92,7 +92,7 @@ fun AnalyticsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .nssMinistryScrollPadding()
-                .padding(Dimens.ContentPadding),
+                .padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             LegacyLedgerPanel(state = state)
