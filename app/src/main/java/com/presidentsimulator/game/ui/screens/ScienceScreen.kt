@@ -3,6 +3,7 @@ package com.presidentsimulator.game.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,16 +11,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -27,32 +33,23 @@ import androidx.compose.ui.unit.sp
 import com.presidentsimulator.game.data.TechCatalog
 import com.presidentsimulator.game.data.Technology
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import com.presidentsimulator.game.ui.components.NssBadge
-import com.presidentsimulator.game.ui.components.NssCardShape
-import com.presidentsimulator.game.ui.components.NssCardImages
 import com.presidentsimulator.game.ui.components.NssGameBar
-import com.presidentsimulator.game.ui.components.NssGradients
-import com.presidentsimulator.game.ui.components.NssPanel
-import com.presidentsimulator.game.ui.components.NssPhotoHeader
-import com.presidentsimulator.game.ui.components.NssScreenHeader
-import com.presidentsimulator.game.ui.components.CardHeaderBottomScrim
-import com.presidentsimulator.game.ui.theme.NssGameCard
-import com.presidentsimulator.game.ui.theme.NssAccent
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import com.presidentsimulator.game.ui.theme.Dimens
-import com.presidentsimulator.game.ui.theme.NssBackground
+import com.presidentsimulator.game.ui.theme.NssAccent
+import com.presidentsimulator.game.ui.theme.NssBorder
+import com.presidentsimulator.game.ui.theme.NssCard
 import com.presidentsimulator.game.ui.theme.NssEmerald
 import com.presidentsimulator.game.ui.theme.NssForeground
 import com.presidentsimulator.game.ui.theme.NssMutedForeground
-import com.presidentsimulator.game.ui.theme.NssOnPhoto
-import com.presidentsimulator.game.ui.theme.NssPrimary
+import com.presidentsimulator.game.ui.theme.NssRed
 import com.presidentsimulator.game.viewmodel.AdvancementViewModel
 import com.presidentsimulator.game.viewmodel.GameViewModel
+
+private val CardShape = RoundedCornerShape(4.dp)
 
 @Composable
 fun ScienceScreen(
@@ -65,30 +62,45 @@ fun ScienceScreen(
     val activeTech = research.activeTechnology
     val queuedTech = research.queuedTechnology
 
-    Column(modifier = modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xCC050A0F)).windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
-        NssScreenHeader(
-            title = "Science",
-            imageUrl = NssCardImages.BANNER_SCIENCE,
-            statPills = listOf(
-                "Unlocked" to "${research.unlockedTechIds.size}",
-                "Reserve" to "${research.sciencePoints} pts",
-                "Rate" to "+$sciencePerMonth/mo",
-            ),
-            gradientColors = NssGradients.Violet,
-        )
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFF060D14))
+            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+    ) {
+        // Screen title bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF030A12))
+                .border(width = 1.dp, color = NssBorder, shape = RoundedCornerShape(0.dp))
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "SCIENCE",
+                color = NssAccent,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.5.sp,
+            )
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = "${research.unlockedTechIds.size} unlocked · ${research.sciencePoints} pts · +$sciencePerMonth/mo",
+                color = NssMutedForeground,
+                fontSize = 9.sp,
+            )
+        }
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                start = Dimens.ContentPadding,
-                end = Dimens.ContentPadding,
-                top = Dimens.ContentPadding,
-                bottom = Dimens.ContentPadding + Dimens.MinistryScrollBottomPadding,
-            ),
-            verticalArrangement = Arrangement.spacedBy(9.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
-                SectionTitle("Current Research")
+                SciSectionTitle("Current Research")
+            }
+            item {
                 CurrentResearchPanel(
                     activeTech = activeTech,
                     queuedTech = queuedTech,
@@ -100,7 +112,7 @@ fun ScienceScreen(
                     onAllocateFunding = viewModel::allocateExtraResearchFunding,
                 )
             }
-            item { SectionTitle("Tech Tree") }
+            item { SciSectionTitle("Tech Tree") }
             items(TechCatalog.all, key = { it.id }) { tech ->
                 TechTreeRow(
                     tech = tech,
@@ -120,14 +132,14 @@ fun ScienceScreen(
 }
 
 @Composable
-private fun SectionTitle(text: String) {
+private fun SciSectionTitle(text: String) {
     Text(
         text = text.uppercase(),
         fontSize = 9.sp,
         fontWeight = FontWeight.Black,
-        color = NssPrimary,
-        letterSpacing = 8.sp,
-        modifier = Modifier.padding(bottom = 6.dp),
+        color = NssAccent,
+        letterSpacing = 1.5.sp,
+        modifier = Modifier.padding(bottom = 4.dp, top = 4.dp),
     )
 }
 
@@ -142,17 +154,17 @@ private fun CurrentResearchPanel(
     fundingCostLabel: String,
     onAllocateFunding: () -> Unit,
 ) {
-    NssPanel(modifier = Modifier.fillMaxWidth()) {
-        if (activeTech != null) {
-            Box(modifier = Modifier.fillMaxWidth().height(66.dp).padding(bottom = 6.dp)) {
-                NssPhotoHeader(
-                    imageUrl = NssCardImages.techCategoryImage(activeTech.category),
-                    fallbackGradient = NssGradients.Violet,
-                    modifier = Modifier.matchParentSize(),
-                    scrimTopToBottom = CardHeaderBottomScrim,
-                )
-            }
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(CardShape)
+            .background(NssCard)
+            .border(1.dp, NssBorder, CardShape)
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text("CURRENT RESEARCH", color = NssAccent, fontSize = 9.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
+
         if (activeTech == null) {
             Text("No active research project", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = NssForeground)
             if (queuedTech != null) {
@@ -160,50 +172,70 @@ private fun CurrentResearchPanel(
                     "Queued next: ${queuedTech.name}",
                     fontSize = 9.sp,
                     color = NssEmerald,
-                    modifier = Modifier.padding(top = 3.dp),
                 )
             } else {
-                Text("Select a technology below to begin.", fontSize = 9.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+                Text("Select a technology below to begin.", fontSize = 9.sp, color = NssMutedForeground)
             }
         } else {
             Text(activeTech.name, fontWeight = FontWeight.Black, fontSize = 12.sp, color = NssForeground)
-            Text(activeTech.effect.description, fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
-            Spacer(modifier = Modifier.padding(top = 6.dp))
+            Text(activeTech.effect.description, fontSize = 8.sp, color = NssMutedForeground)
+            Text(activeTech.category.displayName, fontSize = 8.sp, color = NssMutedForeground)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Research XP", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground)
-                Text("${progressPercent.toInt()}%", fontWeight = FontWeight.Black, color = NssPrimary)
+                Text("Research Progress", fontSize = 9.sp, color = NssMutedForeground)
+                Text("${progressPercent.toInt()}%", fontWeight = FontWeight.Black, color = NssAccent, fontSize = 9.sp)
             }
-            NssGameBar(percent = progressPercent, color = NssPrimary, thick = true)
-            Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+            // Progress bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(NssBorder),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth((progressPercent / 100f).coerceIn(0f, 1f))
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(NssAccent),
+                )
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Est. remaining", fontSize = 8.sp, color = NssMutedForeground)
-                Text(if (daysRemaining == 0) "< 1 day" else "$daysRemaining days", fontWeight = FontWeight.Bold, fontSize = 9.sp)
+                Text(
+                    if (daysRemaining == 0) "< 1 day" else "$daysRemaining days",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 9.sp,
+                    color = Color.White,
+                )
             }
             Text(
                 text = "Extra funding tier: $extraFundingTier / ${com.presidentsimulator.game.data.ResearchState.MAX_EXTRA_FUNDING_TIER}",
                 fontSize = 8.sp,
                 color = NssMutedForeground,
-                modifier = Modifier.padding(top = 4.dp),
             )
-            Text(
-                text = "⬆ Allocate Extra Funding ($fundingCostLabel)",
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 7.dp)
-                    .clip(NssCardShape)
+                    .clip(CardShape)
                     .background(if (canAllocateFunding) NssAccent else NssAccent.copy(alpha = 0.35f))
                     .clickable(enabled = canAllocateFunding, onClick = onAllocateFunding)
-                    .padding(vertical = 7.dp),
-                color = NssOnPhoto,
-                fontWeight = FontWeight.Black,
-                fontSize = 9.sp,
-                textAlign = TextAlign.Center,
-            )
+                    .padding(10.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    "⬆ ALLOCATE EXTRA FUNDING ($fundingCostLabel)",
+                    color = Color(0xFF000000),
+                    fontWeight = FontWeight.Black,
+                    fontSize = 9.sp,
+                    letterSpacing = 1.sp,
+                )
+            }
             if (queuedTech != null) {
                 Text(
                     "Up next: ${queuedTech.name}",
                     fontSize = 8.sp,
                     color = NssEmerald,
-                    modifier = Modifier.padding(top = 6.dp),
                 )
             }
         }
@@ -230,70 +262,97 @@ private fun TechTreeRow(
         !prerequisitesMet -> "LOCKED"
         else -> "AVAILABLE"
     }
+    val borderColor = when {
+        isActive -> NssAccent
+        isUnlocked -> NssEmerald.copy(alpha = 0.5f)
+        else -> NssBorder
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(NssCardShape)
-            .then(if (isActive) Modifier.background(NssGameCard).border(1.dp, NssAccent.copy(alpha = 0.4f), NssCardShape) else Modifier.background(NssGameCard)),
+            .clip(CardShape)
+            .background(NssCard)
+            .border(1.dp, borderColor, CardShape)
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Box(modifier = Modifier.fillMaxWidth().height(54.dp)) {
-            NssPhotoHeader(
-                imageUrl = NssCardImages.techCategoryImage(tech.category),
-                fallbackGradient = NssGradients.Violet,
-                modifier = Modifier.matchParentSize(),
-                scrimTopToBottom = CardHeaderBottomScrim,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(tech.name, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
+                Text(tech.category.displayName, fontSize = 8.sp, color = NssMutedForeground)
+            }
+            val statusColor = when (status) {
+                "UNLOCKED" -> NssEmerald
+                "IN PROGRESS" -> NssAccent
+                "QUEUED" -> NssMutedForeground
+                "LOCKED" -> NssRed
+                else -> NssMutedForeground
+            }
+            Text(
+                text = status,
+                color = statusColor,
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 0.5.sp,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(statusColor.copy(alpha = 0.12f))
+                    .padding(horizontal = 5.dp, vertical = 2.dp),
             )
         }
-        Column(modifier = Modifier.padding(Dimens.ContentPadding)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(tech.name, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
-                    Text(tech.category.displayName, fontSize = 8.sp, color = NssMutedForeground)
-                }
-                NssBadge(label = status)
-            }
-            Text(tech.effect.description, fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
-            Text("Cost: ${tech.scienceCost} science pts", fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = NssForeground, modifier = Modifier.padding(top = 3.dp))
-            if (tech.prerequisiteIds.isNotEmpty() && !prerequisitesMet) {
-                Text(
-                    text = "Requires: " + tech.prerequisiteIds.joinToString { id -> TechCatalog.byId(id)?.name ?: id },
-                    fontSize = 8.sp,
-                    color = NssAccent,
-                    modifier = Modifier.padding(top = 3.dp),
-                )
-            }
-            if (!isUnlocked && !isActive && !isQueued) {
+        Text(tech.effect.description, fontSize = 8.sp, color = NssMutedForeground)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("Cost", fontSize = 9.sp, color = NssMutedForeground)
+            Text("${tech.scienceCost} pts", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        }
+        if (tech.prerequisiteIds.isNotEmpty() && !prerequisitesMet) {
+            Text(
+                text = "Requires: " + tech.prerequisiteIds.joinToString { id -> TechCatalog.byId(id)?.name ?: id },
+                fontSize = 8.sp,
+                color = NssAccent,
+            )
+        }
+        if (!isUnlocked && !isActive && !isQueued) {
+            Spacer(Modifier.height(2.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(CardShape)
+                    .background(if (canStart) NssEmerald else NssMutedForeground.copy(alpha = 0.2f))
+                    .clickable(enabled = canStart, onClick = onStartResearch)
+                    .padding(vertical = 7.dp),
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(
                     text = when {
-                        !canStart -> "Cannot start"
+                        !canStart -> "Cannot Start"
                         hasActiveResearch -> "⏳ Queue Research"
                         else -> "▶ Start Research"
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 7.dp)
-                        .clip(NssCardShape)
-                        .background(if (canStart) NssEmerald else NssMutedForeground.copy(alpha = 0.3f))
-                        .clickable(enabled = canStart, onClick = onStartResearch)
-                        .padding(vertical = 6.dp),
-                    color = NssOnPhoto,
-                    fontWeight = FontWeight.Bold,
+                    color = if (canStart) Color(0xFF000000) else NssMutedForeground,
+                    fontWeight = FontWeight.Black,
                     fontSize = 9.sp,
-                    textAlign = TextAlign.Center,
                 )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(CardShape)
+                    .background(if (canUnlock) NssAccent else NssMutedForeground.copy(alpha = 0.2f))
+                    .clickable(enabled = canUnlock, onClick = onUnlock)
+                    .padding(vertical = 7.dp),
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(
                     text = if (canUnlock) "⚡ Unlock Instantly (${tech.scienceCost} pts)" else "Instant unlock unavailable",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp)
-                        .clip(NssCardShape)
-                        .background(if (canUnlock) NssAccent else NssMutedForeground.copy(alpha = 0.3f))
-                        .clickable(enabled = canUnlock, onClick = onUnlock)
-                        .padding(vertical = 6.dp),
-                    color = NssOnPhoto,
-                    fontWeight = FontWeight.Bold,
+                    color = if (canUnlock) Color(0xFF000000) else NssMutedForeground,
+                    fontWeight = FontWeight.Black,
                     fontSize = 9.sp,
-                    textAlign = TextAlign.Center,
                 )
             }
         }
