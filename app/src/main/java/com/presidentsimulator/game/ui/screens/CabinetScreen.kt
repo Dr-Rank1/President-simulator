@@ -66,18 +66,14 @@ fun CabinetScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(androidx.compose.ui.graphics.Color(0xCC050A0F))
+            .background(NssBackground)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
-        NssScreenHeader(
-            title = "Cabinet & Advisors",
-            imageUrl = NssCardImages.BANNER_DOMESTIC,
-            statPills = listOf(
-                "Seats" to "${cabinet.filledCount}/${CabinetPortfolio.entries.size}",
-                "Cohesion" to cabinet.cohesionLabel,
-                "Vacant" to "${cabinet.vacancyCount}",
-            ),
-            gradientColors = NssGradients.Indigo,
+        // Cyan tab bar at the top using the shared NssTabBar
+        com.presidentsimulator.game.ui.components.NssTabBar(
+            tabs = listOf("CABINET & ADVISORS", "VACANCIES"),
+            selectedTab = "CABINET & ADVISORS",
+            onTabSelected = {},
         )
 
         Column(

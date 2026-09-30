@@ -362,42 +362,39 @@ fun NssTabBar(
     onTabSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .background(NssMuted),
-        ) {
-            tabs.forEach { tab ->
-                val selected = tab == selectedTab
-                Box(
-                    modifier = Modifier
-                        .clickable { onTabSelected(tab) }
-                        .padding(horizontal = if (tabs.size > 4) 10.dp else 15.dp, vertical = 7.dp),
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = tab,
-                            style = MaterialTheme.typography.labelLarge,
-                            fontSize = 8.sp,
-                            maxLines = 1,
-                            color = if (selected) NssPrimary else NssMutedForeground,
-                        )
-                        if (selected) {
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Box(
-                                modifier = Modifier
-                                    .width(30.dp)
-                                    .height(1.dp)
-                                    .background(NssAccent),
-                            )
-                        }
-                    }
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .background(NssPrimary),
+    ) {
+        tabs.forEach { tab ->
+            val selected = tab == selectedTab
+            Column(
+                modifier = Modifier
+                    .clickable { onTabSelected(tab) }
+                    .padding(horizontal = if (tabs.size > 4) 12.dp else 20.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = tab,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontSize = 9.sp,
+                    maxLines = 1,
+                    fontWeight = if (selected) FontWeight.Black else FontWeight.Normal,
+                    color = Color.White,
+                )
+                if (selected) {
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Box(
+                        modifier = Modifier
+                            .width(30.dp)
+                            .height(2.dp)
+                            .background(Color.White),
+                    )
                 }
             }
         }
-        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(NssBorder))
     }
 }
 
@@ -407,13 +404,13 @@ fun NssStars(
     max: Int = 5,
     modifier: Modifier = Modifier,
 ) {
-    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(1.dp)) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         repeat(max) { index ->
             Icon(
                 imageVector = if (index < count) Icons.Default.Star else Icons.Outlined.StarOutline,
                 contentDescription = null,
-                tint = if (index < count) NssAccent else NssBorder,
-                modifier = Modifier.size(9.dp),
+                tint = if (index < count) NssPrimary else NssBorder,
+                modifier = Modifier.size(20.dp),
             )
         }
     }

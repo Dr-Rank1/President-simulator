@@ -125,18 +125,14 @@ fun ApprovalDemographicsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(androidx.compose.ui.graphics.Color(0xCC050A0F))
+            .background(NssBackground)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
-        NssScreenHeader(
-            title = "National Demographics",
-            imageUrl = NssCardImages.BANNER_DOMESTIC,
-            statPills = listOf(
-                "Overall" to "${state.vitals.approval.roundToInt()}%",
-                "Election" to if (state.nextElectionYear > 0) state.nextElectionYear.toString() else "Conclave",
-                "Blocs" to "${demographics.size}",
-            ),
-            gradientColors = NssGradients.Indigo,
+        // Cyan tab bar at the top using the shared NssTabBar
+        com.presidentsimulator.game.ui.components.NssTabBar(
+            tabs = listOf("NATIONAL DEMOGRAPHICS"),
+            selectedTab = "NATIONAL DEMOGRAPHICS",
+            onTabSelected = {},
         )
 
         Column(

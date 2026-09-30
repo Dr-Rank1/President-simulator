@@ -73,18 +73,14 @@ fun AnalyticsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xCC050A0F))
+            .background(NssBackground)
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
-        NssScreenHeader(
-            title = "Analytics",
-            imageUrl = NssCardImages.BANNER_ECONOMY,
-            statPills = listOf(
-                "Records" to "${history.size}",
-                "Years" to "${(history.size / 12).coerceAtLeast(0)}",
-                "Election" to if (state.nextElectionYear > 0) state.nextElectionYear.toString() else "Conclave",
-            ),
-            gradientColors = NssGradients.Sky,
+        // Cyan tab bar at the top using the shared NssTabBar
+        com.presidentsimulator.game.ui.components.NssTabBar(
+            tabs = listOf("STATISTICS OF ARMIES", "RECORDS", "ELECTIONS"),
+            selectedTab = "STATISTICS OF ARMIES",
+            onTabSelected = {},
         )
 
         Column(
