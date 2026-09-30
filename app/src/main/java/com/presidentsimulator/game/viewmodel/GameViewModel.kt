@@ -1229,7 +1229,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         const val MIN_TAX_RATE = 0.00f
         const val MAX_TAX_RATE = 0.50f
         const val EVENT_CHANCE_PER_TICK = 0.02f
-        const val EVENT_COOLDOWN_MONTHS = 12
+        const val EVENT_COOLDOWN_MONTHS = 120
     }
 }
 

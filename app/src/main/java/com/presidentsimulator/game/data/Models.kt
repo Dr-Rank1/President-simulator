@@ -210,7 +210,7 @@ data class GameEvent(
 data class ActiveCrisisState(
     val pendingEventId: String? = null,
     /** Months to wait after resolving a crisis before another random event may appear. */
-    val eventCooldownMonths: Int = 0,
+    val eventCooldownMonths: Int = 24,
     val lingeringMonths: Int = 0,
     val monthlyApprovalDelta: Float = 0f,
     val monthlyInstabilityDelta: Float = 0f,
