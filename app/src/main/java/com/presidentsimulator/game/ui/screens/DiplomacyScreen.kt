@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.ui.components.GameTile
 import com.presidentsimulator.game.ui.components.GameTileData
+import com.presidentsimulator.game.ui.components.NssCardImages
 import com.presidentsimulator.game.ui.components.NssTabBar
 import com.presidentsimulator.game.ui.theme.NssBackground
 import com.presidentsimulator.game.viewmodel.GameViewModel
@@ -33,7 +34,7 @@ fun DiplomacyScreen(
                 rival.relationshipScore < 25 -> Color(0xFFD32F2F)
                 else -> Color(0xFFFFA000)
             }
-            GameTileData(rival.name, "Relation: ${rival.relationshipScore}", Icons.Default.Public, color) { 
+            GameTileData(rival.name, "Relation: ${rival.relationshipScore}", Icons.Default.Public, color, NssCardImages.BANNER_FOREIGN) { 
                 viewModel.conductStateVisit(rival.id)
             }
         }
