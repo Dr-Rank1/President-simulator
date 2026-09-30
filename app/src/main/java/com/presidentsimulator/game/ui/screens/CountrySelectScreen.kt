@@ -65,21 +65,15 @@ fun CountrySelectScreen(
 
     BackHandler(onBack = onBack)
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Hex grid background like Modern Age 2
-        HexBackground()
-        
-        // Gradient overlay
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.verticalGradient(
-                colors = listOf(Color(0x33000000), Color(0x99000000))
-            )
-        ))
-
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            // Header
+    Box(modifier = Modifier.fillMaxSize().background(NssBackground)) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Cyan header bar
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(NssPrimary)
+                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack, modifier = Modifier.size(24.dp)) {
@@ -96,16 +90,16 @@ fun CountrySelectScreen(
             }
 
             if (nation != null) {
-                Row(modifier = Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(modifier = Modifier.fillMaxWidth().weight(1f).padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+
                     
                     // LEFT PANEL: Nation details and launch
                     Column(
                         modifier = Modifier
                             .weight(1.1f)
                             .fillMaxHeight()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Brush.linearGradient(listOf(Color(0xEE0B1521), Color(0xEE122030))))
-                            .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White)
                             .padding(16.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -113,21 +107,20 @@ fun CountrySelectScreen(
                                 modifier = Modifier
                                     .size(64.dp)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(Color(0xFF070B11))
-                                    .border(1.dp, Color(0xFF2C3E50), RoundedCornerShape(8.dp)),
+                                    .background(NssBackground),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(nation.flagEmoji, fontSize = 42.sp)
                             }
                             Column {
-                                Text(nation.name.uppercase(), color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
-                                Text(nation.officialName, color = NssSky, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(nation.name.uppercase(), color = Color(0xFF212121), fontSize = 22.sp, fontWeight = FontWeight.Black)
+                                Text(nation.officialName, color = NssPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                         
                         Spacer(Modifier.height(16.dp))
                         
-                        // Stats Grid (Sleek)
+                        // Stats Grid
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                             StatBlock("POPULATION", "${nation.vitals.population / 1_000_000}M")
                             StatBlock("BUDGET", "$${nation.vitals.budget / 1_000}B")
@@ -135,7 +128,7 @@ fun CountrySelectScreen(
                         }
                         
                         Spacer(Modifier.height(20.dp))
-                        Text("DIFFICULTY", color = NssMutedForeground, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                        Text("DIFFICULTY", color = Color(0xFF757575), fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
                         Spacer(Modifier.height(6.dp))
                         
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -145,15 +138,14 @@ fun CountrySelectScreen(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(if (isSelected) NssEmerald else Color(0xFF131A26))
-                                        .border(1.dp, if (isSelected) Color(0x88FFFFFF) else Color.Transparent, RoundedCornerShape(6.dp))
+                                        .background(if (isSelected) NssPrimary else Color(0xFFEEEEEE))
                                         .clickable { selectedChallengeId = challenge.id }
                                         .padding(vertical = 8.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
                                         challenge.title.uppercase(),
-                                        color = if (isSelected) Color.White else NssMutedForeground,
+                                        color = if (isSelected) Color.White else Color(0xFF757575),
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -163,19 +155,19 @@ fun CountrySelectScreen(
                         
                         Spacer(Modifier.weight(1f))
                         
-                        Text("IDEOLOGY & GOVERNMENT", color = NssMutedForeground, fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                        Text("IDEOLOGY & GOVERNMENT", color = Color(0xFF757575), fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
                         Spacer(Modifier.height(6.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Box(modifier = Modifier.weight(1f).clip(RoundedCornerShape(6.dp)).background(Color(0xFF131A26)).padding(8.dp)) {
+                            Box(modifier = Modifier.weight(1f).clip(RoundedCornerShape(6.dp)).background(NssBackground).padding(8.dp)) {
                                 Column {
-                                    Text("IDEOLOGY", color = NssSky, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                                    Text(nation.ideology.name, color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text("IDEOLOGY", color = NssPrimary, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                                    Text(nation.ideology.name, color = Color(0xFF212121), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
-                            Box(modifier = Modifier.weight(1f).clip(RoundedCornerShape(6.dp)).background(Color(0xFF131A26)).padding(8.dp)) {
+                            Box(modifier = Modifier.weight(1f).clip(RoundedCornerShape(6.dp)).background(NssBackground).padding(8.dp)) {
                                 Column {
-                                    Text("RULING SYSTEM", color = NssSky, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                                    Text(nation.governmentSystem.name.replace("_", " "), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text("RULING SYSTEM", color = NssPrimary, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                                    Text(nation.governmentSystem.name.replace("_", " "), color = Color(0xFF212121), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -186,13 +178,14 @@ fun CountrySelectScreen(
                             onClick = { 
                                 onSelectCountry(nation.id, ScenarioCatalog.ALL.first().id, selectedChallengeId)
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = NssEmerald, contentColor = Color.White),
+                            colors = ButtonDefaults.buttonColors(containerColor = NssPrimary, contentColor = Color.White),
                             modifier = Modifier.fillMaxWidth().height(44.dp),
                             shape = RoundedCornerShape(6.dp)
                         ) {
-                            Text("COMMENCE COMMAND", fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
+                            Text("START GAME", fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
                         }
                     }
+
                     
                     // RIGHT PANEL: Grid of Nations
                     LazyVerticalGrid(
@@ -200,9 +193,8 @@ fun CountrySelectScreen(
                         modifier = Modifier
                             .weight(1.3f)
                             .fillMaxHeight()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0x66000000))
-                            .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(12.dp)),
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White),
                         contentPadding = PaddingValues(12.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -214,11 +206,7 @@ fun CountrySelectScreen(
                                     .fillMaxWidth()
                                     .aspectRatio(1f)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(
-                                        if (isSelected) Brush.verticalGradient(listOf(Color(0xFF2C3E50), Color(0xFF1A252F)))
-                                        else SolidColor(Color(0xFF0F151B))
-                                    )
-                                    .border(if (isSelected) 2.dp else 1.dp, if (isSelected) NssSky else Color(0xFF1C2733), RoundedCornerShape(8.dp))
+                                    .background(if (isSelected) NssPrimary else NssBackground)
                                     .clickable { selectedNationId = n.id }
                                     .padding(8.dp),
                                 contentAlignment = Alignment.Center
@@ -228,7 +216,7 @@ fun CountrySelectScreen(
                                     Spacer(Modifier.height(4.dp))
                                     Text(
                                         n.name, 
-                                        color = if (isSelected) Color.White else NssMutedForeground,
+                                        color = if (isSelected) Color.White else Color(0xFF424242),
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         textAlign = TextAlign.Center,
@@ -239,6 +227,7 @@ fun CountrySelectScreen(
                             }
                         }
                     }
+
                 }
             }
         }
@@ -248,10 +237,11 @@ fun CountrySelectScreen(
 @Composable
 private fun StatBlock(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, color = NssSky, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-        Text(value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
+        Text(label, color = NssPrimary, fontSize = 8.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Text(value, color = Color(0xFF212121), fontSize = 16.sp, fontWeight = FontWeight.Black)
     }
 }
+
 
 @Composable
 fun HexBackground() {

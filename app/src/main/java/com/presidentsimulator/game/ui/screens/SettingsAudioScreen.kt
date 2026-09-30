@@ -77,16 +77,12 @@ fun SettingsAudioScreen(
     val loadedHandles = remember(diagnosticsTick) { audio.loadedSfxHandles }
     val currentTrack = remember(diagnosticsTick) { audio.currentBgmTrack }
 
-    Column(modifier = modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xCC050A0F)).windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
-        NssScreenHeader(
-            title = "Settings",
-            imageUrl = NssCardImages.BANNER_COMMAND,
-            statPills = listOf(
-                "Music" to if (musicEnabled) "On" else "Off",
-                "SFX" to if (sfxEnabled) "On" else "Off",
-                "Track" to currentTrack.displayLabel(),
-            ),
-            gradientColors = NssGradients.Indigo,
+    Column(modifier = modifier.fillMaxSize().background(NssBackground).windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal))) {
+        // Cyan tab bar at the top using the shared NssTabBar
+        com.presidentsimulator.game.ui.components.NssTabBar(
+            tabs = listOf("SETTINGS"),
+            selectedTab = "SETTINGS",
+            onTabSelected = {},
         )
 
         Column(

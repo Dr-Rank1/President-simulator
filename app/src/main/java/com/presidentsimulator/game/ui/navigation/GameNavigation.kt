@@ -1,4 +1,4 @@
-﻿package com.presidentsimulator.game.ui.navigation
+package com.presidentsimulator.game.ui.navigation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -321,10 +321,6 @@ fun GameNavigation(
                 MainDashboardScreen(
                     state = state,
                     onNavigate = navigate,
-                    onSpinHeadline = { viewModel.spinPressHeadline(it) },
-                    onSuppressHeadline = { viewModel.suppressPressHeadline(it) },
-                    onDisasterResponse = { viewModel.allocateDisasterResponse(it) },
-                    onMakeCommitment = { viewModel.makeMandateCommitment(it) },
                 )
             }
             composable(GameDestination.Economy.route) {
@@ -340,7 +336,7 @@ fun GameNavigation(
                 SecurityScreen(state = state, viewModel = viewModel)
             }
             composable(GameDestination.Science.route) {
-                ScienceScreen(viewModel = viewModel)
+                ScienceScreen(state = state, viewModel = viewModel)
             }
             composable(GameDestination.LawsSociety.route) {
                 LawsScreen(viewModel = viewModel)
