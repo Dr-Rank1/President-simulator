@@ -2,26 +2,21 @@ package com.presidentsimulator.game.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -30,13 +25,6 @@ import com.presidentsimulator.game.data.EventChoice
 import com.presidentsimulator.game.data.EventConsequence
 import com.presidentsimulator.game.data.GameEvent
 import com.presidentsimulator.game.ui.components.graphics.EventIllustration
-import com.presidentsimulator.game.ui.theme.NssAccent
-import com.presidentsimulator.game.ui.theme.NssBackground
-import com.presidentsimulator.game.ui.theme.NssForeground
-import com.presidentsimulator.game.ui.theme.NssMutedForeground
-import com.presidentsimulator.game.ui.theme.NssOnPhoto
-import com.presidentsimulator.game.ui.theme.NssPrimary
-import com.presidentsimulator.game.ui.theme.NssRed
 import com.presidentsimulator.game.viewmodel.toBudgetString
 import kotlin.math.roundToInt
 
@@ -51,53 +39,116 @@ fun EventCrisisDialog(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-                .clip(NssCardShape)
-                .background(NssBackground)
-                .padding(15.dp),
+                .fillMaxWidth(0.95f)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.White)
         ) {
-            Text("🚨 NATIONAL CRISIS", fontSize = 8.sp, fontWeight = FontWeight.Black, color = NssRed, letterSpacing = 8.sp)
-            Text(
-                text = event.title,
-                fontWeight = FontWeight.Black,
-                fontSize = 15.sp,
-                color = NssForeground,
-                modifier = Modifier.padding(top = 3.dp, bottom = 9.dp),
-            )
-            EventIllustration(eventType = event.id, modifier = Modifier.padding(bottom = 7.dp))
-            Text(event.description, fontSize = 9.sp, color = NssMutedForeground, lineHeight = 13.sp)
-            Spacer(modifier = Modifier.height(12.dp))
-            Text("CHOOSE A RESPONSE", fontSize = 8.sp, fontWeight = FontWeight.Black, color = NssPrimary, letterSpacing = 8.sp)
-            Spacer(modifier = Modifier.height(6.dp))
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+            // Header
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 210.dp),
+                    .background(Color(0xFFD32F2F))
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
             ) {
-                items(event.choices, key = { it.text }) { choice ->
-                    NssPanel(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onChoiceSelected(choice) },
-                    ) {
-                        Text(choice.text, fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
-                        Text(
-                            text = choice.consequence.toEffectSummary(),
-                            fontSize = 8.sp,
-                            color = NssMutedForeground,
-                            modifier = Modifier.padding(top = 3.dp),
-                        )
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Warning, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "NATIONAL CRISIS",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        letterSpacing = 1.sp
+                    )
                 }
             }
-            Text(
-                text = "⏸ Time paused until resolved",
-                fontSize = 8.sp,
-                color = NssMutedForeground,
-                modifier = Modifier.padding(top = 9.dp).align(Alignment.CenterHorizontally),
-            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = event.title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = Color(0xFF1E293B),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                EventIllustration(
+                    eventType = event.id,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                Text(
+                    text = event.description,
+                    fontSize = 14.sp,
+                    color = Color(0xFF475569),
+                    lineHeight = 20.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFF1F5F9), RoundedCornerShape(4.dp))
+                        .padding(vertical = 6.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "CHOOSE A RESPONSE",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF0288D1),
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 240.dp),
+                ) {
+                    items(event.choices, key = { it.text }) { choice ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFFE3F2FD))
+                                .clickable { onChoiceSelected(choice) }
+                                .padding(12.dp)
+                        ) {
+                            Text(
+                                text = choice.text,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = Color(0xFF0D47A1)
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = choice.consequence.toEffectSummary(),
+                                fontSize = 12.sp,
+                                color = Color(0xFF1565C0),
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "⏸ Time paused until resolved",
+                    fontSize = 12.sp,
+                    color = Color(0xFF94A3B8),
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                )
+            }
         }
     }
 }

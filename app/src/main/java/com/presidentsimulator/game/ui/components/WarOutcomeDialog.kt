@@ -1,17 +1,9 @@
 package com.presidentsimulator.game.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MilitaryTech
 import androidx.compose.material.icons.filled.SentimentVeryDissatisfied
@@ -21,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -28,12 +21,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.presidentsimulator.game.data.WarOutcome
-import com.presidentsimulator.game.ui.theme.NssBackground
-import com.presidentsimulator.game.ui.theme.NssEmerald
-import com.presidentsimulator.game.ui.theme.NssForeground
-import com.presidentsimulator.game.ui.theme.NssMutedForeground
-import com.presidentsimulator.game.ui.theme.NssOnPhoto
-import com.presidentsimulator.game.ui.theme.NssRed
 import com.presidentsimulator.game.viewmodel.toBudgetString
 import com.presidentsimulator.game.viewmodel.toCasualtyString
 import kotlin.math.roundToInt
@@ -43,7 +30,7 @@ fun WarOutcomeDialog(
     outcome: WarOutcome,
     onDismiss: () -> Unit,
 ) {
-    val color = if (outcome.victory) NssEmerald else NssRed
+    val headerColor = if (outcome.victory) Color(0xFF43A047) else Color(0xFFD32F2F)
     val icon = if (outcome.victory) Icons.Default.MilitaryTech else Icons.Default.SentimentVeryDissatisfied
     val title = if (outcome.victory) "VICTORY" else "DEFEAT"
 
@@ -53,69 +40,112 @@ fun WarOutcomeDialog(
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-                .clip(NssCardShape)
-                .border(1.dp, color.copy(alpha = 0.5f), NssCardShape)
-                .background(NssBackground)
-                .padding(18.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .fillMaxWidth(0.95f)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.White)
         ) {
-            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(48.dp))
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(title, color = color, fontWeight = FontWeight.Black, fontSize = 15.sp, letterSpacing = 8.sp)
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "War with ${outcome.targetName} ended after ${outcome.monthsActive} months.",
-                color = NssForeground,
-                fontSize = 10.sp,
-                textAlign = TextAlign.Center,
-            )
-            if (outcome.warGoalLabel.isNotBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Objective: ${outcome.warGoalLabel}",
-                    color = NssMutedForeground,
-                    fontSize = 9.sp,
-                    textAlign = TextAlign.Center,
-                )
-            }
-            if (outcome.settlementNote.isNotBlank()) {
-                Text(
-                    text = outcome.settlementNote,
-                    color = NssMutedForeground,
-                    fontSize = 9.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 3.dp),
-                )
-            }
-            Spacer(modifier = Modifier.height(9.dp))
-            Text(
-                text = buildString {
-                    append("Casualties · ours ${outcome.playerCasualties.toCasualtyString()}")
-                    append(" · enemy ${outcome.enemyCasualties.toCasualtyString()}\n")
-                    append("Settlement · ${if (outcome.budgetDelta >= 0) "+" else ""}${outcome.budgetDelta.toBudgetString()}")
-                    append(" · approval ${if (outcome.approvalDelta >= 0) "+" else ""}${outcome.approvalDelta.roundToInt()}")
-                    append(" · front ${outcome.finalProgress.roundToInt()}%")
-                },
-                color = NssMutedForeground,
-                fontSize = 9.sp,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(modifier = Modifier.height(18.dp))
-            Text(
-                text = "ACKNOWLEDGE",
+            // Header
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(NssCardShape)
-                    .background(color)
-                    .clickable(onClick = onDismiss)
-                    .padding(vertical = 9.dp),
-                color = NssOnPhoto,
-                fontWeight = FontWeight.Bold,
-                fontSize = 10.sp,
-                textAlign = TextAlign.Center,
-            )
+                    .background(headerColor)
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "WAR OUTCOME: $title",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        letterSpacing = 1.sp
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "War with ${outcome.targetName} ended after ${outcome.monthsActive} months.",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = Color(0xFF1E293B),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color(0xFFF1F5F9))
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (outcome.warGoalLabel.isNotBlank()) {
+                        Text("Objective: ${outcome.warGoalLabel}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0288D1))
+                    }
+                    if (outcome.settlementNote.isNotBlank()) {
+                        Text(outcome.settlementNote, fontSize = 14.sp, color = Color(0xFF475569), textAlign = TextAlign.Center)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color(0xFFFFF3E0))
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Our Casualties", fontSize = 12.sp, color = Color(0xFF64748B))
+                        Text(outcome.playerCasualties.toCasualtyString(), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD32F2F))
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Enemy Casualties", fontSize = 12.sp, color = Color(0xFF64748B))
+                        Text(outcome.enemyCasualties.toCasualtyString(), fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFFD32F2F))
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Budget Change", fontSize = 12.sp, color = Color(0xFF64748B))
+                        val isPos = outcome.budgetDelta >= 0
+                        Text("${if (isPos) "+" else ""}${outcome.budgetDelta.toBudgetString()}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if(isPos) Color(0xFF43A047) else Color(0xFFD32F2F))
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Approval Change", fontSize = 12.sp, color = Color(0xFF64748B))
+                        val isPos = outcome.approvalDelta >= 0
+                        Text("${if (isPos) "+" else ""}${outcome.approvalDelta.roundToInt()}%", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if(isPos) Color(0xFF43A047) else Color(0xFFD32F2F))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(headerColor)
+                        .clickable(onClick = onDismiss)
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "ACKNOWLEDGE",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
+            }
         }
     }
 }
