@@ -194,22 +194,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (beforeSnap.size >= 2) {
             val prev = beforeSnap[beforeSnap.size - 2]
             val curr = beforeSnap.last()
-            _turnSummary.value = TurnSummary(
-                year = curr.year,
-                month = curr.month,
-                budgetDelta = curr.budget - prev.budget,
-                approvalDelta = curr.approval - prev.approval,
-                populationDelta = curr.population - prev.population,
-                gdpDelta = curr.gdp - prev.gdp,
-                netIncome = after.netIncome,
-                bulletin = buildMonthlyBulletin(
-                    before = before,
-                    after = after,
-                    beforeUnlocked = beforeUnlocked,
-                    beforeActiveLaws = beforeActiveLaws,
-                    beforePending = beforePending,
-                ),
-            )
+            // Turn summary popup disabled so time moves freely.
         } else if (after.agenda.needsBriefing) {
             pauseTimeAdvance()
         }
@@ -1235,8 +1220,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         const val MIN_TAX_RATE = 0.00f
         const val MAX_TAX_RATE = 0.50f
-        const val EVENT_CHANCE_PER_TICK = 0.15f
-        const val EVENT_COOLDOWN_MONTHS = 3
+        const val EVENT_CHANCE_PER_TICK = 0.02f
+        const val EVENT_COOLDOWN_MONTHS = 12
     }
 }
 
