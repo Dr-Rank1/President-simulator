@@ -2,115 +2,113 @@ package com.presidentsimulator.game.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.presidentsimulator.game.audio.GameAudioManager
-import com.presidentsimulator.game.audio.playBuildSuccess
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.MilitaryHardware
-import com.presidentsimulator.game.ui.components.GameTile
-import com.presidentsimulator.game.ui.components.GameTileData
-import com.presidentsimulator.game.ui.components.NssTabBar
-import com.presidentsimulator.game.ui.components.NssCardImages
-import com.presidentsimulator.game.ui.theme.NssBackground
 import com.presidentsimulator.game.viewmodel.GameViewModel
-import kotlin.math.roundToInt
+import com.presidentsimulator.game.ui.components.PresidentCard
+import com.presidentsimulator.game.ui.components.PresidentCardData
+import com.presidentsimulator.game.ui.components.BadgeMode
+import com.presidentsimulator.game.ui.components.NssCardImages
 
 @Composable
 fun MilitaryScreen(
     state: GameState,
     viewModel: GameViewModel,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
-    var selectedTab by remember { mutableStateOf("MANAGEMENT") }
-    val tabs = listOf("MANAGEMENT", "MILITARY MACHINERY")
+    val items = listOf(
+        PresidentCardData(
+            title = "Assault rifle",
+            imageUrl = NssCardImages.INFANTRY,
+            badgeMode = BadgeMode.UpgradeArrow,
+            stats = listOf(
+                "Attack" to "1",
+                "Defense" to "1",
+                "Cost" to "-200",
+                "Personnel" to "3316465",
+                "Build" to "0 (0 d.)",
+                "Time" to "0 days"
+            ),
+            onClick = { viewModel.recruitPersonnel(100L) }
+        ),
+        PresidentCardData(
+            title = "Tanks",
+            imageUrl = NssCardImages.ARMORED,
+            badgeMode = BadgeMode.UpgradeArrow,
+            stats = listOf(
+                "Attack" to "5",
+                "Defense" to "5",
+                "Cost" to "-2,000",
+                "Personnel" to state.military.tanks.toString(),
+                "Build" to "0 (0 d.)",
+                "Time" to "2 days"
+            ),
+            onClick = { viewModel.recruitPersonnel(10L) }
+        ),
+        PresidentCardData(
+            title = "Fighter jets",
+            imageUrl = NssCardImages.FIGHTER,
+            badgeMode = BadgeMode.UpgradeArrow,
+            stats = listOf(
+                "Attack" to "12",
+                "Defense" to "5",
+                "Cost" to "-3,000",
+                "Personnel" to state.military.jets.toString(),
+                "Build" to "0 (0 d.)",
+                "Time" to "3 days"
+            ),
+            onClick = { viewModel.recruitPersonnel(1L) }
+        ),
+        PresidentCardData(
+            title = "Naval ships",
+            imageUrl = NssCardImages.BOMBER,
+            badgeMode = BadgeMode.UpgradeArrow,
+            stats = listOf(
+                "Attack" to "20",
+                "Defense" to "10",
+                "Cost" to "-5,000",
+                "Personnel" to state.military.ships.toString(),
+                "Build" to "0 (0 d.)",
+                "Time" to "5 days"
+            ),
+            onClick = { viewModel.recruitPersonnel(1L) }
+        ),
+        PresidentCardData(
+            title = "Nuclear arsenal",
+            imageUrl = NssCardImages.INFANTRY,
+            badgeMode = BadgeMode.UpgradeArrow,
+            stats = listOf(
+                "Attack" to "100",
+                "Defense" to "0",
+                "Cost" to "-10,000",
+                "Personnel" to state.military.nuclearArsenal.toString(),
+                "Build" to "0 (0 d.)",
+                "Time" to "30 days"
+            ),
+            onClick = { viewModel.recruitPersonnel(1L) }
+        )
+    )
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(NssBackground)
-            .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+            .background(Color(0xFFF5F1E6))
     ) {
-        NssTabBar(tabs = tabs, selectedTab = selectedTab, onTabSelected = { selectedTab = it })
-
-        if (selectedTab == "MANAGEMENT") {
-            MilitaryManagementTab(state)
-        } else {
-            MilitaryMachineryTab(state, viewModel)
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(items) { data ->
+                PresidentCard(data)
+            }
         }
-    }
-}
-
-@Composable
-private fun MilitaryManagementTab(state: GameState) {
-    val military = state.military
-    val items = listOf(
-        GameTileData("Infantry", "${military.personnel.toInt()} units", Icons.Default.Security, Color(0xFF43A047), NssCardImages.INFANTRY) {},
-        GameTileData("Tanks", "${military.tanks}", Icons.Default.Security, Color(0xFFD32F2F), NssCardImages.ARMORED) {},
-        GameTileData("Artillery", "${military.tanks / 2}", Icons.Default.FilterCenterFocus, Color(0xFF1565C0), NssCardImages.ARTILLERY) {},
-        GameTileData("Destroyers", "${military.ships}", Icons.Default.DirectionsBoat, Color(0xFF0288D1), NssCardImages.DESTROYER) {},
-        GameTileData("Submarines", "${military.ships / 2}", Icons.Default.DirectionsBoat, Color(0xFF546E7A), NssCardImages.SUBMARINE) {},
-        GameTileData("Fighters", "${military.jets}", Icons.Default.Flight, Color(0xFF1E88E5), NssCardImages.FIGHTER) {},
-        GameTileData("Bombers", "${military.jets / 3}", Icons.Default.Flight, Color(0xFF00ACC1), NssCardImages.BOMBER) {},
-    )
-
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 130.dp),
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        items(items) { item -> GameTile(item) }
-    }
-}
-
-@Composable
-private fun MilitaryMachineryTab(state: GameState, viewModel: GameViewModel) {
-    val context = LocalContext.current
-    val audio = remember(context) { GameAudioManager.getInstance(context) }
-    
-    val items = listOf(
-        GameTileData("Recruit Infantry", "Build", Icons.Default.PersonAdd, Color(0xFF43A047), NssCardImages.INFANTRY) { 
-            viewModel.recruitPersonnel(100L)
-            audio.playBuildSuccess()
-        },
-        GameTileData("Buy Tanks", "Build", Icons.Default.Security, Color(0xFFD32F2F), NssCardImages.ARMORED) { 
-            viewModel.purchaseMilitaryHardware(MilitaryHardware.TANKS, 10)
-            audio.playBuildSuccess()
-        },
-        GameTileData("Buy Artillery", "Build", Icons.Default.FilterCenterFocus, Color(0xFF1565C0), NssCardImages.ARTILLERY) { 
-            viewModel.purchaseMilitaryHardware(MilitaryHardware.TANKS, 5) // Simplified mapping
-            audio.playBuildSuccess()
-        },
-        GameTileData("Build Ships", "Build", Icons.Default.DirectionsBoat, Color(0xFF0288D1), NssCardImages.DESTROYER) { 
-            viewModel.purchaseMilitaryHardware(MilitaryHardware.NAVAL_SHIPS, 1)
-            audio.playBuildSuccess()
-        },
-        GameTileData("Build Jets", "Build", Icons.Default.Flight, Color(0xFF1E88E5), NssCardImages.FIGHTER) { 
-            viewModel.purchaseMilitaryHardware(MilitaryHardware.FIGHTER_JETS, 5)
-            audio.playBuildSuccess()
-        }
-    )
-
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 130.dp),
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        items(items) { item -> GameTile(item) }
     }
 }
