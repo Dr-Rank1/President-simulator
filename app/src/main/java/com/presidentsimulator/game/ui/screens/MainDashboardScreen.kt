@@ -330,6 +330,17 @@ fun MainDashboardScreen(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
+        item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+            coil.compose.AsyncImage(
+                model = NssCardImages.MAP,
+                contentDescription = "World Map",
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+            )
+        }
         items(currentTiles) { item ->
             GameTile(item)
         }
