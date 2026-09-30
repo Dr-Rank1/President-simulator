@@ -471,7 +471,7 @@ class ProductionLawViewModel {
 }
 
 fun Long.toResourceString(): String = when {
-    this >= 1_000_000L -> "%.2fM".format(this / 1_000_000.0)
-    this >= 1_000L -> "%.1fK".format(this / 1_000.0)
+    this >= 1_000_000L -> String.format(java.util.Locale.ROOT, "%.2fM", this / 1_000_000.0)
+    this >= 1_000L -> String.format(java.util.Locale.ROOT, "%.1fK", this / 1_000.0)
     else -> toString()
 }

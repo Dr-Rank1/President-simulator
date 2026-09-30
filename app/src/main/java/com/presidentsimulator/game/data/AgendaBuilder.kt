@@ -492,8 +492,8 @@ object AgendaBuilder {
     }
 
     private fun formatShort(value: Long): String = when {
-        abs(value) >= 1_000_000_000L -> "%+.1fB".format(value / 1_000_000_000.0)
-        abs(value) >= 1_000_000L -> "%+.1fM".format(value / 1_000_000.0)
-        else -> "%+d".format(value)
+        abs(value) >= 1_000_000_000L -> String.format(java.util.Locale.ROOT, "%+.1fB", value / 1_000_000_000.0)
+        abs(value) >= 1_000_000L -> String.format(java.util.Locale.ROOT, "%+.1fM", value / 1_000_000.0)
+        else -> String.format(java.util.Locale.ROOT, "%+d", value)
     }
 }

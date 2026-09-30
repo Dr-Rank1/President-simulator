@@ -13,6 +13,9 @@ import com.presidentsimulator.game.data.PolicyImpactEngine
 import com.presidentsimulator.game.data.SpeechEngine
 import com.presidentsimulator.game.data.StoryArcEngine
 import com.presidentsimulator.game.data.TermEngine
+import com.presidentsimulator.game.data.MilitaryIndustryEngine
+import com.presidentsimulator.game.data.VictoryEngine
+import com.presidentsimulator.game.data.pushNews
 import kotlin.random.Random
 
 /**
@@ -61,6 +64,12 @@ internal class MonthlySimulationPipeline(
         next = TermEngine.processMonth(next)
         if (next.gameOver.isGameOver) return next
 
+        // 3b. Domination layer: military industry, world spread, milestones.
+        next = MilitaryIndustryEngine.processMonth(next)
+        next = VictoryEngine.processMonth(next)
+        next = VictoryEngine.maybeEmitMilestone(next)
+        if (next.gameOver.isGameOver) return next
+
         // 4. Long-term progression, institutions, trade, and global governance.
         next = advancement.processSocietyTick(next)
         next = productionLaw.processLawsTick(next)
@@ -75,7 +84,33 @@ internal class MonthlySimulationPipeline(
         next = LegacyLedger.processMonth(current, next)
         next = next.copy(agenda = AgendaBuilder.applyMonthlyAgenda(next.agenda, next))
         next = MandateEngine.processMonth(next)
+        next = emitWorldNews(current, next)
         return StoryArcEngine.onMonth(next)
+    }
+
+    /** Keeps the news ticker alive with world happenings. */
+    private fun emitWorldNews(before: GameState, after: GameState): GameState {
+        var next = after
+        val war = next.diplomacy.activeWar
+        val warBefore = before.diplomacy.activeWar
+        if (war != null && warBefore == null) {
+            val target = next.diplomacy.rivalById(war.targetCountryId)?.name ?: war.targetCountryId
+            next = next.pushNews("WAR: ${next.playerNation.name} declares war on $target", tag = "WAR")
+        }
+        if (war != null && war.monthsActive > 0 && war.monthsActive % 6 == 0 &&
+            warBefore?.monthsActive != war.monthsActive
+        ) {
+            val target = next.diplomacy.rivalById(war.targetCountryId)?.name ?: war.targetCountryId
+            next = next.pushNews("War with $target enters month ${war.monthsActive}", tag = "WAR")
+        }
+        val electionNear = next.nextElectionYear > 0 && next.nextElectionYear - next.year == 1 && next.month == 1
+        if (electionNear && before.nextElectionYear == next.nextElectionYear) {
+            next = next.pushNews("Elections scheduled for ${next.nextElectionYear} — campaigns intensify", tag = "POLITICS")
+        }
+        VictoryEngine.spreadHeadline(next)?.let { headline ->
+            if (next.month % 3 == 1) next = next.pushNews(headline, tag = "DOMINION")
+        }
+        return next
     }
 
     private fun processCrisisTick(state: GameState): GameState {

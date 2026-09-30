@@ -15,7 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.HistoricalSnapshot
 import com.presidentsimulator.game.data.LegacyPillar
@@ -40,6 +41,9 @@ import com.presidentsimulator.game.ui.components.NssGradients
 import com.presidentsimulator.game.ui.components.NssPanel
 import com.presidentsimulator.game.ui.components.NssScreenHeader
 import com.presidentsimulator.game.ui.components.nssMinistryScrollPadding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -67,8 +71,11 @@ fun AnalyticsScreen(
     modifier: Modifier = Modifier,
 ) {
     val history = state.analytics.history
-    val feedback by viewModel.saveLoadFeedback.collectAsState()
-    val hasSave by viewModel.hasSave.collectAsState()
+    val feedback by viewModel.saveLoadFeedback.collectAsStateWithLifecycle()
+    val hasSave by viewModel.hasSave.collectAsStateWithLifecycle()
+    val slots by viewModel.saveSlots.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) { viewModel.refreshSaveSlots() }
 
     Column(
         modifier = modifier
@@ -91,6 +98,8 @@ fun AnalyticsScreen(
                 .padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            WorldStandingsPanel(state = state)
+
             LegacyLedgerPanel(state = state)
 
             NssPanel(modifier = Modifier.fillMaxWidth()) {
@@ -137,7 +146,7 @@ fun AnalyticsScreen(
                     letterSpacing = 8.sp,
                     modifier = Modifier.padding(top = 10.dp, bottom = 6.dp),
                 )
-                viewModel.listSaveSlots().forEach { slot ->
+                slots.forEach { slot ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -244,7 +253,7 @@ fun AnalyticsScreen(
                     history = history,
                     values = history.map { it.approval.toDouble() },
                     color = Color(0xFF10B981),
-                    formatValue = { "%.1f%%".format(it) }
+                    formatValue = { String.format(java.util.Locale.ROOT, "%.1f%%", it) }
                 )
 
                 LineChartCard(
@@ -390,6 +399,97 @@ private fun LineChartCard(
                 color = NssMutedForeground
             )
         }
+    }
+}
+
+/**
+ * Oxiwyle-style world leaderboards: armies, economies, and the player's
+ * domination record across the known world.
+ */
+@Composable
+private fun WorldStandingsPanel(state: GameState) {
+    val playerGdp = state.economy.factories * 2_400_000_000L + state.tradeExportBonus
+    val standings = state.diplomacy.rivals
+        .map { rival ->
+            Triple(
+                rival,
+                rival.militaryStrength,
+                rival.economicPower * playerGdp.coerceAtLeast(1L),
+            )
+        }
+        .sortedByDescending { it.second }
+    val playerArmy = state.military.combatStrength
+    val armyRank = 1 + standings.count { it.second > playerArmy }
+    val playerEcon = playerGdp * (1.0 + state.tradeExportBonus.coerceAtLeast(1L) / playerGdp.coerceAtLeast(1L))
+    val econRank = 1 + standings.count { it.third > playerEcon }
+
+    NssPanel(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            "WORLD STANDINGS",
+            fontWeight = FontWeight.Black,
+            fontSize = 9.sp,
+            color = NssPrimary,
+            letterSpacing = 8.sp,
+        )
+        Spacer(Modifier.height(6.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            StandingBlock("ARMY RANK", "#$armyRank")
+            StandingBlock("ECONOMY RANK", "#$econRank")
+            StandingBlock("NATIONS CONTROLLED", "${state.territory.controlledCount}")
+            StandingBlock("WARS WON", "${state.legacy.warsWon}")
+        }
+        Spacer(Modifier.height(8.dp))
+        standings.take(5).forEach { (rival, strength, _) ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(rival.flagEmoji, fontSize = 11.sp)
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    rival.name,
+                    color = NssForeground,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    "${strength.roundToInt()} strength",
+                    color = NssMutedForeground,
+                    fontSize = 9.sp,
+                )
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(NssCardShape)
+                .background(NssPrimary.copy(alpha = 0.15f))
+                .padding(vertical = 4.dp, horizontal = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(state.playerNation.flagEmoji, fontSize = 11.sp)
+            Spacer(Modifier.width(6.dp))
+            Text(
+                "${state.playerNation.name} (YOU)",
+                color = NssForeground,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Black,
+                modifier = Modifier.weight(1f),
+            )
+            Text("${playerArmy.roundToInt()} strength", color = NssPrimary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun StandingBlock(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, color = NssForeground, fontSize = 13.sp, fontWeight = FontWeight.Black)
+        Text(label, color = NssMutedForeground, fontSize = 7.sp, fontWeight = FontWeight.Bold)
     }
 }
 

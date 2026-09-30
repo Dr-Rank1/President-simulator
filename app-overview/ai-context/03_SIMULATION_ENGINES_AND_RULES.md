@@ -25,7 +25,8 @@ This means active crisis events and game-over block most user actions.
 
 - Relation drift is affected by military pressure (spending, mobilization, DEFCON)
 - War progress changes monthly by skirmish outcome
-- Victory/defeat end war at +/-100 progress thresholds
+- `warPower(state)` = `effectiveCombatStrength` + flat industry (arsenals/airfields/shipyards) + puppet support; used for battle win probability and hostile-nation deterrence checks
+- Victory/defeat end war at +/-100 progress thresholds; a victorious `WarOutcome` carries `conquestAvailable = victory && target not yet conquered`
 - Armistice cost scales with negative war progress
 - Hardware purchase is blocked by governance bans (nuclear embargo / weapons ban)
 
@@ -165,6 +166,30 @@ Repeal removes ongoing modifiers; no activation refund.
 ### Persistence location
 
 `SharedPreferences` keys are used by `GameViewModel` for automated save state storage and restore.
+
+---
+
+## 8) Domination Engines (`VictoryEngine` + `MilitaryIndustryEngine`, `data/VictoryEngine.kt`)
+
+### Main responsibilities
+
+- `resolveConquest`: applies the post-war fate choice (annex / puppet / liberate) with approval, relation, tribute, and instability effects
+- `VictoryEngine.processMonth`: monthly religious/ideological world spread, annexed-resistance decay, rival warming at high influence
+- `checkVictories`: military (nations controlled), religious/ideological (influence >= 85)
+- `MilitaryIndustryEngine.processMonth`: delivers hardware from arsenals/airfields/shipyards
+
+### Key mechanics
+
+- Religious spread needs a non-SECULAR state religion; scales with culture/health/puppets
+- Ideological spread scales with the chosen setup ideology
+- Milestones emit "DOMINION" news at 25/50/75% path progress
+- Pipeline step 3b runs industry + domination; step 5 `emitWorldNews` feeds the ticker
+
+## 9) Loan Engine (`data/LoanEngine.kt`)
+
+- `availableLoan`: 12-month revenue x credit bracket, rounded to $1B (MIN_LOAN = $1B)
+- `takeLoan` adds debt and drops credit rating by 1; `repayLoan` pays down debt
+- Surfaced on the EconomyScreen central-bank loan desk
 
 ---
 

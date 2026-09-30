@@ -8,9 +8,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.Text
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import com.presidentsimulator.game.data.GameState
+import com.presidentsimulator.game.data.MilitaryFacilityType
 import com.presidentsimulator.game.data.MilitaryHardware
 import com.presidentsimulator.game.viewmodel.GameViewModel
+import com.presidentsimulator.game.viewmodel.toBudgetString
 import com.presidentsimulator.game.ui.components.PresidentCard
 import com.presidentsimulator.game.ui.components.PresidentCardData
 import com.presidentsimulator.game.ui.components.BadgeMode
@@ -100,6 +105,44 @@ fun MilitaryScreen(
             .fillMaxSize()
             .background(Color(0xFFF5F1E6))
     ) {
+        // Military industry: facilities that produce hardware every month.
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            val industry = state.militaryIndustry
+            val facilities = listOf(
+                Triple(MilitaryFacilityType.ARSENAL, industry.arsenals, industry.lastTanksProduced),
+                Triple(MilitaryFacilityType.AIRFIELD, industry.airfields, industry.lastJetsProduced),
+                Triple(MilitaryFacilityType.SHIPYARD, industry.shipyards, industry.lastShipsProduced),
+            )
+            items(facilities) { (type, count, produced) ->
+                PresidentCard(
+                    PresidentCardData(
+                        title = type.displayName,
+                        imageUrl = NssCardImages.ARMORED,
+                        badgeMode = BadgeMode.UpgradeArrow,
+                        stats = listOf(
+                            "Owned" to count.toString(),
+                            "Cost" to type.unitCost.toBudgetString(),
+                            "Output" to type.produces,
+                            "Last month" to "$produced",
+                        ),
+                        onClick = { viewModel.buildMilitaryFacility(type, 1) },
+                    ),
+                )
+            }
+        }
+
+        Text(
+            "ARMY & HARDWARE",
+            color = Color(0xFF37474F),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Black,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp),
+        )
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()

@@ -109,8 +109,8 @@ fun CabinetScreen(
                     },
                 )
                 Text(
-                    "Prod ×${"%.2f".format(effects.productionMultiplier)} · Sci ×${"%.2f".format(effects.scienceMultiplier)} · " +
-                        "Mil ×${"%.2f".format(effects.militaryStrengthMultiplier)} · Society ×${"%.2f".format(effects.societyGainMultiplier)}",
+                    "Prod ×${String.format(java.util.Locale.ROOT, "%.2f", effects.productionMultiplier)} · Sci ×${String.format(java.util.Locale.ROOT, "%.2f", effects.scienceMultiplier)} · " +
+                        "Mil ×${String.format(java.util.Locale.ROOT, "%.2f", effects.militaryStrengthMultiplier)} · Society ×${String.format(java.util.Locale.ROOT, "%.2f", effects.societyGainMultiplier)}",
                     fontSize = 8.sp,
                     color = NssMutedForeground,
                     modifier = Modifier.padding(top = 6.dp),

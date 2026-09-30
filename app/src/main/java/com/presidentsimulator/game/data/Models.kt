@@ -56,6 +56,16 @@ data class GameState(
     val mandate: MandateState = MandateState(),
     /** Debt, credit conditions, and a short auditable record of fiscal settlements. */
     val finance: FinanceState = FinanceState(),
+    /** Oxiwyle-style conquest: annexed lands and puppet states. */
+    val territory: TerritoryState = TerritoryState(),
+    /** Chosen victory path and world-spread progress. */
+    val victoryPath: VictoryPathState = VictoryPathState(),
+    /** Military industry: arsenals, airfields, shipyards. */
+    val militaryIndustry: MilitaryIndustryState = MilitaryIndustryState(),
+    /** New-game wizard record: leader title, ideology, religion. */
+    val setup: SetupState = SetupState(),
+    /** Rolling world news ticker. */
+    val news: NewsState = NewsState(),
 ) {
     val dateLabel: String
         get() = "${monthName(month)} $year"
@@ -109,6 +119,18 @@ data class GameState(
             society.stateReligion.productionMultiplier *
             economy.sectorInvestment.productionMultiplier() *
             cabinet.combinedEffects().productionMultiplier
+
+    /** Armed forces including tanks, jets, and ships from the military industry. */
+    val effectiveMilitaryStrength: Double
+        get() = military.combatStrength +
+            militaryIndustry.arsenals * 12.0 +
+            militaryIndustry.airfields * 15.0 +
+            militaryIndustry.shipyards * 18.0 +
+            territory.puppetCount * 40.0
+
+    /** Puppet tribute added to the passive export bonus line. */
+    val tributeIncome: Long
+        get() = territory.monthlyTributeIncome
 
     companion object {
         fun initial(countryId: String = "us"): GameState =
@@ -970,6 +992,9 @@ object EventRepository {
         val monthsLeft = (state.nextElectionYear - state.year) * 12 + (12 - state.month)
         return monthsLeft.coerceAtLeast(0)
     }
+
+    /** Test-facing wrapper exposing the private weighting curve. */
+    fun weightedEventWeight(event: GameEvent, state: GameState): Float = eventWeight(event, state)
 
     private fun eventWeight(event: GameEvent, state: GameState): Float {
         val tags = tagsFor(event.id)

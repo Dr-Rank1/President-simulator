@@ -23,14 +23,15 @@ Bottom nav stays Overview / Economy / Defense / Foreign / Intel. Science, Domest
 
 ### Launch gate
 
-When `showLaunchScreen` is true, `GameNavigation` shows `LaunchScreen` (Continue / New Game) instead of the HUD shell.
+When `showLaunchScreen` is true, `GameNavigation` shows `LaunchScreen` (Continue / New Game / slot loading) instead of the HUD shell. "New Game" opens `NewGameSetupScreen`, a 6-step wizard: nation -> leader title -> ideology -> state religion -> victory path -> difficulty. Back press steps backward through the wizard.
 
 ### Global overlays (priority)
 
 1. `EventCrisisDialog` (active crisis)
-2. `MissionResultDialog` (queued covert outcomes)
-3. `TurnSummaryDialog` (post-tick deltas)
-4. Campaign end dialog (coup loss, election loss, or victory) with Load Save + Return to Title
+2. `ElectionNightDialog` (pending election night)
+3. War-end branch: `ConquestChoiceDialog` when `WarOutcome.conquestAvailable` (mandatory: scrim/back cannot dismiss), else `WarOutcomeDialog`
+4. `MissionResultDialog` (queued covert outcomes)
+5. Campaign end dialog (coup loss, election loss, or victory) with Load Save + Return to Title
 
 ---
 
@@ -38,9 +39,11 @@ When `showLaunchScreen` is true, `GameNavigation` shows `LaunchScreen` (Continue
 
 ## `MainDashboardScreen`
 
-- Macro status and event cards
-- Quick ministry jump tiles (including Analytics / Demographics)
+- `NewsTicker` (rotating world news) + WAR banner
+- `DominancePanel` (victory-path progress bar)
+- REALM territory strip (conquered nations)
 - Hero country header and vitals cards
+- Quick ministry jump tiles (including Analytics / Demographics)
 
 ## `EconomyScreen`
 
@@ -76,7 +79,13 @@ When `showLaunchScreen` is true, `GameNavigation` shows `LaunchScreen` (Continue
 ## `AnalyticsScreen` / `ApprovalDemographicsScreen`
 
 - History charts + manual save/load
+- `WorldStandingsPanel`: army/economy ranks, nations controlled, wars won, top-5 rival strengths
 - Persistent approval cohorts and election year
+
+## `EconomyScreen` / `MilitaryScreen` extras
+
+- Economy: central-bank loan desk (BORROW max / REPAY debt/10) via `LoanEngine`
+- Military: military-industry build row (arsenals / airfields / shipyards)
 
 ## `SettingsAudioScreen`
 
@@ -105,7 +114,7 @@ Important shared pieces:
 - `NssPhotoHeader`
 - `MinistryBottomNav`
 - `GlobalHud`
-- `TurnSummaryDialog` / `MissionResultDialog`
+- `ConquestChoiceDialog` / `NewsTicker` + `DominancePanel` / `MissionResultDialog`
 
 ---
 

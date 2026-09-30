@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -35,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -43,20 +43,21 @@ import androidx.navigation.compose.rememberNavController
 import com.presidentsimulator.game.audio.GameAudioBridge
 import com.presidentsimulator.game.audio.GameAudioCrisisEffect
 import com.presidentsimulator.game.audio.GameAudioManager
+import com.presidentsimulator.game.audio.SfxType
 import com.presidentsimulator.game.audio.playClick
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.ui.GovernanceUNScreen
+import com.presidentsimulator.game.ui.components.ConquestChoiceDialog
+import com.presidentsimulator.game.ui.components.MarketShopDialog
 import com.presidentsimulator.game.ui.components.ElectionNightDialog
 import com.presidentsimulator.game.ui.components.EventCrisisDialog
 import com.presidentsimulator.game.ui.components.GameTutorialDialog
 import com.presidentsimulator.game.ui.components.GlobalHud
 import com.presidentsimulator.game.ui.components.MinistryBottomNav
 import com.presidentsimulator.game.ui.components.MissionResultDialog
-import com.presidentsimulator.game.ui.components.ActionErrorDialog
 import com.presidentsimulator.game.ui.components.MorningBriefingDialog
 import com.presidentsimulator.game.ui.components.NssCardShape
 import com.presidentsimulator.game.ui.components.NssPanel
-import com.presidentsimulator.game.ui.components.TurnSummaryDialog
 import com.presidentsimulator.game.ui.components.WarOutcomeDialog
 import com.presidentsimulator.game.ui.components.collectAlertCount
 import com.presidentsimulator.game.ui.theme.NssAccent
@@ -72,8 +73,8 @@ import com.presidentsimulator.game.ui.screens.ApprovalDemographicsScreen
 import com.presidentsimulator.game.ui.screens.CabinetScreen
 import com.presidentsimulator.game.ui.screens.DiplomacyScreen
 import com.presidentsimulator.game.ui.screens.EconomyScreen
-import com.presidentsimulator.game.ui.screens.CountrySelectScreen
 import com.presidentsimulator.game.ui.screens.LaunchScreen
+import com.presidentsimulator.game.ui.screens.NewGameSetupScreen
 import com.presidentsimulator.game.ui.screens.LawsScreen
 import com.presidentsimulator.game.ui.screens.MainDashboardScreen
 import com.presidentsimulator.game.ui.screens.MilitaryScreen
@@ -88,15 +89,15 @@ fun GameNavigation(
     viewModel: GameViewModel,
     navController: NavHostController = rememberNavController(),
 ) {
-    val state by viewModel.state.collectAsState()
-    val timeSpeedMode by viewModel.timeSpeedMode.collectAsState()
-    val activeEvent by viewModel.currentActiveEvent.collectAsState()
-    val turnSummary by viewModel.turnSummary.collectAsState()
-    val missionResults by viewModel.missionResults.collectAsState()
-    val warOutcome by viewModel.warOutcome.collectAsState()
-    val showLaunch by viewModel.showLaunchScreen.collectAsState()
-    val actionError by viewModel.actionError.collectAsState()
-    val hasSave by viewModel.hasSave.collectAsState()
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val timeSpeedMode by viewModel.timeSpeedMode.collectAsStateWithLifecycle()
+    val activeEvent by viewModel.currentActiveEvent.collectAsStateWithLifecycle()
+    val missionResults by viewModel.missionResults.collectAsStateWithLifecycle()
+    val warOutcome by viewModel.warOutcome.collectAsStateWithLifecycle()
+    val openWorldMarket by viewModel.openWorldMarket.collectAsStateWithLifecycle()
+    val showLaunch by viewModel.showLaunchScreen.collectAsStateWithLifecycle()
+    val hasSave by viewModel.hasSave.collectAsStateWithLifecycle()
+    val saveSlots by viewModel.saveSlots.collectAsStateWithLifecycle()
     val gameOver = state.gameOver.isGameOver
     val isVictory = state.gameOver.isVictory
 
@@ -106,11 +107,15 @@ fun GameNavigation(
     val context = LocalContext.current
     val audio = remember(context) { GameAudioManager.getInstance(context) }
     var showCountrySelect by remember { mutableStateOf(false) }
+    var showMarketShop by remember { mutableStateOf(false) }
     var showTutorial by rememberSaveable { mutableStateOf(false) }
     var tutorialPage by rememberSaveable { mutableIntStateOf(0) }
 
     LaunchedEffect(showLaunch) {
-        if (showLaunch) showCountrySelect = false
+        if (showLaunch) {
+            showCountrySelect = false
+            viewModel.refreshSaveSlots()
+        }
     }
 
     BackHandler(enabled = showLaunch && showCountrySelect) {
@@ -129,15 +134,19 @@ fun GameNavigation(
 
     if (showLaunch) {
         if (showCountrySelect) {
-            CountrySelectScreen(
+            NewGameSetupScreen(
                 nations = viewModel.playableNations(),
                 onBack = {
                     audio.playClick()
                     showCountrySelect = false
                 },
-                onSelectCountry = { countryId, scenarioId, challengeId ->
+                onStartGame = { countryId, scenarioId, challengeId, leaderTitle, ideologyId, religionId, victoryPath ->
                     audio.playClick()
                     viewModel.startNewGame(countryId, scenarioId, challengeId)
+                    viewModel.setLeaderTitle(leaderTitle)
+                    viewModel.setSetupIdeology(ideologyId)
+                    viewModel.setSetupReligion(religionId)
+                    viewModel.chooseVictoryPath(victoryPath)
                     showCountrySelect = false
                     tutorialPage = 0
                     showTutorial = true
@@ -154,7 +163,7 @@ fun GameNavigation(
                     audio.playClick()
                     showCountrySelect = true
                 },
-                slots = viewModel.listSaveSlots(),
+                slots = saveSlots,
                 onLoadSlot = { slot ->
                     audio.playClick()
                     viewModel.loadFromSlot(slot)
@@ -191,13 +200,25 @@ fun GameNavigation(
 
     if (activeEvent == null && electionNight == null) {
         warOutcome?.let { outcome ->
-            WarOutcomeDialog(
-                outcome = outcome,
-                onDismiss = {
-                    audio.playClick()
-                    viewModel.clearWarOutcome()
-                },
-            )
+            if (outcome.conquestAvailable) {
+                // Victory with the enemy at our mercy: offer the conquest choice.
+                ConquestChoiceDialog(
+                    outcome = outcome,
+                    onChoose = { status ->
+                        audio.playClick()
+                        viewModel.resolveConquest(outcome.targetCountryId, status)
+                        viewModel.clearWarOutcome()
+                    },
+                )
+            } else {
+                WarOutcomeDialog(
+                    outcome = outcome,
+                    onDismiss = {
+                        audio.playClick()
+                        viewModel.clearWarOutcome()
+                    },
+                )
+            }
         }
     }
 
@@ -205,7 +226,7 @@ fun GameNavigation(
     BackHandler(
         enabled = !showLaunch && !gameOver && currentRoute != null && currentRoute != GameDestination.Dashboard.route &&
             activeEvent == null && electionNight == null && warOutcome == null && pendingMission == null &&
-            turnSummary == null && !state.agenda.needsBriefing,
+            !state.agenda.needsBriefing,
     ) {
         audio.playClick()
         navController.popBackStack(GameDestination.Dashboard.route, inclusive = false)
@@ -221,32 +242,12 @@ fun GameNavigation(
         )
     }
 
-    actionError?.let { errorMsg ->
-        ActionErrorDialog(
-            message = errorMsg,
-            onDismiss = { viewModel.dismissActionError() }
-        )
-    }
-
-    if (activeEvent == null && electionNight == null && warOutcome == null && pendingMission == null) {
-        turnSummary?.let { summary ->
-            TurnSummaryDialog(
-                summary = summary,
-                onDismiss = {
-                    audio.playClick()
-                    viewModel.clearTurnSummary()
-                },
-            )
-        }
-    }
-
     if (
         !showTutorial &&
         activeEvent == null &&
         electionNight == null &&
         warOutcome == null &&
         pendingMission == null &&
-        turnSummary == null &&
         state.agenda.needsBriefing
     ) {
         MorningBriefingDialog(
@@ -261,7 +262,7 @@ fun GameNavigation(
                 state.nextElectionYear > 0 && state.nextElectionYear - state.year <= 1 -> "The next election is approaching. Check the latest cohort polling and identify a group you need to win back."
                 else -> "The government enters ${state.dateLabel} with ${state.vitals.approval.toInt()}% approval. Choose one priority and follow its effects through the next turn."
             },
-            storyline = state.storyArc.activeArcId?.let { "${state.storyArc.lastStoryNote} Â· chapter ${state.storyArc.chapter} of 3" },
+            storyline = state.storyArc.activeArcId?.let { "${state.storyArc.lastStoryNote} · chapter ${state.storyArc.chapter} of 3" },
             onDismiss = {
                 audio.playClick()
                 viewModel.acknowledgeBriefing()
@@ -292,6 +293,28 @@ fun GameNavigation(
         )
     }
 
+    val marketShopRequested = showMarketShop || openWorldMarket
+    if (marketShopRequested && !gameOver && !showLaunch) {
+        MarketShopDialog(
+            state = state,
+            priceOf = { commodity -> viewModel.negotiatedDealPrice(commodity) },
+            stockOf = { commodity -> viewModel.stockOf(commodity) },
+            tariffRate = state.trade.tariffRate,
+            onBuy = {
+                audio.playSfx(SfxType.BUILD_SUCCESS)
+                viewModel.buyFromMarket(it)
+            },
+            onSell = {
+                audio.playSfx(SfxType.CLICK)
+                viewModel.sellToMarket(it)
+            },
+            onDismiss = {
+                showMarketShop = false
+                viewModel.dismissWorldMarket()
+            },
+        )
+    }
+
     if (gameOver) {
         CampaignEndDialog(
             isVictory = isVictory,
@@ -315,6 +338,14 @@ fun GameNavigation(
             onTimeSpeedModeSelected = { mode ->
                 audio.playClick()
                 viewModel.setTimeSpeedMode(mode)
+            },
+            onOpenShop = {
+                audio.playClick()
+                showMarketShop = true
+            },
+            onOpenMenu = {
+                audio.playClick()
+                navigate(GameDestination.AudioSettings)
             },
         )
 
@@ -420,9 +451,9 @@ private fun CampaignEndDialog(
             NssPanel(modifier = Modifier.fillMaxWidth()) {
                 val scores = campaign.legacy.scores
                 val finalScore = (scores.overall * campaign.scenario.scoreMultiplier).roundToInt()
-                Text("NATIONAL LEADERSHIP LEGACY Â· ${scores.grade.uppercase()}", fontSize = 10.sp, fontWeight = FontWeight.Black, color = accent, letterSpacing = 1.5.sp)
+                Text("NATIONAL LEADERSHIP LEGACY · ${scores.grade.uppercase()}", fontSize = 10.sp, fontWeight = FontWeight.Black, color = accent, letterSpacing = 1.5.sp)
                 Text("Campaign score  $finalScore", fontSize = 20.sp, fontWeight = FontWeight.Black, color = NssForeground, modifier = Modifier.padding(top = 4.dp))
-                Text("${scores.overall} base Ã— ${campaign.scenario.scoreMultiplier} challenge modifier", fontSize = 10.sp, color = NssMutedForeground)
+                Text("${scores.overall} base × ${campaign.scenario.scoreMultiplier} challenge modifier", fontSize = 10.sp, color = NssMutedForeground)
                 listOf(
                     "Prosperity" to scores.prosperity,
                     "Security" to scores.security,
@@ -430,17 +461,17 @@ private fun CampaignEndDialog(
                     "Society" to scores.society,
                     "Mandate" to scores.mandate,
                 ).forEach { (pillar, value) ->
-                    Text("$pillar  Â·  $value", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+                    Text("$pillar  ·  $value", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
                 }
                 val honors = campaignHonors(campaign, isVictory)
                 if (honors.isNotEmpty()) {
                     Text("HONORS", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
-                    honors.forEach { honor -> Text("âœ¦  $honor", fontSize = 11.sp, color = NssForeground, modifier = Modifier.padding(top = 3.dp)) }
+                    honors.forEach { honor -> Text("✦  $honor", fontSize = 11.sp, color = NssForeground, modifier = Modifier.padding(top = 3.dp)) }
                 }
                 if (campaign.mandate.lastReview.isNotEmpty()) {
                     Text("TERM PROMISE REVIEW", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
                     campaign.mandate.lastReview.forEach { result ->
-                        Text("${if (result.fulfilled) "âœ“" else "Ã—"} ${result.goal.title} Â· ${result.review}", fontSize = 10.sp, color = if (result.fulfilled) NssEmerald else NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+                        Text("${if (result.fulfilled) "✓" else "×"} ${result.goal.title} · ${result.review}", fontSize = 10.sp, color = if (result.fulfilled) NssEmerald else NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
                     }
                 }
             }
@@ -477,12 +508,12 @@ private fun CampaignEndDialog(
 }
 
 private fun campaignHonors(state: GameState, victory: Boolean): List<String> = buildList {
-    if (state.legacy.electionsWon >= 2) add("Long Mandate Â· won ${state.legacy.electionsWon} elections")
-    if (state.legacy.warsWon >= 1 && state.legacy.warsLost == 0) add("Unbeaten Commander Â· no wars lost")
-    if (state.legacy.disastersHandled >= 3) add("Steady Hand Â· contained ${state.legacy.disastersHandled} disasters")
-    if (state.legacy.lawsEnacted >= 5) add("Reformer Â· enacted ${state.legacy.lawsEnacted} laws")
-    if (state.legacy.peakApproval >= 80f) add("People's Mandate Â· reached ${state.legacy.peakApproval.toInt()}% approval")
-    if (state.storyArc.completedArcIds.isNotEmpty()) add("Crisis Storyteller Â· closed ${state.storyArc.completedArcIds.size} political story arc(s)")
-    if (victory && state.scenario.challengeId != "standard") add("Challenge cleared Â· ${state.scenario.challengeId.replace('_', ' ')}")
-    if (victory && state.legacy.scores.overall >= 80) add("Historic Leader Â· legacy score above 80")
+    if (state.legacy.electionsWon >= 2) add("Long Mandate · won ${state.legacy.electionsWon} elections")
+    if (state.legacy.warsWon >= 1 && state.legacy.warsLost == 0) add("Unbeaten Commander · no wars lost")
+    if (state.legacy.disastersHandled >= 3) add("Steady Hand · contained ${state.legacy.disastersHandled} disasters")
+    if (state.legacy.lawsEnacted >= 5) add("Reformer · enacted ${state.legacy.lawsEnacted} laws")
+    if (state.legacy.peakApproval >= 80f) add("People's Mandate · reached ${state.legacy.peakApproval.toInt()}% approval")
+    if (state.storyArc.completedArcIds.isNotEmpty()) add("Crisis Storyteller · closed ${state.storyArc.completedArcIds.size} political story arc(s)")
+    if (victory && state.scenario.challengeId != "standard") add("Challenge cleared · ${state.scenario.challengeId.replace('_', ' ')}")
+    if (victory && state.legacy.scores.overall >= 80) add("Historic Leader · legacy score above 80")
 }

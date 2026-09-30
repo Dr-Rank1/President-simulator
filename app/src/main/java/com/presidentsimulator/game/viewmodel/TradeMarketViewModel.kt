@@ -219,9 +219,11 @@ class TradeMarketViewModel(
             relationshipScore >= -20 -> 1.0
             else -> 1.08
         }
+        // Friendly partners offer better unit prices in both directions:
+        // they charge us less for their goods, and pay a premium for ours.
         val typed = when (type) {
-            TradeType.EXPORT -> basePrice * relationFactor
-            TradeType.IMPORT -> basePrice * (2.0 - relationFactor)
+            TradeType.IMPORT -> basePrice * relationFactor
+            TradeType.EXPORT -> basePrice * (2.0 - relationFactor)
         }
         return typed.roundToLong().coerceAtLeast(1L)
     }

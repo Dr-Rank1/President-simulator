@@ -569,7 +569,7 @@ fun NssSectorCard(
                 modifier = Modifier.align(Alignment.TopStart).padding(6.dp),
             )
             Text(
-                text = "${if (growth >= 0) "▲" else "▼"} ${"%.1f".format(kotlin.math.abs(growth))}%",
+                text = "${if (growth >= 0) "▲" else "▼"} ${String.format(java.util.Locale.ROOT, "%.1f", kotlin.math.abs(growth))}%",
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(6.dp)
@@ -598,7 +598,7 @@ fun NssSectorCard(
             ) {
                 Text("GDP Share", style = MaterialTheme.typography.labelSmall, color = NssMutedForeground, fontWeight = FontWeight.Bold)
                 Text(
-                    "${"%.1f".format(gdpShare)}%",
+                    "${String.format(java.util.Locale.ROOT, "%.1f", gdpShare)}%",
                     color = NssForeground,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Black,
@@ -1085,17 +1085,17 @@ object NssNationColors {
 fun formatCompactMoney(value: Long): String {
     val sign = if (value < 0) "-" else ""
     val absVal = kotlin.math.abs(value)
-    if (absVal >= 1_000_000_000_000L) return String.format("%s$%.1fT", sign, absVal / 1_000_000_000_000.0)
-    if (absVal >= 1_000_000_000L) return String.format("%s$%.1fB", sign, absVal / 1_000_000_000.0)
-    if (absVal >= 1_000_000L) return String.format("%s$%.1fM", sign, absVal / 1_000_000.0)
-    if (absVal >= 1_000L) return String.format("%s$%.1fK", sign, absVal / 1_000.0)
+    if (absVal >= 1_000_000_000_000L) return String.format(java.util.Locale.ROOT, "%s$%.1fT", sign, absVal / 1_000_000_000_000.0)
+    if (absVal >= 1_000_000_000L) return String.format(java.util.Locale.ROOT, "%s$%.1fB", sign, absVal / 1_000_000_000.0)
+    if (absVal >= 1_000_000L) return String.format(java.util.Locale.ROOT, "%s$%.1fM", sign, absVal / 1_000_000.0)
+    if (absVal >= 1_000L) return String.format(java.util.Locale.ROOT, "%s$%.1fK", sign, absVal / 1_000.0)
     return "$sign$$absVal"
 }
 
 fun formatCompactMil(value: Long): String {
-    if (value >= 1_000_000_000L) return String.format("%.1fB", value / 1_000_000_000.0)
-    if (value >= 1_000_000L) return String.format("%.1fM", value / 1_000_000.0)
-    if (value >= 1_000L) return String.format("%.1fK", value / 1_000.0)
+    if (value >= 1_000_000_000L) return String.format(java.util.Locale.ROOT, "%.1fB", value / 1_000_000_000.0)
+    if (value >= 1_000_000L) return String.format(java.util.Locale.ROOT, "%.1fM", value / 1_000_000.0)
+    if (value >= 1_000L) return String.format(java.util.Locale.ROOT, "%.1fK", value / 1_000.0)
     return value.toString()
 }
 

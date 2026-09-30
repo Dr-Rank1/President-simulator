@@ -19,7 +19,10 @@ This is a practical index of where to edit what.
 - `TradeAndMarketModels.kt` - commodities, market quotes, trade deals/state
 - `GovernanceModels.kt` - alliances, UN resolutions, governance state
 - `AnalyticsAndSaveModels.kt` - historical snapshots and save feedback models
-- `TurnSummary.kt` - post-tick summary DTO
+- `TerritoryAndVictoryModels.kt` - domination: territory, victory paths, military industry, setup wizard, news ticker + `pushNews`/`effectiveTitle`/`effectiveIdeology` extensions
+- `VictoryEngine.kt` - `VictoryEngine` + `MilitaryIndustryEngine` (conquest resolution, world spread, victory checks)
+- `LoanEngine.kt` - central-bank loans (available/take/repay)
+- `WarModels.kt` - `WarOutcome` (with `conquestAvailable`)
 
 ## ViewModel / Engine Layer (`viewmodel/`)
 
@@ -36,6 +39,7 @@ This is a practical index of where to edit what.
 ## Active Screen Layer (`ui/screens/` + active governance)
 
 - `LaunchScreen.kt`
+- `NewGameSetupScreen.kt` - 6-step new-game wizard
 - `MainDashboardScreen.kt`
 - `EconomyScreen.kt`
 - `MilitaryScreen.kt`
@@ -67,6 +71,9 @@ This is a practical index of where to edit what.
 - `MinistryBottomNav.kt` - active navigation bar
 - `MinistrySideNav.kt` - alternative/legacy nav style
 - `EventCrisisDialog.kt` - crisis modal
+- `ConquestChoiceDialog.kt` - mandatory post-war fate choice (annex/puppet/liberate)
+- `NewsTicker.kt` - world news ticker + `DominancePanel`
+- `WarOutcomeDialog.kt` - war resolution summary
 - `ActiveWarPanel.kt` - war actions/status panel
 - `ActiveOperationCard.kt` - covert mission status card
 - `BulkBuildControls.kt` - quantity control component
