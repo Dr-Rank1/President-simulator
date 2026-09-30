@@ -94,6 +94,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _showLaunchScreen = MutableStateFlow(true)
     val showLaunchScreen: StateFlow<Boolean> = _showLaunchScreen.asStateFlow()
 
+    private val _actionError = MutableStateFlow<String?>(null)
+    val actionError: StateFlow<String?> = _actionError.asStateFlow()
+
+    fun dismissActionError() {
+        _actionError.value = null
+    }
+
+
     private var autoTickJob: Job? = null
     private val random = Random.Default
     private val diplomacyEngine = DiplomacyViewModel(random)
@@ -806,11 +814,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun buildPowerPlant(amount: Int) {
-        _state.update { productionLawEngine.buildPowerPlant(it, amount) }
+        applyActionWithFeedback("Started construction.", "Insufficient budget to build Power Plants.") { productionLawEngine.buildPowerPlant(it, amount) }
     }
 
     fun buildMine(amount: Int) {
-        _state.update { productionLawEngine.buildMine(it, amount) }
+        applyActionWithFeedback("Started construction.", "Insufficient budget to build Mines.") { productionLawEngine.buildMine(it, amount) }
     }
 
     fun canEnactLaw(lawId: String): Boolean {
@@ -925,7 +933,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun recruitPersonnel(amount: Long) {
-        _state.update { diplomacyEngine.recruitPersonnel(it, amount) }
+        applyActionWithFeedback("Recruitment started.", "Insufficient budget to recruit personnel.") { diplomacyEngine.recruitPersonnel(it, amount) }
     }
 
     fun upgradeMilitaryTraining() {
@@ -953,7 +961,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun purchaseMilitaryHardware(hardware: MilitaryHardware, amount: Int) {
-        _state.update { diplomacyEngine.purchaseHardware(it, amount, hardware) }
+        applyActionWithFeedback("Order placed.", "Failed: Insufficient budget or weapons embargo active.") { diplomacyEngine.purchaseHardware(it, amount, hardware) }
     }
 
     fun launchOffensive() {

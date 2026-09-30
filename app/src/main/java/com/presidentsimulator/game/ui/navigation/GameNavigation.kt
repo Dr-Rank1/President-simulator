@@ -52,6 +52,7 @@ import com.presidentsimulator.game.ui.components.GameTutorialDialog
 import com.presidentsimulator.game.ui.components.GlobalHud
 import com.presidentsimulator.game.ui.components.MinistryBottomNav
 import com.presidentsimulator.game.ui.components.MissionResultDialog
+import com.presidentsimulator.game.ui.components.ActionErrorDialog
 import com.presidentsimulator.game.ui.components.MorningBriefingDialog
 import com.presidentsimulator.game.ui.components.NssCardShape
 import com.presidentsimulator.game.ui.components.NssPanel
@@ -94,6 +95,7 @@ fun GameNavigation(
     val missionResults by viewModel.missionResults.collectAsState()
     val warOutcome by viewModel.warOutcome.collectAsState()
     val showLaunch by viewModel.showLaunchScreen.collectAsState()
+    val actionError by viewModel.actionError.collectAsState()
     val hasSave by viewModel.hasSave.collectAsState()
     val gameOver = state.gameOver.isGameOver
     val isVictory = state.gameOver.isVictory
@@ -216,6 +218,13 @@ fun GameNavigation(
                 audio.playClick()
                 viewModel.dismissMissionResult()
             },
+        )
+    }
+
+    actionError?.let { errorMsg ->
+        ActionErrorDialog(
+            message = errorMsg,
+            onDismiss = { viewModel.dismissActionError() }
         )
     }
 
