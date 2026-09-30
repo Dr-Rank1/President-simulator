@@ -20,6 +20,7 @@ import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.SecurityProtocol
 import com.presidentsimulator.game.ui.components.GameTile
 import com.presidentsimulator.game.ui.components.GameTileData
+import com.presidentsimulator.game.ui.components.NssCardImages
 import com.presidentsimulator.game.ui.components.NssTabBar
 import com.presidentsimulator.game.ui.theme.NssBackground
 import com.presidentsimulator.game.viewmodel.GameViewModel
@@ -42,7 +43,7 @@ fun SecurityScreen(
             val statusText = if (isActive) "Active" else "Activate"
             val icon = if (isActive) Icons.Default.Warning else Icons.Default.Security
             
-            GameTileData(protocol.displayName, statusText, icon, topColor) {
+            GameTileData(protocol.displayName, statusText, icon, topColor, NssCardImages.BANNER_DOMESTIC) {
                 viewModel.toggleSecurityProtocol(protocol)
                 if (!isActive) audio.playBuildSuccess()
             }

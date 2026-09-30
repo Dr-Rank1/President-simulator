@@ -20,6 +20,7 @@ import com.presidentsimulator.game.data.TechCatalog
 import com.presidentsimulator.game.data.TechCategory
 import com.presidentsimulator.game.ui.components.GameTile
 import com.presidentsimulator.game.ui.components.GameTileData
+import com.presidentsimulator.game.ui.components.NssCardImages
 import com.presidentsimulator.game.ui.components.NssTabBar
 import com.presidentsimulator.game.ui.theme.NssBackground
 import com.presidentsimulator.game.viewmodel.GameViewModel

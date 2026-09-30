@@ -13,16 +13,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 data class GameTileData(
     val title: String,
     val amountString: String,
     val icon: ImageVector,
     val topColor: Color,
+    val imageUrl: String? = null,
     val onClick: () -> Unit
 )
 
@@ -35,7 +38,7 @@ fun GameTile(item: GameTileData) {
             .border(width = 0.5.dp, color = Color(0xFFE0E0E0), shape = RoundedCornerShape(3.dp))
             .clickable(onClick = item.onClick)
     ) {
-        // Top 65%: Solid bright color with large vector icon
+        // Top 65%: Solid bright color with large vector icon OR a photo
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -43,12 +46,21 @@ fun GameTile(item: GameTileData) {
                 .background(item.topColor),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = item.title,
-                tint = Color.White,
-                modifier = Modifier.size(40.dp)
-            )
+            if (item.imageUrl != null) {
+                AsyncImage(
+                    model = item.imageUrl,
+                    contentDescription = item.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    imageVector = item.icon,
+                    contentDescription = item.title,
+                    tint = Color.White,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
         }
 
         // Bottom 35%: Clean white background with dark text

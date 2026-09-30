@@ -27,6 +27,7 @@ import com.presidentsimulator.game.data.MilitaryHardware
 import com.presidentsimulator.game.ui.components.formatMa2Money
 import com.presidentsimulator.game.ui.components.GameTile
 import com.presidentsimulator.game.ui.components.GameTileData
+import com.presidentsimulator.game.ui.components.NssCardImages
 import com.presidentsimulator.game.ui.theme.NssBackground
 import com.presidentsimulator.game.ui.theme.NssRed
 import com.presidentsimulator.game.viewmodel.GameViewModel
@@ -43,43 +44,43 @@ fun EconomyScreen(
     val militaryUpkeep = (state.military.monthlyUpkeep * state.cabinet.combinedEffects().militaryUpkeepMultiplier).toLong()
 
     val incomes = listOf(
-        GameTileData("Taxes", "+${formatMa2Money(state.economy.taxRevenue(state.vitals.population))}/day", Icons.Filled.AttachMoney, Color(0xFF4CAF50)) {},
-        GameTileData("Exports", "+${formatMa2Money(state.economy.effectiveExports + state.tradeExportBonus)}/day", Icons.Filled.Public, Color(0xFF2196F3)) {},
-        GameTileData("Industry", "+${formatMa2Money(state.production.lastGoodsRevenue)}/day", Icons.Filled.Build, Color(0xFFFF9800)) {},
-        GameTileData("Tourism", "+${formatMa2Money(state.society.tourismIncome)}/day", Icons.Filled.FlightTakeoff, Color(0xFF9C27B0)) {}
+        GameTileData("Taxes", "+${formatMa2Money(state.economy.taxRevenue(state.vitals.population))}/day", Icons.Filled.AttachMoney, Color(0xFF4CAF50), NssCardImages.BANNER_ECONOMY) {},
+        GameTileData("Exports", "+${formatMa2Money(state.economy.effectiveExports + state.tradeExportBonus)}/day", Icons.Filled.Public, Color(0xFF2196F3), NssCardImages.BANNER_FOREIGN) {},
+        GameTileData("Industry", "+${formatMa2Money(state.production.lastGoodsRevenue)}/day", Icons.Filled.Build, Color(0xFFFF9800), NssCardImages.INDUSTRY) {},
+        GameTileData("Tourism", "+${formatMa2Money(state.society.tourismIncome)}/day", Icons.Filled.FlightTakeoff, Color(0xFF9C27B0), NssCardImages.SERVICES) {}
     )
 
     val expenses = listOf(
-        GameTileData("Social", "-${formatMa2Money(state.society.totalMinistryUpkeep)}/day", Icons.Filled.People, Color(0xFF00B0FF)) {},
-        GameTileData("Defense", "-${formatMa2Money(militaryUpkeep)}/day", Icons.Filled.Security, Color(0xFFF44336)) {},
-        GameTileData("Police", "-${formatMa2Money(state.internalSecurity.monthlyUpkeep)}/day", Icons.Filled.LocalPolice, Color(0xFF3F51B5)) {},
-        GameTileData("Admin", "-${formatMa2Money(state.legal.totalUpkeep)}/day", Icons.Filled.Gavel, Color(0xFF607D8B)) {},
-        GameTileData("Infra", "-${formatMa2Money(state.economy.upkeep)}/day", Icons.Filled.Bolt, Color(0xFFFFC107)) {},
-        GameTileData("Interest", "-${formatMa2Money(state.finance.monthlyInterestCost)}/day", Icons.Filled.MoneyOff, Color(0xFFE91E63)) {}
+        GameTileData("Social", "-${formatMa2Money(state.society.totalMinistryUpkeep)}/day", Icons.Filled.People, Color(0xFF00B0FF), NssCardImages.SERVICES) {},
+        GameTileData("Defense", "-${formatMa2Money(militaryUpkeep)}/day", Icons.Filled.Security, Color(0xFFF44336), NssCardImages.BANNER_DEFENSE) {},
+        GameTileData("Police", "-${formatMa2Money(state.internalSecurity.monthlyUpkeep)}/day", Icons.Filled.LocalPolice, Color(0xFF3F51B5), NssCardImages.BANNER_DOMESTIC) {},
+        GameTileData("Admin", "-${formatMa2Money(state.legal.totalUpkeep)}/day", Icons.Filled.Gavel, Color(0xFF607D8B), NssCardImages.PARLIAMENT) {},
+        GameTileData("Infra", "-${formatMa2Money(state.economy.upkeep)}/day", Icons.Filled.Bolt, Color(0xFFFFC107), NssCardImages.ENERGY) {},
+        GameTileData("Interest", "-${formatMa2Money(state.finance.monthlyInterestCost)}/day", Icons.Filled.MoneyOff, Color(0xFFE91E63), NssCardImages.BANNER_ECONOMY) {}
     )
 
     val investments = listOf(
-        GameTileData("Factory", "Build", Icons.Filled.Factory, Color(0xFF795548)) { 
+        GameTileData("Factory", "Build", Icons.Filled.Factory, Color(0xFF795548), NssCardImages.MANUFACTURING) { 
             viewModel.buildFactory(1)
             audio.playBuildSuccess()
         },
-        GameTileData("Farm", "Build", Icons.Filled.Nature, Color(0xFF8BC34A)) { 
+        GameTileData("Farm", "Build", Icons.Filled.Nature, Color(0xFF8BC34A), NssCardImages.AGRICULTURE) { 
             viewModel.buildFarm(1)
             audio.playBuildSuccess()
         },
-        GameTileData("Housing", "Build", Icons.Filled.Home, Color(0xFF00BCD4)) { 
+        GameTileData("Housing", "Build", Icons.Filled.Home, Color(0xFF00BCD4), NssCardImages.SERVICES) { 
             viewModel.buildHousing(1)
             audio.playBuildSuccess()
         },
-        GameTileData("Power", "Build", Icons.Filled.Bolt, Color(0xFFFFEB3B)) { 
+        GameTileData("Power", "Build", Icons.Filled.Bolt, Color(0xFFFFEB3B), NssCardImages.ENERGY) { 
             viewModel.buildPowerPlant(1)
             audio.playBuildSuccess()
         },
-        GameTileData("Mine", "Build", Icons.Filled.Landscape, Color(0xFF607D8B)) { 
+        GameTileData("Mine", "Build", Icons.Filled.Landscape, Color(0xFF607D8B), NssCardImages.INDUSTRY) { 
             viewModel.buildMine(1)
             audio.playBuildSuccess()
         },
-        GameTileData("University", "Build", Icons.Filled.School, Color(0xFF9C27B0)) { 
+        GameTileData("University", "Build", Icons.Filled.School, Color(0xFF9C27B0), NssCardImages.BANNER_SCIENCE) { 
             viewModel.buildUniversity()
             audio.playBuildSuccess()
         },

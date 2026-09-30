@@ -20,6 +20,7 @@ import com.presidentsimulator.game.data.MilitaryHardware
 import com.presidentsimulator.game.ui.components.GameTile
 import com.presidentsimulator.game.ui.components.GameTileData
 import com.presidentsimulator.game.ui.components.NssTabBar
+import com.presidentsimulator.game.ui.components.NssCardImages
 import com.presidentsimulator.game.ui.theme.NssBackground
 import com.presidentsimulator.game.viewmodel.GameViewModel
 import kotlin.math.roundToInt
@@ -53,13 +54,13 @@ fun MilitaryScreen(
 private fun MilitaryManagementTab(state: GameState) {
     val military = state.military
     val items = listOf(
-        GameTileData("Infantry", "${military.personnel.toInt()} units", Icons.Default.Security, Color(0xFF43A047)) {},
-        GameTileData("Tanks", "${military.tanks}", Icons.Default.Security, Color(0xFFD32F2F)) {},
-        GameTileData("Artillery", "${military.tanks / 2}", Icons.Default.FilterCenterFocus, Color(0xFF1565C0)) {},
-        GameTileData("Destroyers", "${military.ships}", Icons.Default.DirectionsBoat, Color(0xFF0288D1)) {},
-        GameTileData("Submarines", "${military.ships / 2}", Icons.Default.DirectionsBoat, Color(0xFF546E7A)) {},
-        GameTileData("Fighters", "${military.jets}", Icons.Default.Flight, Color(0xFF1E88E5)) {},
-        GameTileData("Bombers", "${military.jets / 3}", Icons.Default.Flight, Color(0xFF00ACC1)) {},
+        GameTileData("Infantry", "${military.personnel.toInt()} units", Icons.Default.Security, Color(0xFF43A047), NssCardImages.INFANTRY) {},
+        GameTileData("Tanks", "${military.tanks}", Icons.Default.Security, Color(0xFFD32F2F), NssCardImages.ARMORED) {},
+        GameTileData("Artillery", "${military.tanks / 2}", Icons.Default.FilterCenterFocus, Color(0xFF1565C0), NssCardImages.ARTILLERY) {},
+        GameTileData("Destroyers", "${military.ships}", Icons.Default.DirectionsBoat, Color(0xFF0288D1), NssCardImages.DESTROYER) {},
+        GameTileData("Submarines", "${military.ships / 2}", Icons.Default.DirectionsBoat, Color(0xFF546E7A), NssCardImages.SUBMARINE) {},
+        GameTileData("Fighters", "${military.jets}", Icons.Default.Flight, Color(0xFF1E88E5), NssCardImages.FIGHTER) {},
+        GameTileData("Bombers", "${military.jets / 3}", Icons.Default.Flight, Color(0xFF00ACC1), NssCardImages.BOMBER) {},
     )
 
     LazyVerticalGrid(
@@ -80,23 +81,23 @@ private fun MilitaryMachineryTab(state: GameState, viewModel: GameViewModel) {
     val audio = remember(context) { GameAudioManager.getInstance(context) }
     
     val items = listOf(
-        GameTileData("Recruit Infantry", "Build", Icons.Default.PersonAdd, Color(0xFF43A047)) { 
+        GameTileData("Recruit Infantry", "Build", Icons.Default.PersonAdd, Color(0xFF43A047), NssCardImages.INFANTRY) { 
             viewModel.recruitPersonnel(100L)
             audio.playBuildSuccess()
         },
-        GameTileData("Buy Tanks", "Build", Icons.Default.Security, Color(0xFFD32F2F)) { 
+        GameTileData("Buy Tanks", "Build", Icons.Default.Security, Color(0xFFD32F2F), NssCardImages.ARMORED) { 
             viewModel.purchaseMilitaryHardware(MilitaryHardware.TANKS, 10)
             audio.playBuildSuccess()
         },
-        GameTileData("Buy Artillery", "Build", Icons.Default.FilterCenterFocus, Color(0xFF1565C0)) { 
+        GameTileData("Buy Artillery", "Build", Icons.Default.FilterCenterFocus, Color(0xFF1565C0), NssCardImages.ARTILLERY) { 
             viewModel.purchaseMilitaryHardware(MilitaryHardware.TANKS, 5) // Simplified mapping
             audio.playBuildSuccess()
         },
-        GameTileData("Build Ships", "Build", Icons.Default.DirectionsBoat, Color(0xFF0288D1)) { 
+        GameTileData("Build Ships", "Build", Icons.Default.DirectionsBoat, Color(0xFF0288D1), NssCardImages.DESTROYER) { 
             viewModel.purchaseMilitaryHardware(MilitaryHardware.NAVAL_SHIPS, 1)
             audio.playBuildSuccess()
         },
-        GameTileData("Build Jets", "Build", Icons.Default.Flight, Color(0xFF1E88E5)) { 
+        GameTileData("Build Jets", "Build", Icons.Default.Flight, Color(0xFF1E88E5), NssCardImages.FIGHTER) { 
             viewModel.purchaseMilitaryHardware(MilitaryHardware.FIGHTER_JETS, 5)
             audio.playBuildSuccess()
         }

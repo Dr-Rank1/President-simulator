@@ -19,6 +19,7 @@ import com.presidentsimulator.game.data.LawCatalog
 import com.presidentsimulator.game.data.LawCategory
 import com.presidentsimulator.game.ui.components.GameTile
 import com.presidentsimulator.game.ui.components.GameTileData
+import com.presidentsimulator.game.ui.components.NssCardImages
 import com.presidentsimulator.game.ui.components.NssTabBar
 import com.presidentsimulator.game.ui.theme.NssBackground
 import com.presidentsimulator.game.viewmodel.GameViewModel
@@ -49,7 +50,13 @@ fun LawsScreen(
             val isActive = state.legal.isActive(law.id)
             val topColor = if (isActive) Color(0xFF43A047) else Color(0xFFE64A19)
             val statusText = if (isActive) "Active" else "Enact"
-            GameTileData(law.name, statusText, Icons.Default.Gavel, topColor) {
+            val imageUrl = when(category) {
+                LawCategory.MILITARY -> NssCardImages.BANNER_DEFENSE
+                LawCategory.ECONOMIC -> NssCardImages.BANNER_ECONOMY
+                LawCategory.SOCIAL -> NssCardImages.PARLIAMENT
+            }
+            
+            GameTileData(law.name, statusText, Icons.Default.Gavel, topColor, imageUrl) {
                 if (!isActive) {
                     viewModel.enactLaw(law.id)
                     audio.playBuildSuccess()

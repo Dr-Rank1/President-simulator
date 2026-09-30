@@ -35,6 +35,7 @@ import com.presidentsimulator.game.viewmodel.GameViewModel
 
 import com.presidentsimulator.game.ui.components.GameTile
 import com.presidentsimulator.game.ui.components.GameTileData
+import com.presidentsimulator.game.ui.components.NssCardImages
 
 @Composable
 fun MainDashboardScreen(
@@ -102,21 +103,21 @@ fun MainDashboardScreen(
         GameTileData(
             title = "Police",
             amountString = "-${formatDaily(state.internalSecurity.monthlyUpkeep)}/day",
-            icon = Icons.Default.LocalPolice,
+            icon = Icons.Default.LocalPolice, imageUrl = NssCardImages.BANNER_DOMESTIC,
             topColor = Color(0xFF1565C0),
             onClick = { onNavigate(GameDestination.SecretService) }
         ),
         GameTileData(
             title = "Energy industry",
             amountString = "-${formatDaily(state.economy.upkeep / 4)}/day",
-            icon = Icons.Default.Bolt,
+            icon = Icons.Default.Bolt, imageUrl = NssCardImages.ENERGY,
             topColor = Color(0xFFE64A19),
             onClick = { onNavigate(GameDestination.Economy) }
         ),
         GameTileData(
             title = "Ecology",
             amountString = "-${formatDaily(state.society.totalMinistryUpkeep / 5)}/day",
-            icon = Icons.Default.Eco,
+            icon = Icons.Default.Eco, imageUrl = NssCardImages.AGRICULTURE,
             topColor = Color(0xFF43A047),
             onClick = { onNavigate(GameDestination.LawsSociety) }
         ),
@@ -130,7 +131,7 @@ fun MainDashboardScreen(
         GameTileData(
             title = "Infrastructure",
             amountString = "-${formatDaily(state.economy.upkeep / 3)}/day",
-            icon = Icons.Default.Apartment,
+            icon = Icons.Default.Apartment, imageUrl = NssCardImages.AGRICULTURE,
             topColor = Color(0xFF546E7A),
             onClick = { onNavigate(GameDestination.Economy) }
         ),
@@ -179,7 +180,7 @@ fun MainDashboardScreen(
         GameTileData(
             title = "Education",
             amountString = "-${formatDaily(state.society.totalMinistryUpkeep / 3)}/day",
-            icon = Icons.Default.School,
+            icon = Icons.Default.School, imageUrl = NssCardImages.SERVICES,
             topColor = Color(0xFFEF6C00),
             onClick = { onNavigate(GameDestination.LawsSociety) }
         ),
@@ -193,49 +194,49 @@ fun MainDashboardScreen(
         GameTileData(
             title = "Ministry of Justice",
             amountString = "-${formatDaily(state.legal.totalUpkeep)}/day",
-            icon = Icons.Default.Gavel,
+            icon = Icons.Default.Gavel, imageUrl = NssCardImages.PARLIAMENT,
             topColor = Color(0xFFFBC02D),
             onClick = { onNavigate(GameDestination.LawsSociety) }
         ),
         GameTileData(
             title = "Population employment",
             amountString = "-${formatDaily(state.economy.upkeep / 2)}/day",
-            icon = Icons.Default.Engineering,
+            icon = Icons.Default.Engineering, imageUrl = NssCardImages.INDUSTRY,
             topColor = Color(0xFF00897B),
             onClick = { onNavigate(GameDestination.Economy) }
         ),
         GameTileData(
             title = "State Security Service",
             amountString = "-${formatDaily(state.internalSecurity.monthlyUpkeep / 2)}/day",
-            icon = Icons.Default.Security,
+            icon = Icons.Default.Security, imageUrl = NssCardImages.BANNER_INTELLIGENCE,
             topColor = Color(0xFFFFA000),
             onClick = { onNavigate(GameDestination.SecretService) }
         ),
         GameTileData(
             title = "Ministry of Foreign Affairs",
             amountString = "-${formatDaily(0L)}/day",
-            icon = Icons.Default.Public,
+            icon = Icons.Default.Public, imageUrl = NssCardImages.BANNER_FOREIGN,
             topColor = Color(0xFF03A9F4),
             onClick = { onNavigate(GameDestination.Diplomacy) }
         ),
         GameTileData(
             title = "International organizations",
             amountString = "-${formatDaily(18000L * 30L)}/day",
-            icon = Icons.Default.AccountBalance,
+            icon = Icons.Default.AccountBalance, imageUrl = NssCardImages.BANNER_FOREIGN,
             topColor = Color(0xFF455A64),
             onClick = { onNavigate(GameDestination.Governance) }
         ),
         GameTileData(
             title = "Religions",
             amountString = "-0/day",
-            icon = Icons.Default.Language,
+            icon = Icons.Default.Language, imageUrl = NssCardImages.PARLIAMENT,
             topColor = Color(0xFFFFB300),
             onClick = { onNavigate(GameDestination.LawsSociety) }
         ),
         GameTileData(
             title = "Ideology",
             amountString = "-1,000",
-            icon = Icons.Default.Gavel,
+            icon = Icons.Default.Gavel, imageUrl = NssCardImages.PARLIAMENT,
             topColor = Color(0xFF7CB342),
             onClick = { onNavigate(GameDestination.LawsSociety) }
         )
@@ -246,21 +247,21 @@ fun MainDashboardScreen(
         GameTileData(
             title = "Taxes",
             amountString = "+${formatDaily(state.economy.taxRevenue(state.vitals.population))}/day",
-            icon = Icons.Default.Calculate,
+            icon = Icons.Default.Calculate, imageUrl = NssCardImages.BANNER_ECONOMY,
             topColor = Color(0xFF8E24AA),
             onClick = { onNavigate(GameDestination.Economy) }
         ),
         GameTileData(
             title = "Electrical energy industry",
             amountString = "+75,860/day",
-            icon = Icons.Default.Bolt,
+            icon = Icons.Default.Bolt, imageUrl = NssCardImages.ENERGY,
             topColor = Color(0xFF43A047),
             onClick = { onNavigate(GameDestination.Economy) }
         ),
         GameTileData(
             title = "Fuel industry",
             amountString = "+173,088/day",
-            icon = Icons.Default.LocalGasStation,
+            icon = Icons.Default.LocalGasStation, imageUrl = NssCardImages.ENERGY,
             topColor = Color(0xFFEF6C00),
             onClick = { onNavigate(GameDestination.Economy) }
         ),
@@ -309,7 +310,7 @@ fun MainDashboardScreen(
         GameTileData(
             title = "Tourism & Services",
             amountString = "+42,300/day",
-            icon = Icons.Default.FlightTakeoff,
+            icon = Icons.Default.FlightTakeoff, imageUrl = NssCardImages.SERVICES,
             topColor = Color(0xFF00897B),
             onClick = { onNavigate(GameDestination.Economy) }
         )
