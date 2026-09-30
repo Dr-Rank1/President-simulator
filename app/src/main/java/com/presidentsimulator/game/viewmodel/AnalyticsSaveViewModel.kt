@@ -124,8 +124,8 @@ class AnalyticsSaveViewModel {
         fun slotKey(slot: Int): String = "$KEY_SAVE_SLOT_PREFIX$slot"
 
         fun formatBytes(bytes: Int): String = when {
-            bytes >= 1_048_576 -> "%.2f MB".format(bytes / 1_048_576.0)
-            bytes >= 1_024 -> "%.1f KB".format(bytes / 1_024.0)
+            bytes >= 1_048_576 -> String.format(java.util.Locale.ROOT, "%.2f MB", bytes / 1_048_576.0)
+            bytes >= 1_024 -> String.format(java.util.Locale.ROOT, "%.1f KB", bytes / 1_024.0)
             else -> "$bytes bytes"
         }
 
@@ -151,7 +151,7 @@ class AnalyticsSaveViewModel {
 
             val approvalDelta = trendDeltaFloat(window) { it.approval }
             if (approvalDelta <= -6f) {
-                advisories += "Approval down ${"%.0f".format(-approvalDelta)} pts — run a campaign or cut taxes"
+                advisories += "Approval down ${String.format(java.util.Locale.ROOT, "%.0f", -approvalDelta)} pts — run a campaign or cut taxes"
             } else if (approvalDelta >= 6f) {
                 advisories += "Approval rising — a good window for costly reforms"
             }

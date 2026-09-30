@@ -332,8 +332,8 @@ class AdvancementViewModel {
         }
         val delta = forecastLevelDelta(funding)
         val deltaText = when {
-            delta > 0f -> "will increase by ${"%.1f".format(delta)}% next month"
-            delta < 0f -> "will decrease by ${"%.1f".format(-delta)}% next month"
+            delta > 0f -> "will increase by ${String.format(java.util.Locale.ROOT, "%.1f", delta)}% next month"
+            delta < 0f -> "will decrease by ${String.format(java.util.Locale.ROOT, "%.1f", -delta)}% next month"
             else -> "will remain stable next month"
         }
         return "Current Funding: ${upkeep.toBudgetString()}. Forecast: " +

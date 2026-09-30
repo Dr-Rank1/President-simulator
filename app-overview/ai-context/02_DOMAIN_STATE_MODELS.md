@@ -20,13 +20,20 @@ Defined in `data/Models.kt`, `GameState` contains:
 - `trade`
 - `market`
 - `governance`
+- `territory` (domination: conquered nations)
+- `victoryPath` (chosen path + world-spread progress)
+- `militaryIndustry` (arsenals / airfields / shipyards)
+- `setup` (new-game wizard record: leader title, ideology, religion)
+- `news` (rolling world news ticker, max 24 entries)
 
 Computed cross-system fields:
 
 - `netIncome`
-- `effectiveCombatStrength`
+- `effectiveCombatStrength` (multiplied strength: tech/religion/cabinet/perk/embargo)
+- `effectiveMilitaryStrength` (combat strength + industry flats + puppets*40)
 - `effectiveProductionMultiplier`
 - `tradeExportBonus`
+- `tributeIncome`
 
 ## Initial Seed
 
@@ -129,6 +136,8 @@ Policy object with:
 
 `LawCatalog` contains all law definitions by category.
 
+`Ideology` enum: DEMOCRACY, AUTOCRACY, COMMUNISM (setup wizard picks one and mirrors it into `legal.ideology`).
+
 ---
 
 ## Science + Society
@@ -143,11 +152,15 @@ Policy object with:
 
 ### `StateReligion`
 
+Values: SECULAR, TRADITIONAL, STATE_CULT, PLURALIST.
+
 Provides:
 
 - approval bonus
 - instability modifier
 - multipliers (science, military, production)
+
+The setup wizard choice is mirrored into `society.stateReligion`.
 
 ### `ResearchState`
 
@@ -233,4 +246,35 @@ Provides:
 ### `Alliance`
 
 - id/name/leader/members/shared defcon
+
+---
+
+## Domination Models (`TerritoryAndVictoryModels.kt`)
+
+### `TerritoryState`
+
+- `conquered: List<ConqueredTerritory>` (countryId, name, status, monthsHeld)
+- `controlledCount` (annexed + puppet)
+- `puppetCount`
+- `monthlyTributeIncome` ($1.2B per puppet)
+- `annexationInstabilityPressure`
+
+### `TerritoryStatus`
+
+- ANNEXED / PUPPET / LIBERATED
+
+### `VictoryPath` + `VictoryPathState`
+
+- MILITARY_DOMINANCE / RELIGIOUS_DOMINANCE / IDEOLOGICAL_DOMINANCE
+- `VictoryThresholds`: NATIONS_TO_CONTROL=4, INFLUENCE_TO_WIN=85
+- `progressFraction(controlled)` for UI bars
+
+### `MilitaryIndustryState` + `MilitaryFacilityType`
+
+- ARSENAL ($8B, +2 tanks/mo), AIRFIELD ($10B, +1 jet/mo), SHIPYARD ($12B, +1 ship/mo)
+
+### `SetupState`, `NewsState` / `NewsEntry`
+
+- Wizard record and the 24-entry news feed (`pushNews` extensions on `NewsState`/`GameState`).
+- `effectiveTitle()` / `effectiveIdeology()` resolve fallbacks when wizard data is missing.
 

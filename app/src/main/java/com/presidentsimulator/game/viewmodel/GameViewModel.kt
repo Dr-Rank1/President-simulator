@@ -35,19 +35,29 @@ import com.presidentsimulator.game.data.MissionType
 import com.presidentsimulator.game.data.SaveLoadFeedback
 import com.presidentsimulator.game.data.SecurityProtocol
 import com.presidentsimulator.game.data.SocietyMinistry
-import com.presidentsimulator.game.data.StateReligion
 import com.presidentsimulator.game.data.ResolutionType
 import com.presidentsimulator.game.data.TradeCommodity
 import com.presidentsimulator.game.data.TradeType
 import com.presidentsimulator.game.data.TreatyType
-import com.presidentsimulator.game.data.TurnSummary
 import com.presidentsimulator.game.data.WarOutcome
 import com.presidentsimulator.game.data.CovertMission
+import com.presidentsimulator.game.data.Ideology
+import com.presidentsimulator.game.data.LoanEngine
+import com.presidentsimulator.game.data.MilitaryFacilityType
+import com.presidentsimulator.game.data.StateReligion as SetupReligion
+import com.presidentsimulator.game.data.TerritoryStatus
+import com.presidentsimulator.game.data.VictoryEngine
+import com.presidentsimulator.game.data.VictoryPath
+import com.presidentsimulator.game.data.VictoryThresholds
+import com.presidentsimulator.game.data.effectiveIdeology
+import com.presidentsimulator.game.data.effectiveTitle
+import com.presidentsimulator.game.data.pushNews
 import com.presidentsimulator.game.data.MissionStatus
 import com.presidentsimulator.game.data.PlayableNationCatalog
 import com.presidentsimulator.game.data.TechCatalog
 import com.presidentsimulator.game.data.StoryArcEngine
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,6 +65,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -76,10 +90,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _saveLoadFeedback = MutableStateFlow(SaveLoadFeedback())
     val saveLoadFeedback: StateFlow<SaveLoadFeedback> = _saveLoadFeedback.asStateFlow()
 
-    /** Non-null after each End Turn — consumed by TurnSummaryDialog then cleared. */
-    private val _turnSummary = MutableStateFlow<TurnSummary?>(null)
-    val turnSummary: StateFlow<TurnSummary?> = _turnSummary.asStateFlow()
-
     private val _missionResults = MutableStateFlow<List<CovertMission>>(emptyList())
     val missionResults: StateFlow<List<CovertMission>> = _missionResults.asStateFlow()
 
@@ -94,15 +104,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _showLaunchScreen = MutableStateFlow(true)
     val showLaunchScreen: StateFlow<Boolean> = _showLaunchScreen.asStateFlow()
 
-    private val _actionError = MutableStateFlow<String?>(null)
-    val actionError: StateFlow<String?> = _actionError.asStateFlow()
-
-    fun dismissActionError() {
-        _actionError.value = null
-    }
-
-
     private var autoTickJob: Job? = null
+    /** Serializes [advanceTimeTick] so the auto-ticker and End Turn button can never interleave. */
+    private val tickMutex = Mutex()
+    /** True while an async save is being written; new save requests coalesce into this. */
+    private val saveInFlight = AtomicBoolean(false)
     private val random = Random.Default
     private val diplomacyEngine = DiplomacyViewModel(random)
     private val productionLawEngine = ProductionLawViewModel()
@@ -150,6 +156,19 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _showTutorial = MutableStateFlow(false)
     val showTutorial: StateFlow<Boolean> = _showTutorial.asStateFlow()
 
+    /** One-shot request to open the world-market (shop) dialog, e.g. from an Economy tile. */
+    private val _openWorldMarket = MutableStateFlow(false)
+    val openWorldMarket: StateFlow<Boolean> = _openWorldMarket.asStateFlow()
+
+    /** Opens the world-market shop dialog on the next composition. */
+    fun openWorldMarket() {
+        _openWorldMarket.value = true
+    }
+
+    fun dismissWorldMarket() {
+        _openWorldMarket.value = false
+    }
+
     fun triggerTutorial() {
         _showTutorial.value = true
     }
@@ -173,191 +192,61 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun advanceTimeTick() {
         if (_currentActiveEvent.value != null) return
         if (_state.value.gameOver.isGameOver) return
-        if (_turnSummary.value != null) return
         if (_missionResults.value.isNotEmpty()) return
         if (_warOutcome.value != null) return
         if (_state.value.agenda.needsBriefing) return
         if (_state.value.demographics.election.hasPendingNight) return
 
-        val before = _state.value
-        val beforeMissions = before.espionage.activeMissions.associateBy { it.id }
-        val beforeUnlocked = before.research.unlockedTechIds.toSet()
-        val beforeActiveLaws = before.legal.activeLawIds.toSet()
-        val beforePending = before.legal.pendingLaws.map { it.lawId }.toSet()
+        if (!tickMutex.tryLock()) return
+        try {
+            val beforeMissions = _state.value.espionage.activeMissions.associateBy { it.id }
 
-        _state.update { current ->
-            if (current.gameOver.isGameOver) return@update current
-            monthlyPipeline.advance(current)
-        }
-
-        val after = _state.value
-        diplomacyEngine.consumeLastResolvedWar()?.let { outcome ->
-            _warOutcome.value = outcome
-            _state.update { LegacyLedger.recordWarOutcome(it, outcome.victory, outcome.targetName) }
-            pauseTimeAdvance()
-        }
-
-        // Build turn summary before auto-save so deltas can be computed.
-        val beforeSnap = after.analytics.history.takeLast(2)
-        if (beforeSnap.size >= 2) {
-            val prev = beforeSnap[beforeSnap.size - 2]
-            val curr = beforeSnap.last()
-            // Turn summary popup disabled so time moves freely.
-        } else if (after.agenda.needsBriefing) {
-            pauseTimeAdvance()
-        }
-
-        if (after.gameOver.isGameOver) {
-            pauseTimeAdvance()
-        } else {
-            val newlyResolved = after.espionage.activeMissions.filter { mission ->
-                val prior = beforeMissions[mission.id]
-                prior?.status == MissionStatus.ACTIVE &&
-                    (mission.status == MissionStatus.SUCCESS || mission.status == MissionStatus.FAILED)
+            _state.update { current ->
+                if (current.gameOver.isGameOver) return@update current
+                monthlyPipeline.advance(current)
             }
 
-            if (newlyResolved.isNotEmpty()) {
-                _missionResults.value = _missionResults.value + newlyResolved
+            val after = _state.value
+            diplomacyEngine.consumeLastResolvedWar()?.let { outcome ->
+                _warOutcome.value = outcome
+                _state.update { LegacyLedger.recordWarOutcome(it, outcome.victory, outcome.targetName) }
                 pauseTimeAdvance()
             }
 
-            if (after.demographics.election.hasPendingNight) {
+            if (after.agenda.needsBriefing) {
                 pauseTimeAdvance()
             }
 
-            // Auto-save after every tick.
-            saveGameProgress()
-            maybeTriggerEvent()
-            if (_currentActiveEvent.value != null) {
+            if (after.gameOver.isGameOver) {
                 pauseTimeAdvance()
-                // Persist the blocking event as well as the state changes that created it.
-                saveGameProgress()
-            }
-        }
-    }
-
-    private fun buildMonthlyBulletin(
-        before: GameState,
-        after: GameState,
-        beforeUnlocked: Set<String>,
-        beforeActiveLaws: Set<String>,
-        beforePending: Set<String>,
-    ): List<String> {
-        val lines = mutableListOf<String>()
-        if (after.vitals.budget != before.vitals.budget) {
-            val revenue = after.economy.totalRevenue(after.vitals.population) + after.tradeExportBonus +
-                after.production.lastGoodsRevenue + after.society.tourismIncome
-            val costs = after.economy.totalExpenses +
-                (after.military.monthlyUpkeep * after.cabinet.combinedEffects().militaryUpkeepMultiplier).toLong() +
-                after.legal.totalUpkeep + after.internalSecurity.monthlyUpkeep + after.society.totalMinistryUpkeep +
-                after.finance.monthlyInterestCost
-            lines += "Treasury moved ${(after.vitals.budget - before.vitals.budget).toBudgetString()}; current month: ${revenue.toBudgetString()} revenue against ${costs.toBudgetString()} in recurring costs."
-        }
-        if (after.vitals.approval < before.vitals.approval) {
-            val drivers = buildList {
-                if (after.production.foodShortage) add("food shortage")
-                if (after.production.energyShortage) add("energy shortage")
-                if (after.press.mediaSentiment < before.press.mediaSentiment) add("worsening press sentiment")
-                if (after.internalSecurity.instabilityScore > before.internalSecurity.instabilityScore) add("rising instability")
-                if (after.crisis.monthlyApprovalDelta < 0f || after.crisis.lingeringMonths > 0) add("crisis fallout")
-                if (after.economy.taxRate > before.economy.taxRate) add("higher taxes")
-            }
-            lines += "Approval fell ${"%.1f".format(after.vitals.approval - before.vitals.approval)} points" +
-                if (drivers.isEmpty()) ". Review cohort changes in Demographics." else ": ${drivers.joinToString()}."
-        }
-        val completedStories = after.storyArc.completedArcIds - before.storyArc.completedArcIds.toSet()
-        completedStories.forEach {
-            lines += "Political story resolved: ${after.storyArc.lastStoryNote}. Its ending is recorded in the presidential legacy."
-        }
-        if (before.storyArc.activeArcId == null && after.storyArc.activeArcId != null) {
-            lines += "A new political story begins: ${after.storyArc.lastStoryNote}. Your decisions will shape what follows."
-        }
-        if (after.production.energyShortage) {
-            lines += "Energy shortage — industrial output penalized to 30%."
-        }
-        if (after.production.foodShortage) {
-            lines += "Food shortage — approval and population under pressure."
-        }
-        after.diplomacy.activeWar?.lastBattleSummary?.takeIf { it.isNotBlank() }?.let {
-            lines += "War: $it"
-        }
-        before.military.procurementOrders
-            .filter { it.monthsRemaining <= 1 && after.military.procurementOrders.none { order -> order.type == it.type && order.quantity == it.quantity && order.totalCost == it.totalCost } }
-            .forEach { order -> lines += "Military delivery received: ${order.quantity} ${order.type.name.lowercase().replace('_', ' ')}." }
-        _warOutcome.value?.let { war ->
-            lines += if (war.victory) {
-                "War won vs ${war.targetName} after ${war.monthsActive} months."
             } else {
-                "War lost vs ${war.targetName} after ${war.monthsActive} months."
+                val newlyResolved = after.espionage.activeMissions.filter { mission ->
+                    val prior = beforeMissions[mission.id]
+                    prior?.status == MissionStatus.ACTIVE &&
+                        (mission.status == MissionStatus.SUCCESS || mission.status == MissionStatus.FAILED)
+                }
+
+                if (newlyResolved.isNotEmpty()) {
+                    _missionResults.value = _missionResults.value + newlyResolved
+                    pauseTimeAdvance()
+                }
+
+                if (after.demographics.election.hasPendingNight) {
+                    pauseTimeAdvance()
+                }
+
+                // Auto-save after every tick (async, coalesced).
+                saveGameProgress()
+                maybeTriggerEvent()
+                if (_currentActiveEvent.value != null) {
+                    pauseTimeAdvance()
+                    // Persist the blocking event as well as the state changes that created it.
+                    saveGameProgress()
+                }
             }
+        } finally {
+            tickMutex.unlock()
         }
-        val newTechs = after.research.unlockedTechIds.toSet() - beforeUnlocked
-        newTechs.forEach { techId ->
-            val name = TechCatalog.byId(techId)?.name ?: techId
-            lines += "Technology unlocked: $name"
-        }
-        val enacted = after.legal.activeLawIds.toSet() - beforeActiveLaws
-        enacted.forEach { lawId ->
-            val name = com.presidentsimulator.game.data.LawCatalog.byId(lawId)?.name ?: lawId
-            lines += "Law enacted: $name"
-        }
-        val repealed = beforeActiveLaws - after.legal.activeLawIds.toSet()
-        repealed.forEach { lawId ->
-            if (lawId !in beforePending || after.legal.pendingLaws.none { it.lawId == lawId }) {
-                val name = com.presidentsimulator.game.data.LawCatalog.byId(lawId)?.name ?: lawId
-                lines += "Law repealed: $name"
-            }
-        }
-        after.espionage.activeMissions
-            .filter { it.status == MissionStatus.SUCCESS || it.status == MissionStatus.FAILED }
-            .filter { before.espionage.activeMissions.find { b -> b.id == it.id }?.status == MissionStatus.ACTIVE }
-            .forEach { mission ->
-                val rival = after.diplomacy.rivalById(mission.targetCountryId)?.name ?: mission.targetCountryId
-                val tag = if (mission.status == MissionStatus.SUCCESS) "succeeded" else "failed"
-                lines += "Covert op $tag in $rival"
-            }
-        if (after.internalSecurity.coupRisk >= 60f) {
-            lines += "Coup risk elevated (${after.internalSecurity.coupRisk.roundToInt()}%)."
-        }
-        if (after.governance.activeResolution != null) {
-            lines += "UN resolution pending: ${after.governance.activeResolution!!.type.displayName}"
-        }
-        if (after.trade.activeDeals.isNotEmpty()) {
-            lines += "Trade contracts active: ${after.trade.activeDeals.size}"
-        }
-        after.agenda.resolvedLastMonth.take(2).forEach { id ->
-            lines += "Agenda cleared: ${id.replace('_', ' ')}"
-        }
-        if (after.agenda.criticalAddressedStreak >= 3) {
-            lines += "Critical-response streak: ${after.agenda.criticalAddressedStreak} months."
-        }
-        if (after.agenda.items.isNotEmpty()) {
-            lines += "Morning briefing: ${after.agenda.items.size} file(s) on the desk."
-        }
-        if (after.press.lastDeskNote.isNotBlank()) {
-            lines += "Press: ${after.press.lastDeskNote}"
-        } else if (after.press.hostileCount > 0) {
-            lines += "Press desk: ${after.press.hostileCount} hostile headline(s)."
-        }
-        if (after.cabinet.vacancyCount > 0) {
-            lines += "Cabinet: ${after.cabinet.vacancyCount} vacant seat(s)."
-        } else if (after.cabinet.lastCabinetNote.isNotBlank()) {
-            lines += "Cabinet: ${after.cabinet.lastCabinetNote}"
-        }
-        if (after.opposition.lastOppositionAction.isNotBlank()) {
-            lines += "Opposition: ${after.opposition.lastOppositionAction}"
-        }
-        after.disaster.active?.let { d ->
-            lines += "Disaster: ${d.type.displayName} · ${d.stageLabel} (${d.severity.roundToInt()})"
-        } ?: run {
-            if (after.disaster.lastCommandNote.isNotBlank() && after.disaster.disastersHandled + after.disaster.disastersMismanaged > 0) {
-                lines += "Disaster desk: ${after.disaster.lastCommandNote}"
-            }
-        }
-        if (after.legacy.lastLegacyNote.isNotBlank()) {
-            lines += "Legacy: ${after.legacy.summaryLine()}"
-        }
-        return lines.take(8)
     }
 
     fun dismissMissionResult() {
@@ -370,6 +259,105 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun clearWarOutcome() {
         _warOutcome.value = null
     }
+
+    // ── Domination: conquest, victory path, military industry, loans ────────
+
+    /** Applies the player's post-war fate choice for the defeated nation. */
+    fun resolveConquest(targetCountryId: String, status: TerritoryStatus) {
+        _state.update { VictoryEngine.resolveConquest(it, targetCountryId, status) }
+    }
+
+    fun chooseVictoryPath(path: VictoryPath) {
+        if (_state.value.victoryPath.chosenPath != null) return
+        _state.update { current ->
+            current
+                .copy(victoryPath = current.victoryPath.copy(chosenPath = path))
+                .pushNews(
+                    when (path) {
+                        VictoryPath.MILITARY_DOMINANCE ->
+                            "${current.effectiveTitle()} vows to bend the world to ${current.playerNation.name}'s will"
+                        VictoryPath.RELIGIOUS_DOMINANCE ->
+                            "${current.society.stateReligion.displayName} enters the global stage with a mission"
+                        VictoryPath.IDEOLOGICAL_DOMINANCE ->
+                            "${current.playerNation.name} pledges to spread ${current.effectiveIdeology().displayName} worldwide"
+                    },
+                    tag = "DOMINION",
+                )
+        }
+    }
+
+    fun buildMilitaryFacility(type: MilitaryFacilityType, amount: Int) {
+        if (_currentActiveEvent.value != null) return
+        if (amount <= 0) return
+        _state.update { current ->
+            val cost = type.unitCost * amount
+            if (current.vitals.budget < cost) return@update current
+            val industry = current.militaryIndustry
+            val updated = when (type) {
+                MilitaryFacilityType.ARSENAL -> industry.copy(arsenals = industry.arsenals + amount)
+                MilitaryFacilityType.AIRFIELD -> industry.copy(airfields = industry.airfields + amount)
+                MilitaryFacilityType.SHIPYARD -> industry.copy(shipyards = industry.shipyards + amount)
+            }
+            current
+                .copy(
+                    vitals = current.vitals.copy(budget = current.vitals.budget - cost),
+                    militaryIndustry = updated,
+                )
+                .pushNews(
+                    "Construction: $amount ${type.displayName.lowercase()}(s) commissioned",
+                    tag = "MILITARY",
+                )
+        }
+    }
+
+    fun availableLoan(): Long = LoanEngine.availableLoan(_state.value)
+
+    fun canTakeLoan(): Boolean = LoanEngine.canTakeLoan(_state.value)
+
+    fun takeLoan(amount: Long) {
+        if (_currentActiveEvent.value != null) return
+        applyActionWithFeedback("Loan secured.", "Loan unavailable (credit limit).") {
+            LoanEngine.takeLoan(it, amount)
+        }
+    }
+
+    fun repayLoan(amount: Long) {
+        if (_currentActiveEvent.value != null) return
+        applyActionWithFeedback("Repayment sent.", "Insufficient funds to repay.") {
+            LoanEngine.repayLoan(it, amount)
+        }
+    }
+
+    fun setLeaderTitle(title: String) {
+        _state.update { it.copy(setup = it.setup.copy(leaderTitle = title.take(24))) }
+    }
+
+    fun setSetupIdeology(ideologyId: String) {
+        _state.update {
+            it.copy(
+                setup = it.setup.copy(ideologyId = ideologyId),
+                legal = if (ideologyId.isBlank()) it.legal else it.legal.copy(
+                    ideology = runCatching { Ideology.valueOf(ideologyId) }.getOrDefault(it.legal.ideology),
+                ),
+            )
+        }
+    }
+
+    fun setSetupReligion(religionId: String) {
+        _state.update {
+            it.copy(
+                setup = it.setup.copy(religionId = religionId),
+                society = if (religionId.isBlank()) it.society else it.society.copy(
+                    stateReligion = runCatching { SetupReligion.valueOf(religionId) }.getOrDefault(it.society.stateReligion),
+                ),
+            )
+        }
+    }
+
+    /** Goal for the total-war scoreboard on the dashboard. */
+    fun conquestGoalProgress(): Pair<Int, Int> =
+        _state.value.territory.controlledCount to VictoryThresholds.NATIONS_TO_CONTROL
+
 
     // ── Global governance ────────────────────────────────────────────────────
 
@@ -460,6 +448,16 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         return tradeEngine.negotiatedPrice(quote.currentPrice, rival.relationshipScore, type)
     }
 
+    /** Neutral spot-market price for the HUD shop (no partner to negotiate with). */
+    fun negotiatedDealPrice(commodity: TradeCommodity): Long {
+        val quote = _state.value.market.quote(commodity)
+        return tradeEngine.negotiatedPrice(quote.currentPrice, 0, TradeType.IMPORT)
+    }
+
+    /** National stockpile of a commodity, for the HUD shop's sell buttons. */
+    fun stockOf(commodity: TradeCommodity): Long =
+        TradeMarketViewModel.stockOf(_state.value.production, commodity)
+
     // ── Science & society ────────────────────────────────────────────────────
 
     fun unlockTechnology(techId: String) {
@@ -492,7 +490,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         _state.update { advancementEngine.adjustMinistryFunding(it, ministry, newFundingLevel) }
     }
 
-    fun changeStateReligion(religion: StateReligion) {
+    fun changeStateReligion(religion: com.presidentsimulator.game.data.StateReligion) {
         if (_currentActiveEvent.value != null) return
         _state.update { advancementEngine.changeStateReligion(it, religion) }
         Toast.makeText(getApplication(), "State Religion updated.", Toast.LENGTH_SHORT).show()
@@ -564,7 +562,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             _state.value = restored
             _currentActiveEvent.value = restored.crisis.pendingEventId
                 ?.let { pendingId -> StoryArcEngine.nextEvent(restored) ?: EventRepository.byId(pendingId) }
-            _turnSummary.value = null
             _missionResults.value = emptyList()
             pauseTimeAdvance()
             _showLaunchScreen.value = false
@@ -579,13 +576,23 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun saveGameProgress() {
-        val payload = analyticsEngine.exportGameStateToJson(_state.value)
-        savePrefs.edit()
-            .putString(AnalyticsSaveViewModel.KEY_AUTOMATED_SAVE, payload)
-            .putInt(AnalyticsSaveViewModel.KEY_LAST_PAYLOAD_BYTES, payload.length)
-            .apply()
-        _saveLoadFeedback.value = analyticsEngine.feedbackForSave(payload)
-        _hasSave.value = true
+        // Coalesce: if a save is already running or queued, the state it captures is
+        // guaranteed to be at least as new as what this request saw.
+        if (!saveInFlight.compareAndSet(false, true)) return
+        val stateSnapshot = _state.value
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val payload = analyticsEngine.exportGameStateToJson(stateSnapshot)
+                savePrefs.edit()
+                    .putString(AnalyticsSaveViewModel.KEY_AUTOMATED_SAVE, payload)
+                    .putInt(AnalyticsSaveViewModel.KEY_LAST_PAYLOAD_BYTES, payload.length)
+                    .apply()
+                _saveLoadFeedback.value = analyticsEngine.feedbackForSave(payload)
+                _hasSave.value = true
+            } finally {
+                saveInFlight.set(false)
+            }
+        }
     }
 
     fun loadLastAutomatedSave() {
@@ -600,7 +607,17 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun hasAutomatedSave(): Boolean =
         !savePrefs.getString(AnalyticsSaveViewModel.KEY_AUTOMATED_SAVE, null).isNullOrBlank()
 
-    fun listSaveSlots(): List<SaveSlotInfo> =
+    private val _saveSlots = MutableStateFlow<List<SaveSlotInfo>>(emptyList())
+    val saveSlots: StateFlow<List<SaveSlotInfo>> = _saveSlots.asStateFlow()
+
+    /** Refreshes slot metadata off the main thread; call before showing the launch screen. */
+    fun refreshSaveSlots() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _saveSlots.value = computeSaveSlots()
+        }
+    }
+
+    private fun computeSaveSlots(): List<SaveSlotInfo> =
         (1..AnalyticsSaveViewModel.SLOT_COUNT).map { slot ->
             val payload = savePrefs.getString(AnalyticsSaveViewModel.slotKey(slot), null)
             if (payload.isNullOrBlank()) {
@@ -653,13 +670,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 payloadBytes = payload.length,
                 success = true,
             )
-        }
-    }
-
-    fun clearTurnSummary() {
-        _turnSummary.value = null
-        if (_state.value.agenda.needsBriefing) {
-            pauseTimeAdvance()
         }
     }
 
@@ -780,7 +790,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val seeded = ScenarioCatalog.apply(GameState.initial(countryId), scenarioId, challengeId = challengeId)
         _state.value = seeded
         _currentActiveEvent.value = null
-        _turnSummary.value = null
         _missionResults.value = emptyList()
         pauseTimeAdvance()
         _showLaunchScreen.value = false
@@ -790,7 +799,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun returnToLaunch() {
         pauseTimeAdvance()
         _currentActiveEvent.value = null
-        _turnSummary.value = null
         _missionResults.value = emptyList()
         _hasSave.value = hasAutomatedSave()
         _showLaunchScreen.value = true
@@ -925,38 +933,47 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setDeployment(status: DeploymentStatus) {
+        if (_currentActiveEvent.value != null) return
         _state.update { diplomacyEngine.setDeployment(it, status) }
     }
 
     fun setSalaryFunding(funding: Float) {
+        if (_currentActiveEvent.value != null) return
         _state.update { diplomacyEngine.setSalaryFunding(it, funding) }
     }
 
     fun recruitPersonnel(amount: Long) {
+        if (_currentActiveEvent.value != null) return
         applyActionWithFeedback("Recruitment started.", "Insufficient budget to recruit personnel.") { diplomacyEngine.recruitPersonnel(it, amount) }
     }
 
     fun upgradeMilitaryTraining() {
+        if (_currentActiveEvent.value != null) return
         _state.update { diplomacyEngine.upgradeMilitaryTraining(it) }
     }
 
     fun setFrontlineFocus(countryId: String) {
+        if (_currentActiveEvent.value != null) return
         _state.update { diplomacyEngine.setFrontlineFocus(it, countryId) }
     }
 
     fun purchaseTanks(amount: Int) {
+        if (_currentActiveEvent.value != null) return
         _state.update { diplomacyEngine.purchaseTanks(it, amount) }
     }
 
     fun purchaseJets(amount: Int) {
+        if (_currentActiveEvent.value != null) return
         _state.update { diplomacyEngine.purchaseJets(it, amount) }
     }
 
     fun purchaseShips(amount: Int) {
+        if (_currentActiveEvent.value != null) return
         _state.update { diplomacyEngine.purchaseShips(it, amount) }
     }
 
     fun purchaseNukes(amount: Int) {
+        if (_currentActiveEvent.value != null) return
         _state.update { diplomacyEngine.purchaseNukes(it, amount) }
     }
 
@@ -996,7 +1013,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         autoTickJob = viewModelScope.launch {
             while (isActive) {
                 val blocked = _currentActiveEvent.value != null ||
-                    _turnSummary.value != null ||
                     _missionResults.value.isNotEmpty() ||
                     _warOutcome.value != null ||
                     _state.value.agenda.needsBriefing ||
@@ -1084,6 +1100,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun buildHousing(amount: Int) = buildInfrastructure(InfrastructureType.HOUSING, amount)
 
     fun buildInfrastructure(type: InfrastructureType, amount: Int) {
+        if (_currentActiveEvent.value != null) return
         if (amount <= 0) return
         _state.update { current ->
             val cost = type.unitCost * amount
@@ -1142,6 +1159,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun adjustTaxes(newRate: Float) {
+        if (_currentActiveEvent.value != null) return
         val clamped = newRate.coerceIn(MIN_TAX_RATE, MAX_TAX_RATE)
         _state.update { current ->
             val delta = clamped - current.economy.taxRate
@@ -1157,6 +1175,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     /** Voluntary repayment is capped to preserve a two-month operating reserve. */
     fun repayPublicDebt() {
+        if (_currentActiveEvent.value != null) return
         _state.update { current ->
             val monthlyCosts = current.economy.totalExpenses +
                 (current.military.monthlyUpkeep * current.cabinet.combinedEffects().militaryUpkeepMultiplier).toLong() +
@@ -1229,7 +1248,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         const val MIN_TAX_RATE = 0.00f
         const val MAX_TAX_RATE = 0.50f
         const val EVENT_CHANCE_PER_TICK = 0.02f
-        const val EVENT_COOLDOWN_MONTHS = 120
+
+        /**
+         * Months without random events after resolving one.
+         * The state model's own default is 24; this constant is deliberately smaller
+         * so a 2%/tick trigger rate yields a visible but not relentless event cadence.
+         */
+        const val EVENT_COOLDOWN_MONTHS = 12
     }
 }
 
@@ -1237,10 +1262,10 @@ fun Long.toBudgetString(): String {
     val abs = kotlin.math.abs(this)
     val sign = if (this < 0) "-" else ""
     val body = when {
-        abs >= 1_000_000_000_000L -> "%.1fT".format(abs / 1_000_000_000_000.0)
-        abs >= 1_000_000_000L -> "%.1fB".format(abs / 1_000_000_000.0)
-        abs >= 1_000_000L -> "%.1fM".format(abs / 1_000_000.0)
-        abs >= 1_000L -> "%.1fK".format(abs / 1_000.0)
+        abs >= 1_000_000_000_000L -> String.format(java.util.Locale.ROOT, "%.1fT", abs / 1_000_000_000_000.0)
+        abs >= 1_000_000_000L -> String.format(java.util.Locale.ROOT, "%.1fB", abs / 1_000_000_000.0)
+        abs >= 1_000_000L -> String.format(java.util.Locale.ROOT, "%.1fM", abs / 1_000_000.0)
+        abs >= 1_000L -> String.format(java.util.Locale.ROOT, "%.1fK", abs / 1_000.0)
         else -> abs.toString()
     }
     return "$sign$$body"
@@ -1249,14 +1274,14 @@ fun Long.toBudgetString(): String {
 fun Float.toApprovalString(): String = "${roundToInt()}%"
 
 fun Long.toPopulationString(): String = when {
-    this >= 1_000_000_000L -> "%.2fB".format(this / 1_000_000_000.0)
-    this >= 1_000_000L -> "%.1fM".format(this / 1_000_000.0)
-    this >= 1_000L -> "%.1fK".format(this / 1_000.0)
+    this >= 1_000_000_000L -> String.format(java.util.Locale.ROOT, "%.2fB", this / 1_000_000_000.0)
+    this >= 1_000_000L -> String.format(java.util.Locale.ROOT, "%.1fM", this / 1_000_000.0)
+    this >= 1_000L -> String.format(java.util.Locale.ROOT, "%.1fK", this / 1_000.0)
     else -> toString()
 }
 
 fun Long.toArmyString(): String = when {
-    this >= 1_000_000L -> "%.2fM".format(this / 1_000_000.0)
-    this >= 1_000L -> "%.0fK".format(this / 1_000.0)
+    this >= 1_000_000L -> String.format(java.util.Locale.ROOT, "%.2fM", this / 1_000_000.0)
+    this >= 1_000L -> String.format(java.util.Locale.ROOT, "%.0fK", this / 1_000.0)
     else -> toString()
 }

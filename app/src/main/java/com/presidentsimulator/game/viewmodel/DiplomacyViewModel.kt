@@ -50,7 +50,7 @@ class DiplomacyViewModel(
         val militaryPressure = militaryPressureScore(state)
         var sanctionsBudget = 0L
         var sanctionsApproval = 0f
-        val playerStrength = state.effectiveCombatStrength
+        val playerStrength = warPower(state)
         val embargoedThisTick = mutableSetOf<String>()
 
         val updatedRivals = state.diplomacy.rivals.map { rival ->
@@ -209,7 +209,7 @@ class DiplomacyViewModel(
         )
 
         val allianceSupport = alliedCombatSupport(state, war.targetCountryId)
-        val playerPower = (state.effectiveCombatStrength + allianceSupport).coerceAtLeast(1.0)
+        val playerPower = (warPower(state) + allianceSupport).coerceAtLeast(1.0)
         val enemyPower = enemy.militaryStrength.coerceAtLeast(1.0)
         val winProbability = (playerPower / (playerPower + enemyPower)).toFloat()
         val playerWonSkirmish = random.nextFloat() < winProbability
@@ -659,6 +659,16 @@ class DiplomacyViewModel(
         return state.copy(diplomacy = state.diplomacy.copy(actionHistory = (state.diplomacy.actionHistory + entry).takeLast(50)))
     }
 
+    /**
+     * Total war-fighting power: the multiplied combat strength plus the flat
+     * contributions of the military industry (arsenals/airfields/shipyards)
+     * and puppet-state support. Industry and puppets do not receive the
+     * percentage modifiers, mirroring how procurement adds raw hardware.
+     */
+    fun warPower(state: GameState): Double =
+        state.effectiveCombatStrength +
+            (state.effectiveMilitaryStrength - state.military.combatStrength)
+
     /** Allied members (excluding player and war target) contribute a fraction of their strength. */
     private fun alliedCombatSupport(state: GameState, warTargetId: String): Double {
         val playerId = state.playerNation.id
@@ -764,6 +774,10 @@ class DiplomacyViewModel(
             finalProgress = war.warProgress,
             warGoalLabel = goal.displayName,
             settlementNote = note,
+            // A victorious war ends with the enemy at the player's mercy:
+            // the UI offers annex / puppet / liberate exactly when this is true.
+            conquestAvailable = victory &&
+                state.territory.conquered.none { it.countryId == targetId },
         )
 
         return state.copy(
@@ -883,8 +897,8 @@ fun WarState.progressLabel(): String {
 fun Long.toCasualtyString(): String {
     val abs = abs(this)
     return when {
-        abs >= 1_000_000L -> "%.2fM".format(abs / 1_000_000.0)
-        abs >= 1_000L -> "%.1fK".format(abs / 1_000.0)
+        abs >= 1_000_000L -> String.format(java.util.Locale.ROOT, "%.2fM", abs / 1_000_000.0)
+        abs >= 1_000L -> String.format(java.util.Locale.ROOT, "%.1fK", abs / 1_000.0)
         else -> abs.toString()
     }
 }

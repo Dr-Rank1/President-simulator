@@ -18,7 +18,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.presidentsimulator.game.audio.BgmTrack
 import com.presidentsimulator.game.audio.GameAudioManager
 import com.presidentsimulator.game.audio.SfxType
@@ -188,9 +189,11 @@ fun SettingsAudioScreen(
 
 @Composable
 private fun SettingsSavePanel(viewModel: GameViewModel) {
-    val feedback by viewModel.saveLoadFeedback.collectAsState()
-    val hasSave by viewModel.hasSave.collectAsState()
-    val slots = viewModel.listSaveSlots()
+    val feedback by viewModel.saveLoadFeedback.collectAsStateWithLifecycle()
+    val hasSave by viewModel.hasSave.collectAsStateWithLifecycle()
+    val slots by viewModel.saveSlots.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) { viewModel.refreshSaveSlots() }
     NssPanel(modifier = Modifier.fillMaxWidth()) {
         Text("SAVE / LOAD", fontWeight = FontWeight.Black, fontSize = 10.sp, color = NssForeground)
         Text(

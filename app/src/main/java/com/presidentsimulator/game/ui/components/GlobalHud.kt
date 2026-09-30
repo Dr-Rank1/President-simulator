@@ -40,6 +40,8 @@ fun GlobalHud(
     timeSpeedEnabled: Boolean,
     alertCount: Int,
     onTimeSpeedModeSelected: (TimeSpeedMode) -> Unit,
+    onOpenShop: () -> Unit,
+    onOpenMenu: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -60,17 +62,42 @@ fun GlobalHud(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    Icons.Default.Menu,
-                    contentDescription = "Menu",
-                    tint = Color.White,
-                    modifier = Modifier.size(26.dp)
-                )
+                Box {
+                    Icon(
+                        Icons.Default.Menu,
+                        contentDescription = "Menu",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(26.dp)
+                            .clickable(onClick = onOpenMenu)
+                    )
+                    if (alertCount > 0) {
+                        // Crisis/war/shortage count — mirrors the original's alert bubble.
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = 4.dp, y = (-2).dp)
+                                .size(14.dp)
+                                .clip(CircleShape)
+                                .background(NssRed),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                "$alertCount",
+                                color = Color.White,
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Black,
+                            )
+                        }
+                    }
+                }
                 Icon(
                     Icons.Default.ShoppingCart,
                     contentDescription = "Shop",
                     tint = Color.White,
-                    modifier = Modifier.size(26.dp)
+                    modifier = Modifier
+                        .size(26.dp)
+                        .clickable(onClick = onOpenShop)
                 )
             }
 

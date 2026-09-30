@@ -183,9 +183,9 @@ private fun Long.toSignedCount(): String {
     }
     val abs = kotlin.math.abs(this)
     val body = when {
-        abs >= 1_000_000_000L -> "%.2fB".format(abs / 1_000_000_000.0)
-        abs >= 1_000_000L -> "%.1fM".format(abs / 1_000_000.0)
-        abs >= 1_000L -> "%.1fK".format(abs / 1_000.0)
+        abs >= 1_000_000_000L -> String.format(java.util.Locale.ROOT, "%.2fB", abs / 1_000_000_000.0)
+        abs >= 1_000_000L -> String.format(java.util.Locale.ROOT, "%.1fM", abs / 1_000_000.0)
+        abs >= 1_000L -> String.format(java.util.Locale.ROOT, "%.1fK", abs / 1_000.0)
         else -> abs.toString()
     }
     return "$sign$body"

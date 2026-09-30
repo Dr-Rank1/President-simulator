@@ -42,14 +42,14 @@ class GameAudioManager private constructor(
         set(value) {
             field = value.coerceIn(0f, 1f)
             applyMusicVolumeToActivePlayer()
-            log("Music volume -> ${"%.2f".format(field)}")
+            log("Music volume -> ${String.format(java.util.Locale.ROOT, "%.2f", field)}")
         }
 
     @Volatile
     var sfxVolume: Float = 0.80f
         set(value) {
             field = value.coerceIn(0f, 1f)
-            log("SFX volume -> ${"%.2f".format(field)}")
+            log("SFX volume -> ${String.format(java.util.Locale.ROOT, "%.2f", field)}")
         }
 
     @Volatile
