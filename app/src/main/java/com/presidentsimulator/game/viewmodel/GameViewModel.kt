@@ -224,10 +224,17 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (!hasAutomatedSave()) _showTutorial.value = true
         _hasSave.value = hasAutomatedSave()
         refreshDailyChallenge()
-        // Debounced action save: when the state stops changing for
-        // [ACTION_SAVE_DEBOUNCE_MS] (the player acted, then paused), persist it so a
-        // mid-month process death cannot eat the action. While the ticker runs,
-        // emissions never go quiet — [maybeAutoSave] checkpoints every N ticks instead.
+        startActionSaveObserver()
+    }
+
+    /**
+     * Debounced action save: when the state stops changing for
+     * [ACTION_SAVE_DEBOUNCE_MS] (the player acted, then paused), persist it so a
+     * mid-month process death cannot eat the action. While the ticker runs,
+     * emissions never go quiet — [maybeAutoSave] checkpoints every N ticks instead.
+     */
+    @OptIn(kotlinx.coroutines.FlowPreview::class)
+    private fun startActionSaveObserver() {
         viewModelScope.launch {
             state
                 .debounce(ACTION_SAVE_DEBOUNCE_MS)

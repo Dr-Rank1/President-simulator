@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Audio assets are resolved by name via Resources.getIdentifier, which the
+  resource shrinker cannot follow. Keep any sound files that land in res/raw
+  so shrinkReleaseRes never strips them from the release APK.
+-->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="raw/bgm_peace,raw/bgm_war,raw/bgm_crisis,raw/sfx_click,raw/sfx_build_success,raw/sfx_crisis_alert,raw/sfx_war_declared,raw/sfx_coup_game_over" />

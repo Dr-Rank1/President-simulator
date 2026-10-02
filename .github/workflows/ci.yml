@@ -22,9 +22,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       # A single invocation so Gradle shares configuration and dependency resolution
-      # across the three checks. Fails the build if any task fails.
-      - name: Unit tests, debug build, lint
-        run: ./gradlew testDebugUnitTest assembleDebug lintDebug --console=plain
+      # across the checks. assembleRelease exercises R8 — kotlinx-serialization and
+      # name-resolved resources are classic shrinker victims.
+      - name: Unit tests, builds, lint
+        run: ./gradlew testDebugUnitTest assembleDebug assembleRelease lintDebug --console=plain
 
       - name: Upload reports
         if: failure()

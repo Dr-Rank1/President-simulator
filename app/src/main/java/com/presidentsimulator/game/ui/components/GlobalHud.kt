@@ -13,7 +13,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -180,7 +180,7 @@ fun GlobalHud(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        Icons.Default.Undo,
+                        Icons.AutoMirrored.Filled.Undo,
                         contentDescription = "Undo last month",
                         tint = Color.White.copy(alpha = if (canUndo) 1f else 0.4f),
                         modifier = Modifier.size(18.dp),

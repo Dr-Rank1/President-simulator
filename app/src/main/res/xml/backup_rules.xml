@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Campaign saves and settings live in SharedPreferences; include them so a
+  reinstall or device migration can restore a player's campaign.
+-->
+<full-backup-content>
+    <include domain="sharedpref" path="."/>
+</full-backup-content>
