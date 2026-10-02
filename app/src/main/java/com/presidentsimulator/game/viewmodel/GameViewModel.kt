@@ -113,6 +113,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _dailyBoard = MutableStateFlow<List<DailyScore>>(emptyList())
     val dailyBoard: StateFlow<List<DailyScore>> = _dailyBoard.asStateFlow()
 
+    /** How many past months the player can roll back right now. */
+    private val _undoCount = MutableStateFlow(0)
+    val undoCount: StateFlow<Int> = _undoCount.asStateFlow()
+
+    /** Pre-tick snapshots of the most recent months, newest last. */
+    private val undoStack = ArrayDeque<GameState>()
+
     /** True while showing the launch/new-game screen. */
     private val _showLaunchScreen = MutableStateFlow(true)
     val showLaunchScreen: StateFlow<Boolean> = _showLaunchScreen.asStateFlow()
@@ -247,6 +254,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
         if (!tickMutex.tryLock()) return
         try {
+            val stateBeforeTick = _state.value
             val beforeMissions = _state.value.espionage.activeMissions.associateBy { it.id }
 
             _state.update { current ->
@@ -293,6 +301,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                     saveGameProgress()
                 }
             }
+
+            // Keep the pre-tick snapshot so the player can roll the month back.
+            if (_state.value !== stateBeforeTick) rememberForUndo(stateBeforeTick)
         } finally {
             tickMutex.unlock()
         }
@@ -626,6 +637,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             _missionResults.value = emptyList()
             _showLaunchScreen.value = false
             _hasSave.value = true
+            clearUndoHistory()
             _saveLoadFeedback.value = analyticsEngine.feedbackForLoad(jsonString)
             true
         } catch (error: Exception) {
@@ -870,6 +882,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         _state.value = seeded
         _currentActiveEvent.value = null
         _missionResults.value = emptyList()
+        clearUndoHistory()
         pauseTimeAdvance()
         _showLaunchScreen.value = false
         saveGameProgress()
@@ -879,6 +892,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         pauseTimeAdvance()
         _currentActiveEvent.value = null
         _missionResults.value = emptyList()
+        clearUndoHistory()
         _hasSave.value = hasAutomatedSave()
         _showLaunchScreen.value = true
         refreshDailyChallenge()
@@ -1197,6 +1211,48 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         saveGameProgress()
     }
 
+    // ── Undo ───────────────────────────────────────────────────────────────
+
+    private fun rememberForUndo(snapshot: GameState) {
+        undoStack.addLast(snapshot)
+        while (undoStack.size > MAX_UNDO_MONTHS) undoStack.removeFirst()
+        _undoCount.value = undoStack.size
+    }
+
+    private fun clearUndoHistory() {
+        undoStack.clear()
+        _undoCount.value = 0
+    }
+
+    /**
+     * Rolls back the most recent simulated month. Engines are pure state→state
+     * functions, so restoring the pre-tick snapshot is exact. Blocked while any
+     * modal (crisis, mission results, war outcome, election night) is up, because
+     * those modals belong to the timeline being replaced.
+     */
+    fun undoLastMonth(): Boolean {
+        if (_currentActiveEvent.value != null) return false
+        if (_missionResults.value.isNotEmpty()) return false
+        if (_warOutcome.value != null) return false
+        if (_state.value.gameOver.isGameOver) return false
+        if (_state.value.demographics.election.hasPendingNight) return false
+
+        val snapshot = undoStack.removeLastOrNull() ?: return false
+        if (snapshot.crisis.pendingEventId != null) {
+            // Never restore into a state that expects a crisis dialog.
+            undoStack.addLast(snapshot)
+            _undoCount.value = undoStack.size
+            return false
+        }
+        _undoCount.value = undoStack.size
+        pauseTimeAdvance(checkpoint = false)
+        _state.value = snapshot
+        _currentActiveEvent.value = null
+        _missionResults.value = emptyList()
+        // The debounced action save persists the restored state shortly after.
+        return true
+    }
+
     /** Auto-save cadence while the ticker runs: one write every N simulated months. */
     private fun maybeAutoSave() {
         ticksSinceLastSave++
@@ -1422,6 +1478,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
         /** Quiet period after a player action before that action is auto-saved. */
         const val ACTION_SAVE_DEBOUNCE_MS = 2_000L
+
+        /** Months the player can roll back (undo stack depth). */
+        const val MAX_UNDO_MONTHS = 3
 
         /**
          * Months without random events after resolving one.

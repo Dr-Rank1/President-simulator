@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +43,8 @@ fun GlobalHud(
     onTimeSpeedModeSelected: (TimeSpeedMode) -> Unit,
     onOpenShop: () -> Unit,
     onOpenMenu: () -> Unit,
+    canUndo: Boolean = false,
+    onUndo: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -162,11 +165,28 @@ fun GlobalHud(
                 }
             }
 
-            // Right: Time controls + date
+            // Right: Undo + time controls + date
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                // Undo last month
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = if (canUndo) 0.3f else 0.1f))
+                        .clickable(enabled = canUndo, onClick = onUndo),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Default.Undo,
+                        contentDescription = "Undo last month",
+                        tint = Color.White.copy(alpha = if (canUndo) 1f else 0.4f),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+
                 // Pause button
                 val isPaused = timeSpeedMode == TimeSpeedMode.PAUSED
                 Box(

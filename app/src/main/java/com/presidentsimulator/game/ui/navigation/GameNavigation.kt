@@ -104,8 +104,12 @@ fun GameNavigation(
     val saveSlots by viewModel.saveSlots.collectAsStateWithLifecycle()
     val dailyInfo by viewModel.dailyInfo.collectAsStateWithLifecycle()
     val dailyBoard by viewModel.dailyBoard.collectAsStateWithLifecycle()
+    val undoCount by viewModel.undoCount.collectAsStateWithLifecycle()
     val gameOver = state.gameOver.isGameOver
     val isVictory = state.gameOver.isVictory
+    val canUndo = undoCount > 0 && !gameOver &&
+        activeEvent == null && missionResults.isEmpty() && warOutcome == null &&
+        !state.demographics.election.hasPendingNight
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -360,6 +364,11 @@ fun GameNavigation(
             onOpenMenu = {
                 audio.playClick()
                 navigate(GameDestination.AudioSettings)
+            },
+            canUndo = canUndo,
+            onUndo = {
+                audio.playClick()
+                viewModel.undoLastMonth()
             },
         )
 
