@@ -57,7 +57,7 @@ import com.presidentsimulator.game.ui.theme.NssOnPhoto
 import com.presidentsimulator.game.ui.theme.NssPrimary
 import com.presidentsimulator.game.ui.theme.NssRed
 import com.presidentsimulator.game.viewmodel.GameViewModel
-import com.presidentsimulator.game.viewmodel.GovernanceViewModel
+import com.presidentsimulator.game.viewmodel.GovernanceEngine
 import com.presidentsimulator.game.viewmodel.toBudgetString
 import kotlin.math.roundToInt
 
@@ -174,7 +174,7 @@ private fun AssemblyPanel(
                 color = NssPrimary,
                 letterSpacing = 2.sp,
             )
-            val undecided = GovernanceViewModel.undecidedNations(state)
+            val undecided = GovernanceEngine.undecidedNations(state)
             if (undecided.isEmpty()) {
                 Text(
                     text = "All nations have voted. Awaiting session close.",
@@ -186,7 +186,7 @@ private fun AssemblyPanel(
                     BribeNationRow(
                         state = state,
                         countryId = countryId,
-                        canAfford = state.vitals.budget >= GovernanceViewModel.BRIBE_COST,
+                        canAfford = state.vitals.budget >= GovernanceEngine.BRIBE_COST,
                         onBribeFor = { viewModel.bribeCountryVote(countryId, true) },
                         onBribeAgainst = { viewModel.bribeCountryVote(countryId, false) },
                     )
@@ -235,7 +235,7 @@ private fun ProposalCard(
     onPropose: (String?) -> Unit,
 ) {
     var selectedTarget by remember { mutableStateOf(state.diplomacy.rivals.firstOrNull()?.id) }
-    val canPropose = GovernanceViewModel.canPropose(state, type)
+    val canPropose = GovernanceEngine.canPropose(state, type)
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
         Text(type.displayName, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = NssForeground)
@@ -347,7 +347,7 @@ private fun BribeNationRow(
     onBribeFor: () -> Unit,
     onBribeAgainst: () -> Unit,
 ) {
-    val name = GovernanceViewModel.countryDisplayName(state, countryId)
+    val name = GovernanceEngine.countryDisplayName(state, countryId)
     val rival = state.diplomacy.rivalById(countryId)
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
@@ -358,7 +358,7 @@ private fun BribeNationRow(
             color = NssForeground,
         )
         Text(
-            text = "Relations: ${rival?.relationshipScore ?: 0} · Cost ${GovernanceViewModel.BRIBE_COST.toBudgetString()}",
+            text = "Relations: ${rival?.relationshipScore ?: 0} · Cost ${GovernanceEngine.BRIBE_COST.toBudgetString()}",
             fontSize = 11.sp,
             color = NssMutedForeground,
             modifier = Modifier.padding(top = 4.dp),
@@ -466,12 +466,12 @@ private fun AllianceCard(
     alliance: Alliance,
     onDissolve: () -> Unit,
 ) {
-    val power = GovernanceViewModel.allianceMilitaryPower(state, alliance)
+    val power = GovernanceEngine.allianceMilitaryPower(state, alliance)
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
         Text(alliance.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = NssForeground)
         Text(
-            text = "Leader: ${GovernanceViewModel.countryDisplayName(state, alliance.leaderCountryId)}",
+            text = "Leader: ${GovernanceEngine.countryDisplayName(state, alliance.leaderCountryId)}",
             fontSize = 12.sp,
             color = NssMutedForeground,
             modifier = Modifier.padding(top = 4.dp),
@@ -522,11 +522,11 @@ private fun CreateAllianceDialog(
     var selected by remember { mutableStateOf(setOf<String>()) }
 
     val eligible = state.diplomacy.rivals.filter { rival ->
-        rival.relationshipScore >= GovernanceViewModel.ALLIANCE_MIN_RELATION &&
+        rival.relationshipScore >= GovernanceEngine.ALLIANCE_MIN_RELATION &&
             state.diplomacy.activeWar?.targetCountryId != rival.id
     }
     val canConfirm = selected.isNotEmpty() &&
-        state.governance.diplomaticInfluence >= GovernanceViewModel.ALLIANCE_INFLUENCE_COST
+        state.governance.diplomaticInfluence >= GovernanceEngine.ALLIANCE_INFLUENCE_COST
 
     Dialog(onDismissRequest = onDismiss) {
         Column(
@@ -545,7 +545,7 @@ private fun CreateAllianceDialog(
                 modifier = Modifier.fillMaxWidth(),
             )
             Text(
-                text = "Invite nations with relations ≥ ${GovernanceViewModel.ALLIANCE_MIN_RELATION}. Influence cost: ${GovernanceViewModel.ALLIANCE_INFLUENCE_COST}",
+                text = "Invite nations with relations ≥ ${GovernanceEngine.ALLIANCE_MIN_RELATION}. Influence cost: ${GovernanceEngine.ALLIANCE_INFLUENCE_COST}",
                 fontSize = 11.sp,
                 color = NssMutedForeground,
                 modifier = Modifier.padding(top = 8.dp),

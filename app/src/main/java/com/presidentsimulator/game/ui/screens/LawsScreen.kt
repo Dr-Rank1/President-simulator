@@ -49,7 +49,7 @@ import com.presidentsimulator.game.ui.theme.NssOnPhoto
 import com.presidentsimulator.game.ui.theme.NssPrimary
 import com.presidentsimulator.game.ui.theme.NssRed
 import com.presidentsimulator.game.viewmodel.GameViewModel
-import com.presidentsimulator.game.viewmodel.ProductionLawViewModel
+import com.presidentsimulator.game.viewmodel.ProductionLawEngine
 import com.presidentsimulator.game.viewmodel.toBudgetString
 import kotlin.math.roundToInt
 
@@ -153,7 +153,7 @@ private fun PendingBillsPanel(state: GameState, viewModel: GameViewModel) {
             val verb = if (bill.enabling) "enacting" else "repealing"
             Text(
                 text = "${law.name} · $verb · ${bill.ticksRemaining}mo left · support $support% · " +
-                    "compromises ${bill.compromises}/${ProductionLawViewModel.MAX_BILL_COMPROMISES}",
+                    "compromises ${bill.compromises}/${ProductionLawEngine.MAX_BILL_COMPROMISES}",
                 fontSize = 9.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = NssForeground,
@@ -164,17 +164,17 @@ private fun PendingBillsPanel(state: GameState, viewModel: GameViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
             ) {
                 BillAction(
-                    label = "Rush · ${ProductionLawViewModel.RUSH_LAW_COST.toBudgetString()}",
-                    enabled = state.vitals.budget >= ProductionLawViewModel.RUSH_LAW_COST,
+                    label = "Rush · ${ProductionLawEngine.RUSH_LAW_COST.toBudgetString()}",
+                    enabled = state.vitals.budget >= ProductionLawEngine.RUSH_LAW_COST,
                     color = NssEmerald,
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.rushPendingLaw(bill.lawId) },
                 )
                 if (bill.enabling) {
                     BillAction(
-                        label = "Compromise · ${ProductionLawViewModel.BILL_COMPROMISE_COST.toBudgetString()}",
-                        enabled = state.vitals.budget >= ProductionLawViewModel.BILL_COMPROMISE_COST &&
-                            bill.compromises < ProductionLawViewModel.MAX_BILL_COMPROMISES,
+                        label = "Compromise · ${ProductionLawEngine.BILL_COMPROMISE_COST.toBudgetString()}",
+                        enabled = state.vitals.budget >= ProductionLawEngine.BILL_COMPROMISE_COST &&
+                            bill.compromises < ProductionLawEngine.MAX_BILL_COMPROMISES,
                         color = NssAccent,
                         modifier = Modifier.weight(1f),
                         onClick = { viewModel.negotiatePendingLaw(bill.lawId) },

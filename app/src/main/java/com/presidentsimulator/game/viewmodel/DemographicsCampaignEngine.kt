@@ -15,7 +15,7 @@ import kotlin.random.Random
 /**
  * Cohort approval simulation, election theater, and alternate victory paths.
  */
-class DemographicsCampaignViewModel(
+class DemographicsCampaignEngine(
     private val random: Random = Random.Default,
 ) {
 

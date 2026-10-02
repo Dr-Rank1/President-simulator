@@ -25,7 +25,7 @@ import com.presidentsimulator.game.data.InfrastructureType
 import com.presidentsimulator.game.data.LoanEngine
 import com.presidentsimulator.game.data.TradeCommodity
 import com.presidentsimulator.game.viewmodel.GameViewModel
-import com.presidentsimulator.game.viewmodel.TradeMarketViewModel
+import com.presidentsimulator.game.viewmodel.TradeMarketEngine
 import com.presidentsimulator.game.viewmodel.toBudgetString
 import com.presidentsimulator.game.ui.components.GameTile
 import com.presidentsimulator.game.ui.components.GameTileData
@@ -234,10 +234,10 @@ private fun FiscalPolicyPanel(state: GameState, viewModel: GameViewModel) {
             value = tariffRate,
             onValueChange = { tariffRate = it },
             onValueChangeFinished = { viewModel.setTariffRate(tariffRate) },
-            valueRange = TradeMarketViewModel.MIN_TARIFF..TradeMarketViewModel.MAX_TARIFF,
+            valueRange = TradeMarketEngine.MIN_TARIFF..TradeMarketEngine.MAX_TARIFF,
         )
         Text(
-            text = "Tariffs above ${(TradeMarketViewModel.HIGH_TARIFF_THRESHOLD * 100).toInt()}% " +
+            text = "Tariffs above ${(TradeMarketEngine.HIGH_TARIFF_THRESHOLD * 100).toInt()}% " +
                 "start to erode approval while raising import duties.",
             fontSize = 8.sp,
             color = NssMutedForeground,

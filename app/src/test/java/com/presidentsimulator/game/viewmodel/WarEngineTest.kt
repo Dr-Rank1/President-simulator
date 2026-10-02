@@ -14,7 +14,7 @@ import org.junit.Test
 
 class WarEngineTest {
 
-    private val engine = DiplomacyViewModel()
+    private val engine = DiplomacyEngine()
 
     private fun stateWith(
         personnel: Long = 500_000L,
@@ -64,7 +64,7 @@ class WarEngineTest {
                 ),
             )
         }
-        assertFalse(DiplomacyViewModel.canDeclareWar(pacified, "rival_a"))
+        assertFalse(DiplomacyEngine.canDeclareWar(pacified, "rival_a"))
     }
 
     @Test
@@ -134,7 +134,7 @@ class WarEngineTest {
             ),
         )
 
-        assertTrue(DiplomacyViewModel.armisticeCost(losing) > DiplomacyViewModel.armisticeCost(winning))
+        assertTrue(DiplomacyEngine.armisticeCost(losing) > DiplomacyEngine.armisticeCost(winning))
     }
 
     @Test

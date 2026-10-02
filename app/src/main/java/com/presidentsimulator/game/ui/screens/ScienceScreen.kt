@@ -49,7 +49,7 @@ import com.presidentsimulator.game.ui.theme.NssMutedForeground
 import com.presidentsimulator.game.ui.theme.NssOnPhoto
 import com.presidentsimulator.game.ui.theme.NssPrimary
 import com.presidentsimulator.game.ui.theme.NssRed
-import com.presidentsimulator.game.viewmodel.AdvancementViewModel
+import com.presidentsimulator.game.viewmodel.AdvancementEngine
 import com.presidentsimulator.game.viewmodel.GameViewModel
 import com.presidentsimulator.game.viewmodel.toBudgetString
 import kotlin.math.roundToInt
@@ -187,13 +187,13 @@ private fun ResearchStatusPanel(state: GameState, viewModel: GameViewModel) {
         Spacer(modifier = Modifier.height(7.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {                ScienceAction(
                 label = if (viewModel.canAllocateExtraResearchFunding()) {
-                    "FUND PROJECT · ${AdvancementViewModel.EXTRA_RESEARCH_FUNDING_COST.toBudgetString()}"
+                    "FUND PROJECT · ${AdvancementEngine.EXTRA_RESEARCH_FUNDING_COST.toBudgetString()}"
                 } else if (active == null) {
                     "Fund project — no active project"
                 } else if (research.extraFundingTier >= ResearchState.MAX_EXTRA_FUNDING_TIER) {
                     "Fund project — max tier reached"
                 } else {
-                    "Fund project — need ${AdvancementViewModel.EXTRA_RESEARCH_FUNDING_COST.toBudgetString()}"
+                    "Fund project — need ${AdvancementEngine.EXTRA_RESEARCH_FUNDING_COST.toBudgetString()}"
                 },
                 enabled = viewModel.canAllocateExtraResearchFunding(),
                 color = NssAccent,
@@ -206,7 +206,7 @@ private fun ResearchStatusPanel(state: GameState, viewModel: GameViewModel) {
 
 @Composable
 private fun ResearchFacilityPanel(state: GameState, viewModel: GameViewModel) {
-    val canBuild = state.vitals.budget >= AdvancementViewModel.UNIVERSITY_COST
+    val canBuild = state.vitals.budget >= AdvancementEngine.UNIVERSITY_COST
     NssPanel(modifier = Modifier.fillMaxWidth()) {
         Text(
             "RESEARCH INFRASTRUCTURE",
@@ -216,7 +216,7 @@ private fun ResearchFacilityPanel(state: GameState, viewModel: GameViewModel) {
             letterSpacing = 8.sp,
         )
         Text(
-            text = "Each university adds ${AdvancementViewModel.SCIENCE_PER_UNIVERSITY.toLong()} science every month. " +
+            text = "Each university adds ${AdvancementEngine.SCIENCE_PER_UNIVERSITY.toLong()} science every month. " +
                 "Education funding and unlocked Society technologies multiply the total.",
             fontSize = 8.sp,
             color = NssMutedForeground,
@@ -224,9 +224,9 @@ private fun ResearchFacilityPanel(state: GameState, viewModel: GameViewModel) {
         )
         ScienceAction(
             label = if (canBuild) {
-                "BUILD UNIVERSITY · ${AdvancementViewModel.UNIVERSITY_COST.toBudgetString()}"
+                "BUILD UNIVERSITY · ${AdvancementEngine.UNIVERSITY_COST.toBudgetString()}"
             } else {
-                "Build university — need ${AdvancementViewModel.UNIVERSITY_COST.toBudgetString()}"
+                "Build university — need ${AdvancementEngine.UNIVERSITY_COST.toBudgetString()}"
             },
             enabled = canBuild,
             color = NssPrimary,

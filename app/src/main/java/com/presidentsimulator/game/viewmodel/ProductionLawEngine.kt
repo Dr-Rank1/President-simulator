@@ -19,7 +19,7 @@ import kotlin.math.roundToLong
  * Pure industrial and legal simulation engine.
  * [GameViewModel] applies results through immutable [GameState.copy] updates.
  */
-class ProductionLawViewModel {
+class ProductionLawEngine {
 
     /**
      * Monthly production pipeline:

@@ -28,7 +28,7 @@ import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.MilitaryFacilityType
 import com.presidentsimulator.game.data.MilitaryHardware
 import com.presidentsimulator.game.data.WarTactic
-import com.presidentsimulator.game.viewmodel.DiplomacyViewModel
+import com.presidentsimulator.game.viewmodel.DiplomacyEngine
 import com.presidentsimulator.game.viewmodel.GameViewModel
 import com.presidentsimulator.game.viewmodel.toArmyString
 import com.presidentsimulator.game.viewmodel.toBudgetString
@@ -122,19 +122,19 @@ fun MilitaryScreen(
                         title = "Recruit personnel",
                         imageUrl = NssCardImages.INFANTRY,
                         badgeMode = BadgeMode.LevelCircle,
-                        badgeText = "${DiplomacyViewModel.maxRecruitable(state) / 1000}k max",
+                        badgeText = "${DiplomacyEngine.maxRecruitable(state) / 1000}k max",
                         stats = listOf(
                             "Personnel" to state.military.personnel.toArmyString(),
                             "Batch" to "10,000",
-                            "Cost" to (DiplomacyViewModel.RECRUIT_COST_PER_SOLDIER *
-                                DiplomacyViewModel.RECRUIT_BATCH_SIZE).toBudgetString(),
-                            "Training" to "${DiplomacyViewModel.PERSONNEL_LEAD_TIME_MONTHS} mo",
+                            "Cost" to (DiplomacyEngine.RECRUIT_COST_PER_SOLDIER *
+                                DiplomacyEngine.RECRUIT_BATCH_SIZE).toBudgetString(),
+                            "Training" to "${DiplomacyEngine.PERSONNEL_LEAD_TIME_MONTHS} mo",
                             "Salary" to String.format(
                                 java.util.Locale.ROOT, "%.2f×", state.military.salaryFunding,
                             ),
                         ),
                         onClick = {
-                            viewModel.recruitPersonnel(DiplomacyViewModel.RECRUIT_BATCH_SIZE)
+                            viewModel.recruitPersonnel(DiplomacyEngine.RECRUIT_BATCH_SIZE)
                         },
                     ),
                 )
@@ -200,7 +200,7 @@ private fun WarCommandPanel(state: GameState, viewModel: GameViewModel) {
     val war = state.diplomacy.activeWar ?: return
     val target = state.diplomacy.rivalById(war.targetCountryId)?.name ?: war.targetCountryId
     val progress = war.warProgress.coerceIn(0f, 100f)
-    val settlementReady = war.warProgress >= DiplomacyViewModel.EARLY_SETTLEMENT_MIN_PROGRESS
+    val settlementReady = war.warProgress >= DiplomacyEngine.EARLY_SETTLEMENT_MIN_PROGRESS
     val armisticeCost = viewModel.armisticeCost()
     val canArmistice = state.vitals.budget >= armisticeCost
 
@@ -270,7 +270,7 @@ private fun WarCommandPanel(state: GameState, viewModel: GameViewModel) {
                 label = if (settlementReady) {
                     "Settle war now"
                 } else {
-                    "Settle war · need ${DiplomacyViewModel.EARLY_SETTLEMENT_MIN_PROGRESS.toInt()}% front"
+                    "Settle war · need ${DiplomacyEngine.EARLY_SETTLEMENT_MIN_PROGRESS.toInt()}% front"
                 },
                 enabled = settlementReady,
                 color = NssEmerald,

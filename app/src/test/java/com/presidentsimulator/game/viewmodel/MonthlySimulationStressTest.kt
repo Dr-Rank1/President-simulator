@@ -33,7 +33,7 @@ class MonthlySimulationStressTest {
 
     @Test
     fun longRunningCampaignsHoldSimulationInvariants() {
-        val demographics = DemographicsCampaignViewModel()
+        val demographics = DemographicsCampaignEngine()
         val summaries = mutableListOf<String>()
 
         SEEDS.forEach { seed ->
@@ -104,7 +104,7 @@ class MonthlySimulationStressTest {
 
     @Test
     fun electionDefeatEndsTheCampaignWithAReason() {
-        val demographics = DemographicsCampaignViewModel()
+        val demographics = DemographicsCampaignEngine()
         val night = ElectionNightResult(
             victory = false,
             playerShare = 38f,
@@ -137,7 +137,7 @@ class MonthlySimulationStressTest {
 
     @Test
     fun highApprovalPastVictoryYearEndsTheCampaignInVictory() {
-        val demographics = DemographicsCampaignViewModel()
+        val demographics = DemographicsCampaignEngine()
         val base = seededStartingState(11L)
         val thriving = base.copy(
             month = 12,

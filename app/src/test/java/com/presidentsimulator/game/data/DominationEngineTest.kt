@@ -1,6 +1,6 @@
 package com.presidentsimulator.game.data
 
-import com.presidentsimulator.game.viewmodel.DiplomacyViewModel
+import com.presidentsimulator.game.viewmodel.DiplomacyEngine
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -178,7 +178,7 @@ class DominationEngineTest {
 
     @Test
     fun warOutcomeFlagsConquestAvailability() {
-        val winner = DiplomacyViewModel()
+        val winner = DiplomacyEngine()
         var state = GameState().copy(
             military = MilitaryState(personnel = 900_000L, tanks = 2_000, jets = 400, ships = 100),
         )

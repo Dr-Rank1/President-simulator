@@ -17,7 +17,7 @@ import kotlin.random.Random
  * Pure global trade and tariff simulation engine.
  * [GameViewModel] applies results through immutable [GameState.copy] updates.
  */
-class TradeMarketViewModel(
+class TradeMarketEngine(
     private val random: Random = Random.Default,
 ) {
 

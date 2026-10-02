@@ -12,7 +12,7 @@ import kotlin.random.Random
  * Pure UN assembly and alliance simulation engine.
  * [GameViewModel] applies results through immutable [GameState.copy] updates.
  */
-class GovernanceViewModel(
+class GovernanceEngine(
     private val random: Random = Random.Default,
 ) {
 

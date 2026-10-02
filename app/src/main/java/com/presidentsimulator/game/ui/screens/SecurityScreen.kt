@@ -60,7 +60,7 @@ import com.presidentsimulator.game.ui.theme.NssMutedForeground
 import com.presidentsimulator.game.ui.theme.NssOnPhoto
 import com.presidentsimulator.game.ui.theme.NssPrimary
 import com.presidentsimulator.game.ui.theme.NssRed
-import com.presidentsimulator.game.viewmodel.EspionageSecurityViewModel
+import com.presidentsimulator.game.viewmodel.EspionageSecurityEngine
 import com.presidentsimulator.game.viewmodel.GameViewModel
 import com.presidentsimulator.game.viewmodel.toBudgetString
 import kotlin.math.roundToInt
@@ -158,17 +158,17 @@ private fun IntelligencePanel(state: GameState, viewModel: GameViewModel) {
             Spacer(modifier = Modifier.height(7.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 SecurityAction(
-                    label = "Recruit spy · ${EspionageSecurityViewModel.SPY_RECRUIT_COST.toBudgetString()}",
-                    enabled = state.vitals.budget >= EspionageSecurityViewModel.SPY_RECRUIT_COST,
+                    label = "Recruit spy · ${EspionageSecurityEngine.SPY_RECRUIT_COST.toBudgetString()}",
+                    enabled = state.vitals.budget >= EspionageSecurityEngine.SPY_RECRUIT_COST,
                     color = NssPrimary,
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.recruitSpy() },
                 )
                 SecurityAction(
-                    label = "Fund security · ${EspionageSecurityViewModel.SECURITY_FUND_UNIT_COST.toBudgetString()}",
+                    label = "Fund security · ${EspionageSecurityEngine.SECURITY_FUND_UNIT_COST.toBudgetString()}",
                     enabled = state.internalSecurity.securityFundsThisMonth <
-                        EspionageSecurityViewModel.MONTHLY_SECURITY_FUND_CAP &&
-                        state.vitals.budget >= EspionageSecurityViewModel.SECURITY_FUND_UNIT_COST,
+                        EspionageSecurityEngine.MONTHLY_SECURITY_FUND_CAP &&
+                        state.vitals.budget >= EspionageSecurityEngine.SECURITY_FUND_UNIT_COST,
                     color = NssAccent,
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.fundInternalSecurity(1) },

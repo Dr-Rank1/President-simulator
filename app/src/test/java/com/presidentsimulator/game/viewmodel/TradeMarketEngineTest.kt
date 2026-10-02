@@ -10,9 +10,9 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class TradeMarketViewModelTest {
+class TradeMarketEngineTest {
 
-    private val engine = TradeMarketViewModel()
+    private val engine = TradeMarketEngine()
 
     private fun stateWith(
         budget: Long = 100_000_000_000L,
@@ -61,7 +61,7 @@ class TradeMarketViewModelTest {
     @Test
     fun friendlyPartnersBuyCheaperAndSellHigher() {
         val base = 10_000_000L
-        val engine2 = TradeMarketViewModel()
+        val engine2 = TradeMarketEngine()
         val friendlyImport = engine2.negotiatedPrice(base, 60, TradeType.IMPORT)
         val hostileImport = engine2.negotiatedPrice(base, -80, TradeType.IMPORT)
         val friendlyExport = engine2.negotiatedPrice(base, 60, TradeType.EXPORT)
@@ -111,10 +111,10 @@ class TradeMarketViewModelTest {
     @Test
     fun tariffClampedToConfiguredBounds() {
         val low = engine.setTariffRate(stateWith(), -1f)
-        assertEquals(TradeMarketViewModel.MIN_TARIFF, low.trade.tariffRate, 0.0001f)
+        assertEquals(TradeMarketEngine.MIN_TARIFF, low.trade.tariffRate, 0.0001f)
 
         val high = engine.setTariffRate(stateWith(), 5f)
-        assertEquals(TradeMarketViewModel.MAX_TARIFF, high.trade.tariffRate, 0.0001f)
+        assertEquals(TradeMarketEngine.MAX_TARIFF, high.trade.tariffRate, 0.0001f)
     }
 
     @Test
@@ -167,6 +167,6 @@ class TradeMarketViewModelTest {
         val frozen = stateWith().copy(gameOver = stateWith().gameOver.copy(isGameOver = true))
         assertEquals(frozen, engine.processTradeTick(frozen))
         assertEquals(frozen, engine.buyFromMarket(frozen, TradeCommodity.GRAIN, 10L))
-        assertFalse(TradeMarketViewModel.canProposeDeal(frozen, "rival_a"))
+        assertFalse(TradeMarketEngine.canProposeDeal(frozen, "rival_a"))
     }
 }

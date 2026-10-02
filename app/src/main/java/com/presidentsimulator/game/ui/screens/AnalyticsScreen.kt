@@ -60,7 +60,7 @@ import com.presidentsimulator.game.ui.theme.NssMutedForeground
 import com.presidentsimulator.game.ui.theme.NssOnPhoto
 import com.presidentsimulator.game.ui.theme.NssPrimary
 import com.presidentsimulator.game.ui.theme.NssRed
-import com.presidentsimulator.game.viewmodel.AnalyticsSaveViewModel
+import com.presidentsimulator.game.viewmodel.AnalyticsSaveEngine
 import com.presidentsimulator.game.viewmodel.GameViewModel
 import com.presidentsimulator.game.viewmodel.toBudgetString
 
@@ -202,7 +202,7 @@ fun AnalyticsScreen(
                 )
                 if (feedback.payloadBytes > 0) {
                     Text(
-                        text = "Package size: ${AnalyticsSaveViewModel.formatBytes(feedback.payloadBytes)}",
+                        text = "Package size: ${AnalyticsSaveEngine.formatBytes(feedback.payloadBytes)}",
                         fontSize = 8.sp,
                         color = NssMutedForeground,
                     )
@@ -226,7 +226,7 @@ fun AnalyticsScreen(
                 }
             } else {
                 val advisories = remember(history, state) {
-                    AnalyticsSaveViewModel.buildAdvisories(state)
+                    AnalyticsSaveEngine.buildAdvisories(state)
                 }
                 if (advisories.isNotEmpty()) {
                     NssPanel(modifier = Modifier.fillMaxWidth()) {

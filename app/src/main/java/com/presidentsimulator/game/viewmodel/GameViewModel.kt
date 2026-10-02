@@ -116,14 +116,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
      * so swapping them is safe outside of a tick.
      */
     private var random: Random = Random.Default
-    private var diplomacyEngine = DiplomacyViewModel(random)
-    private val productionLawEngine = ProductionLawViewModel()
-    private val analyticsEngine = AnalyticsSaveViewModel()
-    private var securityEngine = EspionageSecurityViewModel(random)
-    private val advancementEngine = AdvancementViewModel()
-    private var tradeEngine = TradeMarketViewModel(random)
-    private var governanceEngine = GovernanceViewModel(random)
-    private val demographicsEngine = DemographicsCampaignViewModel()
+    private var diplomacyEngine = DiplomacyEngine(random)
+    private val productionLawEngine = ProductionLawEngine()
+    private val analyticsEngine = AnalyticsSaveEngine()
+    private var securityEngine = EspionageSecurityEngine(random)
+    private val advancementEngine = AdvancementEngine()
+    private var tradeEngine = TradeMarketEngine(random)
+    private var governanceEngine = GovernanceEngine(random)
+    private val demographicsEngine = DemographicsCampaignEngine()
     private var monthlyPipeline = buildPipeline()
 
     private fun buildPipeline() = MonthlySimulationPipeline(
@@ -143,15 +143,15 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     /** Rebuilds every random-consuming engine from [seed]. Call only while time is paused. */
     private fun reseed(seed: Long) {
         random = Random(seed)
-        diplomacyEngine = DiplomacyViewModel(random)
-        securityEngine = EspionageSecurityViewModel(random)
-        tradeEngine = TradeMarketViewModel(random)
-        governanceEngine = GovernanceViewModel(random)
+        diplomacyEngine = DiplomacyEngine(random)
+        securityEngine = EspionageSecurityEngine(random)
+        tradeEngine = TradeMarketEngine(random)
+        governanceEngine = GovernanceEngine(random)
         monthlyPipeline = buildPipeline()
     }
 
     private val savePrefs = application.getSharedPreferences(
-        AnalyticsSaveViewModel.PREFS_NAME,
+        AnalyticsSaveEngine.PREFS_NAME,
         Context.MODE_PRIVATE,
     )
 
@@ -441,12 +441,12 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         _state.update { tradeEngine.setGoodsExportQuota(it, quota) }
     }
 
-    fun buyFromMarket(commodity: TradeCommodity, amount: Long = TradeMarketViewModel.SPOT_BUNDLE_SIZE) {
+    fun buyFromMarket(commodity: TradeCommodity, amount: Long = TradeMarketEngine.SPOT_BUNDLE_SIZE) {
         if (_currentActiveEvent.value != null) return
         _state.update { tradeEngine.buyFromMarket(it, commodity, amount) }
     }
 
-    fun sellToMarket(commodity: TradeCommodity, amount: Long = TradeMarketViewModel.SPOT_BUNDLE_SIZE) {
+    fun sellToMarket(commodity: TradeCommodity, amount: Long = TradeMarketEngine.SPOT_BUNDLE_SIZE) {
         if (_currentActiveEvent.value != null) return
         _state.update { tradeEngine.sellToMarket(it, commodity, amount) }
     }
@@ -475,7 +475,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     /** National stockpile of a commodity, for the HUD shop's sell buttons. */
     fun stockOf(commodity: TradeCommodity): Long =
-        TradeMarketViewModel.stockOf(_state.value.production, commodity)
+        TradeMarketEngine.stockOf(_state.value.production, commodity)
 
     // ── Science & society ────────────────────────────────────────────────────
 
@@ -495,13 +495,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun canStartResearch(techId: String): Boolean =
-        AdvancementViewModel.canStartResearch(_state.value, techId)
+        AdvancementEngine.canStartResearch(_state.value, techId)
 
     fun canAllocateExtraResearchFunding(): Boolean {
         val research = _state.value.research
         return research.activeTechId != null &&
             research.extraFundingTier < ResearchState.MAX_EXTRA_FUNDING_TIER &&
-            _state.value.vitals.budget >= AdvancementViewModel.EXTRA_RESEARCH_FUNDING_COST
+            _state.value.vitals.budget >= AdvancementEngine.EXTRA_RESEARCH_FUNDING_COST
     }
 
     fun adjustMinistryFunding(ministry: SocietyMinistry, newFundingLevel: Float) {
@@ -528,7 +528,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         advancementEngine.forecastMinistryText(_state.value.society, ministry)
 
     fun canUnlockTechnology(techId: String): Boolean =
-        AdvancementViewModel.canUnlock(_state.value, techId)
+        AdvancementEngine.canUnlock(_state.value, techId)
 
     // ── Espionage & internal security ────────────────────────────────────────
 
@@ -572,7 +572,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun canDeploySpy(targetCountryId: String, missionType: MissionType): Boolean =
-        EspionageSecurityViewModel.canDeploy(_state.value, targetCountryId, missionType)
+        EspionageSecurityEngine.canDeploy(_state.value, targetCountryId, missionType)
 
     // ── Analytics & save/restore ──────────────────────────────────────────────
 
@@ -611,8 +611,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val payload = analyticsEngine.exportGameStateToJson(stateSnapshot)
                 savePrefs.edit()
-                    .putString(AnalyticsSaveViewModel.KEY_AUTOMATED_SAVE, payload)
-                    .putInt(AnalyticsSaveViewModel.KEY_LAST_PAYLOAD_BYTES, payload.length)
+                    .putString(AnalyticsSaveEngine.KEY_AUTOMATED_SAVE, payload)
+                    .putInt(AnalyticsSaveEngine.KEY_LAST_PAYLOAD_BYTES, payload.length)
                     .apply()
                 _saveLoadFeedback.value = analyticsEngine.feedbackForSave(payload)
                 _hasSave.value = true
@@ -623,7 +623,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadLastAutomatedSave() {
-        val payload = savePrefs.getString(AnalyticsSaveViewModel.KEY_AUTOMATED_SAVE, null)
+        val payload = savePrefs.getString(AnalyticsSaveEngine.KEY_AUTOMATED_SAVE, null)
         if (payload.isNullOrBlank()) {
             _saveLoadFeedback.value = analyticsEngine.feedbackForMissingSave()
             return
@@ -632,7 +632,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun hasAutomatedSave(): Boolean =
-        !savePrefs.getString(AnalyticsSaveViewModel.KEY_AUTOMATED_SAVE, null).isNullOrBlank()
+        !savePrefs.getString(AnalyticsSaveEngine.KEY_AUTOMATED_SAVE, null).isNullOrBlank()
 
     private val _saveSlots = MutableStateFlow<List<SaveSlotInfo>>(emptyList())
     val saveSlots: StateFlow<List<SaveSlotInfo>> = _saveSlots.asStateFlow()
@@ -645,8 +645,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun computeSaveSlots(): List<SaveSlotInfo> =
-        (1..AnalyticsSaveViewModel.SLOT_COUNT).map { slot ->
-            val payload = savePrefs.getString(AnalyticsSaveViewModel.slotKey(slot), null)
+        (1..AnalyticsSaveEngine.SLOT_COUNT).map { slot ->
+            val payload = savePrefs.getString(AnalyticsSaveEngine.slotKey(slot), null)
             if (payload.isNullOrBlank()) {
                 SaveSlotInfo(slotIndex = slot, occupied = false, label = "Slot $slot — Empty")
             } else {
@@ -666,14 +666,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
 
     fun saveToSlot(slot: Int) {
-        if (slot !in 1..AnalyticsSaveViewModel.SLOT_COUNT) return
+        if (slot !in 1..AnalyticsSaveEngine.SLOT_COUNT) return
         val payload = analyticsEngine.exportGameStateToJson(_state.value)
         savePrefs.edit()
-            .putString(AnalyticsSaveViewModel.slotKey(slot), payload)
-            .putInt(AnalyticsSaveViewModel.KEY_LAST_PAYLOAD_BYTES, payload.length)
+            .putString(AnalyticsSaveEngine.slotKey(slot), payload)
+            .putInt(AnalyticsSaveEngine.KEY_LAST_PAYLOAD_BYTES, payload.length)
             .apply()
         _saveLoadFeedback.value = SaveLoadFeedback(
-            message = "Saved to slot $slot (${AnalyticsSaveViewModel.formatBytes(payload.length)}).",
+            message = "Saved to slot $slot (${AnalyticsSaveEngine.formatBytes(payload.length)}).",
             payloadBytes = payload.length,
             success = true,
         )
@@ -681,8 +681,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadFromSlot(slot: Int) {
-        if (slot !in 1..AnalyticsSaveViewModel.SLOT_COUNT) return
-        val payload = savePrefs.getString(AnalyticsSaveViewModel.slotKey(slot), null)
+        if (slot !in 1..AnalyticsSaveEngine.SLOT_COUNT) return
+        val payload = savePrefs.getString(AnalyticsSaveEngine.slotKey(slot), null)
         if (payload.isNullOrBlank()) {
             _saveLoadFeedback.value = SaveLoadFeedback(
                 message = "Slot $slot is empty.",
@@ -693,7 +693,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
         if (importGameStateFromJson(payload)) {
             _saveLoadFeedback.value = SaveLoadFeedback(
-                message = "Loaded slot $slot (${AnalyticsSaveViewModel.formatBytes(payload.length)}).",
+                message = "Loaded slot $slot (${AnalyticsSaveEngine.formatBytes(payload.length)}).",
                 payloadBytes = payload.length,
                 success = true,
             )
@@ -863,7 +863,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (_currentActiveEvent.value != null) return
         applyActionWithFeedback(
             "Compromise bought — support increased.",
-            "Failed: needs ${ProductionLawViewModel.BILL_COMPROMISE_COST.toBudgetString()} or compromise limit reached.",
+            "Failed: needs ${ProductionLawEngine.BILL_COMPROMISE_COST.toBudgetString()} or compromise limit reached.",
         ) { productionLawEngine.negotiatePendingLaw(it, lawId) }
     }
 
@@ -890,7 +890,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun canEnactLaw(lawId: String): Boolean {
         val law = com.presidentsimulator.game.data.LawCatalog.byId(lawId) ?: return false
-        return ProductionLawViewModel.canEnact(_state.value, law)
+        return ProductionLawEngine.canEnact(_state.value, law)
     }
 
     fun parliamentSupportFor(lawId: String): Float {
@@ -947,7 +947,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (_currentActiveEvent.value != null) return
         applyActionWithFeedback(
             "Bill fast-tracked and resolved.",
-            "Failed: needs ${ProductionLawViewModel.RUSH_LAW_COST.toBudgetString()}.",
+            "Failed: needs ${ProductionLawEngine.RUSH_LAW_COST.toBudgetString()}.",
         ) { productionLawEngine.rushPendingLaw(it, lawId) }
     }
 
@@ -964,7 +964,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun canSendForeignAid(targetCountryId: String): Boolean =
-        DiplomacyViewModel.canSendForeignAid(_state.value, targetCountryId)
+        DiplomacyEngine.canSendForeignAid(_state.value, targetCountryId)
 
     fun conductStateVisit(targetCountryId: String) {
         if (_currentActiveEvent.value != null) return
@@ -979,7 +979,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun canConductStateVisit(targetCountryId: String): Boolean =
-        DiplomacyViewModel.canConductStateVisit(_state.value, targetCountryId)
+        DiplomacyEngine.canConductStateVisit(_state.value, targetCountryId)
 
     fun runCampaignAction(action: CampaignAction) {
         if (_currentActiveEvent.value != null) return
@@ -1053,12 +1053,12 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun canDeclareWar(targetCountryId: String): Boolean =
-        DiplomacyViewModel.canDeclareWar(_state.value, targetCountryId)
+        DiplomacyEngine.canDeclareWar(_state.value, targetCountryId)
 
     fun canAffordTreaty(type: TreatyType): Boolean =
-        DiplomacyViewModel.treatyAffordable(_state.value, type)
+        DiplomacyEngine.treatyAffordable(_state.value, type)
 
-    fun armisticeCost(): Long = DiplomacyViewModel.armisticeCost(_state.value)
+    fun armisticeCost(): Long = DiplomacyEngine.armisticeCost(_state.value)
 
     fun setTimeSpeedMode(mode: TimeSpeedMode) {
         if (_state.value.gameOver.isGameOver && mode != TimeSpeedMode.PAUSED) return

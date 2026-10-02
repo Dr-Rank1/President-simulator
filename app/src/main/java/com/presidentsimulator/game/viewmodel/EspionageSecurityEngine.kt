@@ -17,7 +17,7 @@ import kotlin.random.Random
  * Pure internal-security and espionage simulation engine.
  * [GameViewModel] applies results through immutable [GameState.copy] updates.
  */
-class EspionageSecurityViewModel(
+class EspionageSecurityEngine(
     private val random: Random = Random.Default,
 ) {
 

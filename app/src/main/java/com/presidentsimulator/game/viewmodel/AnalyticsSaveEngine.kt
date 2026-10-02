@@ -25,7 +25,7 @@ data class SaveSlotInfo(
  * Analytics ledger and GameState serialization engine.
  * [GameViewModel] applies transforms via immutable copies and persists payloads locally.
  */
-class AnalyticsSaveViewModel {
+class AnalyticsSaveEngine {
 
     private val json = Json {
         prettyPrint = false

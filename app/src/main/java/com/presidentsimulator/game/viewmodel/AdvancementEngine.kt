@@ -16,7 +16,7 @@ import kotlin.math.roundToLong
  * Pure science, technology, and society simulation engine.
  * [GameViewModel] applies results through immutable [GameState.copy] updates.
  */
-class AdvancementViewModel {
+class AdvancementEngine {
 
     /**
      * Monthly society pipeline:

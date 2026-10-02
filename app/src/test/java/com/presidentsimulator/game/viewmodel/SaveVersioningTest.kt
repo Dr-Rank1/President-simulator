@@ -12,7 +12,7 @@ import org.junit.Test
 
 class SaveVersioningTest {
 
-    private val engine = AnalyticsSaveViewModel()
+    private val engine = AnalyticsSaveEngine()
     private val editing = Json { ignoreUnknownKeys = true }
 
     private fun payloadOf(state: GameState): String = engine.exportGameStateToJson(state)
@@ -38,7 +38,7 @@ class SaveVersioningTest {
     @Test
     fun payloadWrittenBeforeVersioningStillLoads() {
         val json = rewrite(payloadOf(GameState.initial("de").copy(campaignSeed = 77L))) { fields ->
-            fields.remove(AnalyticsSaveViewModel.SAVE_VERSION_KEY)
+            fields.remove(AnalyticsSaveEngine.SAVE_VERSION_KEY)
         }
 
         val restored = engine.importGameStateFromJson(json)
@@ -52,14 +52,14 @@ class SaveVersioningTest {
     @Test
     fun legacyPayloadWithoutAnySeedGetsAFixedFallback() {
         val json = rewrite(payloadOf(GameState.initial("fr"))) { fields ->
-            fields.remove(AnalyticsSaveViewModel.SAVE_VERSION_KEY)
+            fields.remove(AnalyticsSaveEngine.SAVE_VERSION_KEY)
             fields.remove("campaignSeed")
         }
 
         val restored = engine.importGameStateFromJson(json)
 
         assertEquals(GameState.SAVE_VERSION, restored.saveVersion)
-        assertEquals(AnalyticsSaveViewModel.LEGACY_SEED_FALLBACK, restored.campaignSeed)
+        assertEquals(AnalyticsSaveEngine.LEGACY_SEED_FALLBACK, restored.campaignSeed)
         // Deterministic: the same legacy payload always maps to the same seed.
         assertEquals(restored.campaignSeed, engine.importGameStateFromJson(json).campaignSeed)
     }

@@ -25,7 +25,7 @@ import kotlin.random.Random
  * [GameViewModel] owns the [StateFlow] and applies these transforms via immutable
  * [GameState.copy] updates. Methods never mutate input state.
  */
-class DiplomacyViewModel(
+class DiplomacyEngine(
     private val random: Random = Random.Default,
 ) {
 
