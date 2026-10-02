@@ -304,7 +304,7 @@ data class EventConsequence(
                 instabilityScore = (state.internalSecurity.instabilityScore + instabilityChange).coerceIn(0f, 100f),
             ),
             research = state.research.copy(
-                sciencePoints = state.research.sciencePoints + scienceChange,
+                sciencePoints = (state.research.sciencePoints + scienceChange).coerceAtLeast(0L),
                 unlockedTechIds = if (techUnlockId != null && techUnlockId !in state.research.unlockedTechIds) {
                     state.research.unlockedTechIds + techUnlockId
                 } else state.research.unlockedTechIds,
