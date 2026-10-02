@@ -7,6 +7,10 @@ import com.presidentsimulator.game.data.ResolutionType
 import com.presidentsimulator.game.data.SaveLoadFeedback
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
 
 /** Manual save-slot metadata for launch / analytics UI. Slots are 1..[SLOT_COUNT]. */
 data class SaveSlotInfo(
@@ -85,10 +89,45 @@ class AnalyticsSaveViewModel {
     }
 
     fun exportGameStateToJson(state: GameState): String =
-        json.encodeToString(GameState.serializer(), state)
+        json.encodeToString(GameState.serializer(), state.copy(saveVersion = GameState.SAVE_VERSION))
 
-    fun importGameStateFromJson(jsonString: String): GameState =
-        json.decodeFromString(GameState.serializer(), jsonString)
+    /**
+     * Decodes a campaign payload, validates its schema version, and migrates it forward.
+     *
+     * Throws [IllegalArgumentException] with a human-readable reason rather than a raw
+     * serialization error, so the launch/settings screens can explain what went wrong.
+     */
+    fun importGameStateFromJson(jsonString: String): GameState {
+        val root = runCatching { json.parseToJsonElement(jsonString) }.getOrNull()
+            ?: throw IllegalArgumentException("not a valid campaign file")
+        val obj = root as? JsonObject
+            ?: throw IllegalArgumentException("not a campaign save (unexpected contents)")
+
+        // Absent key = written before versioning existed.
+        val version = (obj[SAVE_VERSION_KEY] as? JsonPrimitive)?.intOrNull ?: LEGACY_VERSION
+        if (version > GameState.SAVE_VERSION) {
+            throw IllegalArgumentException(
+                "save is from a newer build (schema v$version, this build reads up to v${GameState.SAVE_VERSION})",
+            )
+        }
+
+        val decoded = runCatching { json.decodeFromJsonElement(GameState.serializer(), obj) }
+            .getOrElse { throw IllegalArgumentException("save data is damaged or unreadable") }
+        return migrate(decoded, fromVersion = version)
+    }
+
+    /** Forward-migration chain. Never throws: older payloads must always load. */
+    private fun migrate(state: GameState, fromVersion: Int): GameState {
+        var migrated = state
+        // v1 (and pre-versioning) campaigns predate deterministic seeds.
+        if (fromVersion < 1 && migrated.campaignSeed == 0L) {
+            migrated = migrated.copy(campaignSeed = LEGACY_SEED_FALLBACK)
+        }
+        if (migrated.saveVersion != GameState.SAVE_VERSION) {
+            migrated = migrated.copy(saveVersion = GameState.SAVE_VERSION)
+        }
+        return migrated
+    }
 
     fun feedbackForSave(jsonPayload: String): SaveLoadFeedback = SaveLoadFeedback(
         message = "Game progress saved (${formatBytes(jsonPayload.length)}).",
@@ -120,6 +159,15 @@ class AnalyticsSaveViewModel {
         const val KEY_SAVE_SLOT_PREFIX = "save_slot_"
         const val SLOT_COUNT = 3
         const val KEY_LAST_PAYLOAD_BYTES = "last_payload_bytes"
+
+        /** JSON key holding [GameState.saveVersion]. */
+        const val SAVE_VERSION_KEY = "saveVersion"
+
+        /** Version reported for payloads written before schema versioning existed. */
+        const val LEGACY_VERSION = 0
+
+        /** Fixed seed assigned to legacy campaigns so their replays stay stable. */
+        const val LEGACY_SEED_FALLBACK = 1L
 
         fun slotKey(slot: Int): String = "$KEY_SAVE_SLOT_PREFIX$slot"
 

@@ -66,6 +66,17 @@ data class GameState(
     val setup: SetupState = SetupState(),
     /** Rolling world news ticker. */
     val news: NewsState = NewsState(),
+    /**
+     * Schema version of the persisted payload. Stamped on every save and checked on load so
+     * future field changes can be migrated instead of silently corrupting a campaign.
+     * Saves written before versioning existed are detected by the *absence* of this key.
+     */
+    val saveVersion: Int = SAVE_VERSION,
+    /**
+     * Seed that produced this campaign. Every random-consuming engine is rebuilt from it,
+     * so a run can be replayed exactly when reporting a bug.
+     */
+    val campaignSeed: Long = 0L,
 ) {
     val dateLabel: String
         get() = "${monthName(month)} $year"
@@ -133,6 +144,9 @@ data class GameState(
         get() = territory.monthlyTributeIncome
 
     companion object {
+        /** Bump whenever the persisted shape of [GameState] changes. */
+        const val SAVE_VERSION = 2
+
         fun initial(countryId: String = "us"): GameState =
             PlayableNationCatalog.initialState(countryId)
 

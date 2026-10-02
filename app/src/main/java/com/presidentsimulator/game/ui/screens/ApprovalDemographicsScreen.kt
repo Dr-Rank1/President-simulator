@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.presidentsimulator.game.data.DemographicsState
 import com.presidentsimulator.game.data.GameState
+import com.presidentsimulator.game.data.OppositionEngine
 import com.presidentsimulator.game.data.SpeechEngine
 import com.presidentsimulator.game.data.SpeechTheme
 import com.presidentsimulator.game.ui.components.NssCardImages
@@ -39,6 +40,7 @@ import com.presidentsimulator.game.ui.components.NssGameBar
 import com.presidentsimulator.game.ui.components.NssGradients
 import com.presidentsimulator.game.ui.components.NssPanel
 import com.presidentsimulator.game.ui.components.NssScreenHeader
+import com.presidentsimulator.game.ui.components.PressDeskSection
 import com.presidentsimulator.game.ui.components.nssMinistryScrollPadding
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -258,8 +260,142 @@ fun ApprovalDemographicsScreen(
             }
 
             SpeechAndTermPanel(state = state, viewModel = viewModel)
+
+            PressDeskSection(
+                state = state,
+                onSpin = { viewModel.spinPressHeadline(it) },
+                onSuppress = { viewModel.suppressPressHeadline(it) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            OppositionPanel(state = state, viewModel = viewModel)
         }
     }
+}
+
+@Composable
+private fun OppositionPanel(state: GameState, viewModel: GameViewModel) {
+    val opposition = state.opposition
+    val main = opposition.mainOpposition
+    val ruling = opposition.rulingParty
+
+    NssPanel(modifier = Modifier.fillMaxWidth()) {
+        Text("PARLIAMENT & OPPOSITION", fontWeight = FontWeight.Black, fontSize = 9.sp, color = NssPrimary, letterSpacing = 8.sp)
+
+        if (main == null) {
+            Text(
+                "No organised opposition bench.",
+                fontSize = 9.sp,
+                color = NssMutedForeground,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            return@NssPanel
+        }
+
+        Text(
+            text = "Main opposition: ${main.name} · ${main.leaderName}",
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+            color = NssForeground,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 3.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text("Seats ${main.seats}/${opposition.chamberSeats}", fontSize = 8.sp, color = NssMutedForeground)
+            Text("Popularity ${main.popularity.roundToInt()}%", fontSize = 8.sp, color = NssMutedForeground)
+            Text("Hostility ${main.hostility.roundToInt()}", fontSize = 8.sp, color = if (main.hostility >= 60f) NssRed else NssMutedForeground)
+            ruling?.let { Text("Ruling: ${it.name}", fontSize = 8.sp, color = NssEmerald) }
+        }
+        Spacer(modifier = Modifier.height(5.dp))
+        NssGameBar(percent = main.hostility, color = if (main.hostility >= 60f) NssRed else NssAccent)
+
+        if (opposition.noConfidenceHeat > 0f) {
+            Text(
+                "No-confidence pressure ${opposition.noConfidenceHeat.roundToInt()}%",
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold,
+                color = NssRed,
+                modifier = Modifier.padding(top = 5.dp),
+            )
+            NssGameBar(percent = opposition.noConfidenceHeat, color = NssRed)
+        }
+        if (opposition.filibusterMonths > 0) {
+            Text(
+                "Filibuster blocking the floor for ${opposition.filibusterMonths} mo",
+                fontSize = 8.sp,
+                color = NssAccent,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+        opposition.lastOppositionAction.takeIf { it.isNotBlank() }?.let {
+            Text("They: $it", fontSize = 8.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 4.dp))
+        }
+        opposition.lastPlayerCounter.takeIf { it.isNotBlank() }?.let {
+            Text("You: $it", fontSize = 8.sp, color = NssEmerald, modifier = Modifier.padding(top = 2.dp))
+        }
+
+        Text(
+            "COUNTERMEASURES",
+            fontSize = 8.sp,
+            fontWeight = FontWeight.Black,
+            color = NssPrimary,
+            letterSpacing = 4.sp,
+            modifier = Modifier.padding(top = 8.dp, bottom = 3.dp),
+        )
+        OppositionAction(
+            label = "Negotiate · ${OppositionEngine.NEGOTIATE_COST.toBudgetString()}",
+            cooldown = opposition.negotiateCooldownMonths,
+            affordable = state.vitals.budget >= OppositionEngine.NEGOTIATE_COST,
+            color = NssPrimary,
+            onClick = { viewModel.negotiateWithOpposition() },
+        )
+        OppositionAction(
+            label = "Smear campaign · ${OppositionEngine.SMEAR_COST.toBudgetString()}",
+            cooldown = opposition.smearCooldownMonths,
+            affordable = state.vitals.budget >= OppositionEngine.SMEAR_COST,
+            color = NssRed,
+            onClick = { viewModel.smearOpposition() },
+        )
+        OppositionAction(
+            label = "Concede platform · ${OppositionEngine.CONCESSION_COST.toBudgetString()}",
+            cooldown = opposition.concessionCooldownMonths,
+            affordable = state.vitals.budget >= OppositionEngine.CONCESSION_COST,
+            color = NssAccent,
+            onClick = { viewModel.concedeToOpposition() },
+        )
+    }
+}
+
+@Composable
+private fun OppositionAction(
+    label: String,
+    cooldown: Int,
+    affordable: Boolean,
+    color: androidx.compose.ui.graphics.Color,
+    onClick: () -> Unit,
+) {
+    val enabled = cooldown == 0 && affordable
+    val text = when {
+        cooldown > 0 -> "$label · cooldown ${cooldown}mo"
+        !affordable -> "$label · insufficient funds"
+        else -> label
+    }
+    Text(
+        text = text,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 3.dp)
+            .clip(NssCardShape)
+            .background(if (enabled) color else NssMutedForeground.copy(alpha = 0.3f))
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(vertical = 7.dp),
+        color = NssOnPhoto,
+        fontWeight = FontWeight.Bold,
+        fontSize = 9.sp,
+        textAlign = TextAlign.Center,
+    )
 }
 
 @Composable

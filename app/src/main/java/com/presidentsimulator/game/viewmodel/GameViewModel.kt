@@ -109,16 +109,24 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val tickMutex = Mutex()
     /** True while an async save is being written; new save requests coalesce into this. */
     private val saveInFlight = AtomicBoolean(false)
-    private val random = Random.Default
-    private val diplomacyEngine = DiplomacyViewModel(random)
+
+    /**
+     * Randomness source for the whole simulation. Rebuilt from [GameState.campaignSeed] by
+     * [reseed] so a campaign can be replayed exactly; engines are pure state→state functions,
+     * so swapping them is safe outside of a tick.
+     */
+    private var random: Random = Random.Default
+    private var diplomacyEngine = DiplomacyViewModel(random)
     private val productionLawEngine = ProductionLawViewModel()
     private val analyticsEngine = AnalyticsSaveViewModel()
-    private val securityEngine = EspionageSecurityViewModel(random)
+    private var securityEngine = EspionageSecurityViewModel(random)
     private val advancementEngine = AdvancementViewModel()
-    private val tradeEngine = TradeMarketViewModel(random)
-    private val governanceEngine = GovernanceViewModel(random)
+    private var tradeEngine = TradeMarketViewModel(random)
+    private var governanceEngine = GovernanceViewModel(random)
     private val demographicsEngine = DemographicsCampaignViewModel()
-    private val monthlyPipeline = MonthlySimulationPipeline(
+    private var monthlyPipeline = buildPipeline()
+
+    private fun buildPipeline() = MonthlySimulationPipeline(
         random = random,
         diplomacy = diplomacyEngine,
         productionLaw = productionLawEngine,
@@ -131,6 +139,16 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         advanceDate = ::advanceDate,
         applyPopulationChange = ::applyPopulationChange,
     )
+
+    /** Rebuilds every random-consuming engine from [seed]. Call only while time is paused. */
+    private fun reseed(seed: Long) {
+        random = Random(seed)
+        diplomacyEngine = DiplomacyViewModel(random)
+        securityEngine = EspionageSecurityViewModel(random)
+        tradeEngine = TradeMarketViewModel(random)
+        governanceEngine = GovernanceViewModel(random)
+        monthlyPipeline = buildPipeline()
+    }
 
     private val savePrefs = application.getSharedPreferences(
         AnalyticsSaveViewModel.PREFS_NAME,
@@ -373,8 +391,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun formAlliance(name: String, invitees: List<String>) {
         if (_currentActiveEvent.value != null) return
-        _state.update { governanceEngine.formAlliance(it, name, invitees) }
-        Toast.makeText(getApplication(), "Alliance Formed.", Toast.LENGTH_SHORT).show()
+        applyActionWithFeedback("Alliance Formed.", "Failed: Not enough influence or no invitees.") {
+            governanceEngine.formAlliance(it, name, invitees)
+        }
     }
 
     fun dissolveAlliance(allianceId: String) {
@@ -492,8 +511,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun changeStateReligion(religion: com.presidentsimulator.game.data.StateReligion) {
         if (_currentActiveEvent.value != null) return
-        _state.update { advancementEngine.changeStateReligion(it, religion) }
-        Toast.makeText(getApplication(), "State Religion updated.", Toast.LENGTH_SHORT).show()
+        applyActionWithFeedback("State Religion updated.", "That is already the state religion.") {
+            advancementEngine.changeStateReligion(it, religion)
+        }
     }
 
     fun buildUniversity() {
@@ -514,7 +534,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deploySpy(targetCountryId: String, missionType: MissionType) {
         if (_currentActiveEvent.value != null) return
-        _state.update { securityEngine.deploySpy(it, targetCountryId, missionType) }
+        applyActionWithFeedback(
+            "${missionType.displayName} launched.",
+            "Failed: no free agents, budget, or intelligence.",
+        ) { securityEngine.deploySpy(it, targetCountryId, missionType) }
     }
 
     fun fundInternalSecurity(amount: Int) {
@@ -529,7 +552,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun recruitSpy() {
         if (_currentActiveEvent.value != null) return
-        _state.update { securityEngine.recruitSpy(it) }
+        applyActionWithFeedback("New agent recruited.", "Insufficient budget to recruit an agent.") {
+            securityEngine.recruitSpy(it)
+        }
     }
 
     fun cancelCovertMission(missionId: String) {
@@ -559,11 +584,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun importGameStateFromJson(jsonString: String): Boolean {
         return try {
             val restored = analyticsEngine.importGameStateFromJson(jsonString)
+            // Stop the ticker *before* swapping engines so a tick can't observe a half-swapped set.
+            pauseTimeAdvance()
+            reseed(restored.campaignSeed)
             _state.value = restored
             _currentActiveEvent.value = restored.crisis.pendingEventId
                 ?.let { pendingId -> StoryArcEngine.nextEvent(restored) ?: EventRepository.byId(pendingId) }
             _missionResults.value = emptyList()
-            pauseTimeAdvance()
             _showLaunchScreen.value = false
             _hasSave.value = true
             _saveLoadFeedback.value = analyticsEngine.feedbackForLoad(jsonString)
@@ -730,20 +757,23 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun negotiateWithOpposition() {
         if (_currentActiveEvent.value != null) return
-        _state.update { OppositionEngine.negotiate(it) }
-        Toast.makeText(getApplication(), "Negotiations held. Stability changed.", Toast.LENGTH_SHORT).show()
+        applyActionWithFeedback("Negotiations held. Stability changed.", "Failed: Cooldown active or insufficient funds.") {
+            OppositionEngine.negotiate(it)
+        }
     }
 
     fun smearOpposition() {
         if (_currentActiveEvent.value != null) return
-        _state.update { OppositionEngine.smear(it) }
-        Toast.makeText(getApplication(), "Smear campaign initiated.", Toast.LENGTH_SHORT).show()
+        applyActionWithFeedback("Smear campaign initiated.", "Failed: Cooldown active or insufficient funds.") {
+            OppositionEngine.smear(it, random)
+        }
     }
 
     fun concedeToOpposition() {
         if (_currentActiveEvent.value != null) return
-        _state.update { OppositionEngine.concedePlatform(it) }
-        Toast.makeText(getApplication(), "Concessions made to opposition.", Toast.LENGTH_SHORT).show()
+        applyActionWithFeedback("Concessions made to opposition.", "Failed: Cooldown active or insufficient funds.") {
+            OppositionEngine.concedePlatform(it)
+        }
     }
 
     fun makeMandateCommitment(goal: MandateGoal) {
@@ -787,7 +817,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         PlayableNationCatalog.all()
 
     fun startNewGame(countryId: String = "us", scenarioId: String = "standard", challengeId: String = "standard") {
+        // A fresh, non-zero seed makes every campaign of this setup replay identically.
+        val seed = Random.Default.nextLong(1, Long.MAX_VALUE)
         val seeded = ScenarioCatalog.apply(GameState.initial(countryId), scenarioId, challengeId = challengeId)
+            .copy(campaignSeed = seed)
+        reseed(seed)
         _state.value = seeded
         _currentActiveEvent.value = null
         _missionResults.value = emptyList()
@@ -808,17 +842,42 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun enactLaw(lawId: String) {
         if (_currentActiveEvent.value != null) return
-        applyActionWithFeedback("Law Action Processed.", "Failed: Insufficient Capital/Budget.") { productionLawEngine.enactLaw(it, lawId) }
+        val law = com.presidentsimulator.game.data.LawCatalog.byId(lawId) ?: return
+        val legal = _state.value.legal
+        // Distinguish the real reason instead of always blaming the budget.
+        if (legal.isActive(lawId)) {
+            Toast.makeText(getApplication(), "${law.name} is already in force.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (legal.pendingLaws.any { it.lawId == lawId }) {
+            Toast.makeText(getApplication(), "${law.name} is already before parliament.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        applyActionWithFeedback(
+            "Sent to parliament: ${law.name}.",
+            "Failed: needs ${law.activationCost.toBudgetString()}.",
+        ) { productionLawEngine.enactLaw(it, lawId) }
     }
 
     fun negotiatePendingLaw(lawId: String) {
         if (_currentActiveEvent.value != null) return
-        _state.update { productionLawEngine.negotiatePendingLaw(it, lawId) }
+        applyActionWithFeedback(
+            "Compromise bought — support increased.",
+            "Failed: needs ${ProductionLawViewModel.BILL_COMPROMISE_COST.toBudgetString()} or compromise limit reached.",
+        ) { productionLawEngine.negotiatePendingLaw(it, lawId) }
     }
 
     fun repealLaw(lawId: String) {
         if (_currentActiveEvent.value != null) return
-        _state.update { productionLawEngine.repealLaw(it, lawId) }
+        val law = com.presidentsimulator.game.data.LawCatalog.byId(lawId) ?: return
+        if (_state.value.legal.pendingLaws.any { it.lawId == lawId }) {
+            Toast.makeText(getApplication(), "${law.name} already has a bill before parliament.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        applyActionWithFeedback(
+            "Repeal bill filed: ${law.name}.",
+            "Failed: ${law.name} is not in force.",
+        ) { productionLawEngine.repealLaw(it, lawId) }
     }
 
     fun buildPowerPlant(amount: Int) {
@@ -850,7 +909,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun declareWar(targetCountryId: String, warGoal: com.presidentsimulator.game.data.WarGoal = com.presidentsimulator.game.data.WarGoal.REPARATIONS) {
         if (_currentActiveEvent.value != null) return
         applyActionWithFeedback("War Declared!", "Failed: Invalid Target or Missing Requirements.") { diplomacyEngine.declareWar(it, targetCountryId, warGoal) }
-        Toast.makeText(getApplication(), "WAR DECLARED!", Toast.LENGTH_LONG).show()
     }
 
     fun claimWarSettlement() {
@@ -861,13 +919,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun negotiateTreaty(targetCountryId: String, type: TreatyType) {
         if (_currentActiveEvent.value != null) return
         applyActionWithFeedback("Treaty Signed.", "Failed: Insufficient Capital/Relations.") { diplomacyEngine.negotiateTreaty(it, targetCountryId, type) }
-        Toast.makeText(getApplication(), "Treaty Negotiated.", Toast.LENGTH_SHORT).show()
     }
 
     fun breakTreaty(targetCountryId: String, type: TreatyType) {
         if (_currentActiveEvent.value != null) return
-        _state.update { diplomacyEngine.breakTreaty(it, targetCountryId, type) }
-        Toast.makeText(getApplication(), "Treaty Broken!", Toast.LENGTH_SHORT).show()
+        applyActionWithFeedback("Treaty Broken!", "Failed: That treaty is not in force.") { diplomacyEngine.breakTreaty(it, targetCountryId, type) }
     }
 
     fun setDefcon(level: Int) {
@@ -882,12 +938,17 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun cancelPendingLaw(lawId: String) {
         if (_currentActiveEvent.value != null) return
-        _state.update { productionLawEngine.cancelPendingLaw(it, lawId) }
+        applyActionWithFeedback("Bill withdrawn.", "Failed: no such bill before parliament.") {
+            productionLawEngine.cancelPendingLaw(it, lawId)
+        }
     }
 
     fun rushPendingLaw(lawId: String) {
         if (_currentActiveEvent.value != null) return
-        _state.update { productionLawEngine.rushPendingLaw(it, lawId) }
+        applyActionWithFeedback(
+            "Bill fast-tracked and resolved.",
+            "Failed: needs ${ProductionLawViewModel.RUSH_LAW_COST.toBudgetString()}.",
+        ) { productionLawEngine.rushPendingLaw(it, lawId) }
     }
 
     fun sendForeignAid(targetCountryId: String) {

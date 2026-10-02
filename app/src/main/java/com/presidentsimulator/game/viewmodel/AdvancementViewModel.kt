@@ -202,7 +202,9 @@ class AdvancementViewModel {
             completeResearch(
                 state = state,
                 techId = activeId,
-                newSciencePoints = (newProgress - tech.scienceCost).coerceAtLeast(0L),
+                // Preserve the banked reserve: research progress spends generated science,
+                // never the player's saved points. Only the overflow is credited back.
+                newSciencePoints = research.sciencePoints + (newProgress - tech.scienceCost).coerceAtLeast(0L),
             ).research
         } else {
             research.copy(researchProgress = newProgress)
