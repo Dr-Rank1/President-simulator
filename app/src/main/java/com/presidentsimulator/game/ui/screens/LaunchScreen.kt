@@ -18,10 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.presidentsimulator.game.R
 import com.presidentsimulator.game.data.DailyChallengeInfo
 import com.presidentsimulator.game.data.DailyScore
 import com.presidentsimulator.game.data.PlayableNationCatalog
@@ -66,14 +68,14 @@ fun LaunchScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "PRESIDENT",
+                        text = stringResource(R.string.launch_title_top),
                         color = Color.White,
                         fontWeight = FontWeight.Black,
                         fontSize = 36.sp,
                         letterSpacing = 4.sp
                     )
                     Text(
-                        text = "SIMULATOR",
+                        text = stringResource(R.string.launch_title_bottom),
                         color = Color.White.copy(alpha = 0.85f),
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
@@ -91,7 +93,7 @@ fun LaunchScreen(
             ) {
                 if (hasSave) {
                     LaunchButton(
-                        label = "CONTINUE",
+                        label = stringResource(R.string.launch_continue),
                         icon = Icons.Default.PlayArrow,
                         primary = true,
                         onClick = onContinueGame
@@ -99,7 +101,7 @@ fun LaunchScreen(
                 }
 
                 LaunchButton(
-                    label = "NEW GAME",
+                    label = stringResource(R.string.launch_new_game),
                     icon = Icons.Default.AddCircle,
                     primary = !hasSave,
                     onClick = onNewGame
@@ -107,7 +109,7 @@ fun LaunchScreen(
 
                 if (dailyInfo != null && onDailyChallenge != null) {
                     LaunchButton(
-                        label = "DAILY CHALLENGE",
+                        label = stringResource(R.string.launch_daily_challenge),
                         icon = Icons.Default.CalendarToday,
                         primary = false,
                         onClick = onDailyChallenge,
@@ -131,7 +133,7 @@ fun LaunchScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "Lead your nation. Shape history.",
+                text = stringResource(R.string.launch_tagline),
                 color = NssForeground.copy(alpha = 0.6f),
                 fontSize = 12.sp,
                 textAlign = TextAlign.Center
@@ -149,9 +151,13 @@ private fun DailyChallengeSummary(info: DailyChallengeInfo, board: List<DailySco
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        val bestLabel = if (info.bestScore > 0) " · best ${info.bestScore}" else ""
+        val nationLabel = "${info.flagEmoji} ${info.nationName}"
         Text(
-            text = "${info.flagEmoji} ${info.nationName} today$bestLabel",
+            text = if (info.bestScore > 0) {
+                stringResource(R.string.launch_daily_nation_today_best, nationLabel, info.bestScore)
+            } else {
+                stringResource(R.string.launch_daily_nation_today, nationLabel)
+            },
             color = NssForeground.copy(alpha = 0.7f),
             fontSize = 11.sp,
             textAlign = TextAlign.Center,

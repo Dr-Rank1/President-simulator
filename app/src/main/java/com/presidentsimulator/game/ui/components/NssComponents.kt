@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -877,7 +878,12 @@ fun NssRecruitCard(
                         .clickable { onQuantityChange(-1) },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(Icons.Default.Remove, contentDescription = null, tint = NssForeground, modifier = Modifier.size(10.dp))
+                    Icon(
+                        Icons.Default.Remove,
+                        contentDescription = stringResource(com.presidentsimulator.game.R.string.cd_decrease_quantity),
+                        tint = NssForeground,
+                        modifier = Modifier.size(10.dp),
+                    )
                 }
                 Text(
                     text = quantity.toString(),
@@ -898,7 +904,12 @@ fun NssRecruitCard(
                         .clickable { onQuantityChange(1) },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = NssOnPhoto, modifier = Modifier.size(10.dp))
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(com.presidentsimulator.game.R.string.cd_increase_quantity),
+                        tint = NssOnPhoto,
+                        modifier = Modifier.size(10.dp),
+                    )
                 }
             }
         }

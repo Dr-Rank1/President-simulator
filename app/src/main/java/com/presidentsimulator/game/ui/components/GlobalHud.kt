@@ -22,10 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.presidentsimulator.game.data.GameState
+import com.presidentsimulator.game.R
 import com.presidentsimulator.game.viewmodel.TimeSpeedMode
 import com.presidentsimulator.game.ui.theme.NssPrimary
 import com.presidentsimulator.game.ui.theme.NssRed
@@ -68,7 +70,7 @@ fun GlobalHud(
                 Box {
                     Icon(
                         Icons.Default.Menu,
-                        contentDescription = "Menu",
+                        contentDescription = stringResource(R.string.cd_menu),
                         tint = Color.White,
                         modifier = Modifier
                             .size(26.dp)
@@ -96,7 +98,7 @@ fun GlobalHud(
                 }
                 Icon(
                     Icons.Default.ShoppingCart,
-                    contentDescription = "Shop",
+                    contentDescription = stringResource(R.string.cd_shop),
                     tint = Color.White,
                     modifier = Modifier
                         .size(26.dp)
@@ -181,7 +183,7 @@ fun GlobalHud(
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.Undo,
-                        contentDescription = "Undo last month",
+                        contentDescription = stringResource(R.string.cd_undo_last_month),
                         tint = Color.White.copy(alpha = if (canUndo) 1f else 0.4f),
                         modifier = Modifier.size(18.dp),
                     )
@@ -203,7 +205,9 @@ fun GlobalHud(
                 ) {
                     Icon(
                         if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                        contentDescription = null,
+                        contentDescription = stringResource(
+                            if (isPaused) R.string.cd_play_normal_speed else R.string.cd_pause_time,
+                        ),
                         tint = Color.White,
                         modifier = Modifier.size(18.dp)
                     )
@@ -222,7 +226,7 @@ fun GlobalHud(
                 ) {
                     Icon(
                         Icons.Default.PlayArrow,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.cd_play_normal_speed),
                         tint = Color.White,
                         modifier = Modifier.size(18.dp)
                     )
@@ -243,7 +247,7 @@ fun GlobalHud(
                 ) {
                     Icon(
                         Icons.Default.FastForward,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.cd_play_fast_speed),
                         tint = Color.White,
                         modifier = Modifier.size(18.dp)
                     )

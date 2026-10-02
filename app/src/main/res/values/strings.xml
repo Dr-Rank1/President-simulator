@@ -1,4 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">President Simulator</string>
+
+    <!-- Launch screen -->
+    <string name="launch_title_top">PRESIDENT</string>
+    <string name="launch_title_bottom">SIMULATOR</string>
+    <string name="launch_continue">CONTINUE</string>
+    <string name="launch_new_game">NEW GAME</string>
+    <string name="launch_daily_challenge">DAILY CHALLENGE</string>
+    <string name="launch_tagline">Lead your nation. Shape history.</string>
+    <!-- %1$s = flag emoji + nation, %2$d = best score today (0 = none yet) -->
+    <string name="launch_daily_nation_today">%1$s today</string>
+    <string name="launch_daily_nation_today_best">%1$s today · best %2$d</string>
+
+    <!-- Content descriptions (accessibility) -->
+    <string name="cd_menu">Menu</string>
+    <string name="cd_shop">Shop</string>
+    <string name="cd_undo_last_month">Undo last month</string>
+    <string name="cd_pause_time">Pause time</string>
+    <string name="cd_play_normal_speed">Play at normal speed</string>
+    <string name="cd_play_fast_speed">Fast forward time</string>
+    <string name="cd_increase_quantity">Increase quantity</string>
+    <string name="cd_decrease_quantity">Decrease quantity</string>
 </resources>
