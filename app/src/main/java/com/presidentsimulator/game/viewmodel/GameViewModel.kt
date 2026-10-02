@@ -136,8 +136,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         trade = tradeEngine,
         governance = governanceEngine,
         demographics = demographicsEngine,
-        advanceDate = ::advanceDate,
-        applyPopulationChange = ::applyPopulationChange,
+        advanceDate = ::advanceSimulationDate,
+        applyPopulationChange = ::applyPopulationPhysics,
     )
 
     /** Rebuilds every random-consuming engine from [seed]. Call only while time is paused. */
@@ -1275,30 +1275,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // ── Internal physics ─────────────────────────────────────────────────────
-
-    private fun advanceDate(month: Int, year: Int): Pair<Int, Int> =
-        if (month >= 12) 1 to (year + 1) else (month + 1) to year
-
-    private fun applyPopulationChange(state: GameState): Long {
-        val housingCapacity = state.economy.housing * 1_500_000L
-        val population = state.vitals.population
-        val approval = state.vitals.approval
-
-        val housingFactor = when {
-            population < housingCapacity * 0.85 -> 1.002
-            population > housingCapacity -> 0.997
-            else -> 1.0005
-        }
-        val approvalFactor = when {
-            approval >= 60f -> 1.001
-            approval <= 30f -> 0.998
-            else -> 1.0
-        }
-
-        return (population * housingFactor * approvalFactor)
-            .toLong()
-            .coerceAtLeast(1_000_000L)
-    }
 
     override fun onCleared() {
         pauseTimeAdvance()

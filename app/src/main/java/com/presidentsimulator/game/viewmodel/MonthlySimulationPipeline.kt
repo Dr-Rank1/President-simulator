@@ -18,9 +18,41 @@ import com.presidentsimulator.game.data.VictoryEngine
 import com.presidentsimulator.game.data.pushNews
 import kotlin.random.Random
 
+/** Calendar physics shared by the live ticker and simulation tests. */
+internal fun advanceSimulationDate(month: Int, year: Int): Pair<Int, Int> =
+    if (month >= 12) 1 to (year + 1) else (month + 1) to year
+
+/**
+ * Housing- and approval-driven population dynamics shared by the live ticker and
+ * simulation tests, so both see identical growth rules.
+ */
+internal fun applyPopulationPhysics(state: GameState): Long {
+    val housingCapacity = state.economy.housing * 1_500_000L
+    val population = state.vitals.population
+    val approval = state.vitals.approval
+
+    val housingFactor = when {
+        population < housingCapacity * 0.85 -> 1.002
+        population > housingCapacity -> 0.997
+        else -> 1.0005
+    }
+    val approvalFactor = when {
+        approval >= 60f -> 1.001
+        approval <= 30f -> 0.998
+        else -> 1.0
+    }
+
+    return (population * housingFactor * approvalFactor)
+        .toLong()
+        .coerceAtLeast(1_000_000L)
+}
+
 /**
  * Applies one complete monthly simulation in a fixed, documented order.
  * The view model owns UI effects and summaries; this class owns state-to-state turn resolution.
+ *
+ * [onStage] is an observability hook: it receives the name of each stage as it runs so
+ * tests can pin the documented turn order. It must stay adjacent to its stage call.
  */
 internal class MonthlySimulationPipeline(
     private val random: Random,
@@ -34,57 +66,89 @@ internal class MonthlySimulationPipeline(
     private val demographics: DemographicsCampaignViewModel,
     private val advanceDate: (Int, Int) -> Pair<Int, Int>,
     private val applyPopulationChange: (GameState) -> Long,
+    private val onStage: (String) -> Unit = {},
 ) {
     fun advance(current: GameState): GameState {
+        onStage("date")
         val (month, year) = advanceDate(current.month, current.year)
         var next = current.copy(month = month, year = year)
 
         // Paid equipment and personnel orders arrive before the monthly budget settles.
+        onStage("procurement")
         next = diplomacy.processMilitaryProcurement(next)
 
         // 1. Production and fiscal settlement.
+        onStage("production")
         next = productionLaw.processProductionTick(next)
+        onStage("fiscal")
         next = FiscalEngine.settleMonth(next).let { settled ->
             settled.copy(vitals = settled.vitals.copy(population = applyPopulationChange(settled)))
         }
 
         // 2. Foreign affairs, active war, internal security, then crisis aftermath.
+        onStage("geopolitics")
         next = diplomacy.simulateGeopolitics(next)
-        if (next.diplomacy.activeWar != null) next = diplomacy.simulateWarBattle(next)
+        if (next.diplomacy.activeWar != null) {
+            onStage("war")
+            next = diplomacy.simulateWarBattle(next)
+        }
+        onStage("security")
         next = security.processSecurityTick(next)
         if (next.gameOver.isGameOver) return next
+        onStage("crisis")
         next = processCrisisTick(next)
 
         // 3. Domestic political cycle and response pressure.
+        onStage("press")
         next = PressDesk.processMonth(next, random)
+        onStage("cabinet")
         next = CabinetEngine.processMonth(next, random)
+        onStage("opposition")
         next = OppositionEngine.processMonth(next, random)
+        onStage("disaster")
         next = DisasterEngine.processMonth(next, random)
+        onStage("speech_cooldowns")
         next = SpeechEngine.tickCooldowns(next)
+        onStage("term")
         next = TermEngine.processMonth(next)
         if (next.gameOver.isGameOver) return next
 
         // 3b. Domination layer: military industry, world spread, milestones.
+        onStage("military_industry")
         next = MilitaryIndustryEngine.processMonth(next)
+        onStage("victory")
         next = VictoryEngine.processMonth(next)
+        onStage("victory_milestone")
         next = VictoryEngine.maybeEmitMilestone(next)
         if (next.gameOver.isGameOver) return next
 
         // 4. Long-term progression, institutions, trade, and global governance.
+        onStage("society")
         next = advancement.processSocietyTick(next)
+        onStage("laws")
         next = productionLaw.processLawsTick(next)
+        onStage("policy_impact")
         next = PolicyImpactEngine.processMonth(next)
+        onStage("trade")
         next = trade.processTradeTick(next)
+        onStage("governance")
         next = governance.processGovernanceTick(next)
+        onStage("demographics")
         next = demographics.processDemographicsTick(next)
         if (next.gameOver.isGameOver) return next
 
         // 5. Record history and publish the next presidential agenda.
+        onStage("history")
         next = analytics.recordHistoricalSnapshot(next)
+        onStage("legacy")
         next = LegacyLedger.processMonth(current, next)
+        onStage("agenda")
         next = next.copy(agenda = AgendaBuilder.applyMonthlyAgenda(next.agenda, next))
+        onStage("mandate")
         next = MandateEngine.processMonth(next)
+        onStage("news")
         next = emitWorldNews(current, next)
+        onStage("story_arc")
         return StoryArcEngine.onMonth(next)
     }
 
