@@ -29,7 +29,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -116,6 +118,7 @@ fun GameNavigation(
 
     val context = LocalContext.current
     val audio = remember(context) { GameAudioManager.getInstance(context) }
+    val haptics = LocalHapticFeedback.current
     var showCountrySelect by remember { mutableStateOf(false) }
     var showMarketShop by remember { mutableStateOf(false) }
     var showTutorial by rememberSaveable { mutableStateOf(false) }
@@ -199,10 +202,18 @@ fun GameNavigation(
         EventCrisisDialog(
             event = event,
             onChoiceSelected = { choice ->
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 audio.playClick()
                 viewModel.resolveEvent(choice)
             },
         )
+    }
+
+    // War's end is a heavyweight moment — give it physical weight (§5.9).
+    LaunchedEffect(warOutcome) {
+        if (warOutcome != null) {
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
     }
 
     val electionNight = state.demographics.election.pendingNight
@@ -210,6 +221,7 @@ fun GameNavigation(
         ElectionNightDialog(
             result = electionNight,
             onConfirm = {
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 audio.playClick()
                 viewModel.confirmElectionNight()
             },

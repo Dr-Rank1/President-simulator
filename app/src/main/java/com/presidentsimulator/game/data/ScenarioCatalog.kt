@@ -28,7 +28,7 @@ object ScenarioCatalog {
         ScenarioPack(
             id = "powder_keg",
             title = "Powder Keg",
-            tagline = "Hostile neighbors, thin treasury, election in 18 months.",
+            tagline = "Hostile neighbors, thin treasury, election in 12 months.",
             difficulty = ScenarioDifficulty.HARD,
             objectives = listOf("Restore the treasury", "Reduce tensions with neighboring states", "Survive the early election"),
         ),

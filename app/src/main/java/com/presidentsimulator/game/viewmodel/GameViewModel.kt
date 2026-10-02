@@ -1205,9 +1205,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Checkpoints the campaign when the app leaves the foreground ([MainActivity.onStop]). */
+    /**
+     * When the app leaves the foreground ([MainActivity.onStop]): halt the ticker so
+     * the campaign never simulates unattended in the background (§5.8), then checkpoint
+     * so a subsequent process death cannot lose anything since the last save.
+     */
     fun onAppBackgrounded() {
         if (_showLaunchScreen.value) return
+        pauseTimeAdvance(checkpoint = false)
         saveGameProgress()
     }
 

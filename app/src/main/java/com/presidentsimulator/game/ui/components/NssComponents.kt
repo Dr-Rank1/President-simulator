@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -89,6 +90,43 @@ val NssSectorBarColors = listOf(
     Color(0xFFF97316),
     Color(0xFFDC2626),
 )
+
+@Preview(name = "Panel · bars · badges", showBackground = true, backgroundColor = 0xFF101828, widthDp = 320)
+@Composable
+private fun NssPanelPreview() {
+    NssPanel(modifier = Modifier.fillMaxWidth().padding(8.dp), highlighted = true) {
+        NssSectionHead("Treasury", subtitle = "monthly balance")
+        NssProgressBar(percent = 72f, color = NssEmerald, thick = true)
+        NssGameBar(percent = 45f, color = NssAccent, animate = false)
+        NssXpBar(percent = 60f)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            NssBadge("surplus")
+            NssBadge("at risk", large = true)
+            NssLvBadge(level = 7)
+            NssStars(count = 3, max = 5)
+        }
+    }
+}
+
+@Preview(name = "Tab bar", showBackground = true, widthDp = 360)
+@Composable
+private fun NssTabBarPreview() {
+    NssTabBar(
+        tabs = listOf("ECONOMY", "LAWS", "MILITARY"),
+        selectedTab = "LAWS",
+        onTabSelected = {},
+    )
+}
+
+@Preview(name = "Screen header", showBackground = true, widthDp = 640, heightDp = 90)
+@Composable
+private fun NssScreenHeaderPreview() {
+    NssScreenHeader(
+        title = "Economy",
+        imageUrl = null,
+        statPills = listOf("BUDGET" to "$12.4B", "APPROVAL" to "61%", "GDP" to "$310B"),
+    )
+}
 
 @Composable
 fun NssGameBar(
