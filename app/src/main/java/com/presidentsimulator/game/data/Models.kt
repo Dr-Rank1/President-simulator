@@ -967,6 +967,65 @@ object EventRepository {
             ),
         ),
 
+        // ── State-aware events: only interesting when their system is in play ──
+        GameEvent(
+            id = "opposition_protest_wave",
+            title = "Opposition Floods the Streets",
+            description = "Coordinated rallies are rolling through the capitals after weeks of opposition organizing. The no-confidence crowd smells blood.",
+            choices = listOf(
+                EventChoice(
+                    text = "Meet the marchers and negotiate",
+                    consequence = EventConsequence(budgetChange = -3_000_000_000L, approvalChange = 5f, instabilityChange = -3f, oppositionHeatChange = -6f),
+                ),
+                EventChoice(
+                    text = "Deploy riot police",
+                    consequence = EventConsequence(approvalChange = -4f, instabilityChange = 6f, oppositionHeatChange = 5f),
+                ),
+                EventChoice(
+                    text = "Sic public media on the organizers",
+                    consequence = EventConsequence(approvalChange = -1f, mediaSentimentChange = -4f, pressCredibilityChange = -3f, oppositionHeatChange = 8f),
+                ),
+            ),
+        ),
+        GameEvent(
+            id = "disaster_emergency_session",
+            title = "Emergency Session Demanded",
+            description = "With a disaster still unfolding, governors and opposition leaders are demanding an emergency budget and a full accounting of the response.",
+            choices = listOf(
+                EventChoice(
+                    text = "Open the emergency budget",
+                    consequence = EventConsequence(budgetChange = -8_000_000_000L, approvalChange = 4f, instabilityChange = -4f),
+                ),
+                EventChoice(
+                    text = "Leave it to local authorities",
+                    consequence = EventConsequence(approvalChange = -5f, instabilityChange = 5f),
+                ),
+                EventChoice(
+                    text = "Declare sabotage and shore up security",
+                    consequence = EventConsequence(approvalChange = -1f, instabilityChange = 2f, mediaSentimentChange = -2f),
+                ),
+            ),
+        ),
+        GameEvent(
+            id = "mandate_promises_under_fire",
+            title = "Broken Promises Dominate the Cycle",
+            description = "Opposition researchers have laid your campaign commitments side by side with the results. Every unmet promise is running in heavy rotation.",
+            choices = listOf(
+                EventChoice(
+                    text = "Reaffirm the agenda on national TV",
+                    consequence = EventConsequence(approvalChange = 3f, mediaSentimentChange = 2f, pressCredibilityChange = 2f),
+                ),
+                EventChoice(
+                    text = "Pivot and promise new spending",
+                    consequence = EventConsequence(approvalChange = 5f, budgetChange = -5_000_000_000L, oppositionHeatChange = 3f),
+                ),
+                EventChoice(
+                    text = "Attack the messenger",
+                    consequence = EventConsequence(approvalChange = -1f, pressCredibilityChange = -5f, oppositionHeatChange = 6f),
+                ),
+            ),
+        ),
+
     )
 
     fun randomEvent(random: kotlin.random.Random = kotlin.random.Random.Default): GameEvent =
@@ -990,9 +1049,15 @@ object EventRepository {
 
     private enum class EventTag {
         SHORTAGE, WAR, DIPLOMACY, ECONOMY, DOMESTIC, ELECTION,
+        OPPOSITION, DISASTER, MANDATE,
     }
 
     private fun tagsFor(eventId: String): Set<EventTag> = when {
+        // State-aware events first: their ids borrow words from other categories
+        // (e.g. "opposition_protest_wave" also contains "protest").
+        eventId.contains("opposition") -> setOf(EventTag.ELECTION, EventTag.OPPOSITION)
+        eventId.contains("disaster") -> setOf(EventTag.DISASTER, EventTag.DOMESTIC)
+        eventId.contains("mandate") || eventId.contains("promises") -> setOf(EventTag.MANDATE, EventTag.ELECTION)
         eventId.contains("strike") || eventId.contains("shortage") ||
             eventId.contains("drought") || eventId.contains("blackout") -> setOf(EventTag.SHORTAGE, EventTag.DOMESTIC)
         eventId.contains("border") || eventId.contains("war") || eventId.contains("arms") ||
@@ -1031,6 +1096,15 @@ object EventRepository {
         if (state.internalSecurity.instabilityScore > 50f && EventTag.DOMESTIC in tags) weight *= 1.8f
         if (state.diplomacy.rivals.any { it.relationshipScore < -40 } && EventTag.DIPLOMACY in tags) {
             weight *= 1.5f
+        }
+
+        // State-aware systems: opposition tactics, active disasters, mandate failures.
+        if (state.opposition.noConfidenceHeat >= 45f && EventTag.OPPOSITION in tags) weight *= 4f
+        if (state.disaster.active != null && EventTag.DISASTER in tags) weight *= 5f
+        if (EventTag.MANDATE in tags) {
+            val brokenPromises = state.mandate.lastReview.count { !it.fulfilled }
+            val promisesAtRisk = state.mandate.commitments.isNotEmpty() && state.vitals.approval < 50f
+            if (brokenPromises > 0 || promisesAtRisk) weight *= 4f
         }
 
         return weight

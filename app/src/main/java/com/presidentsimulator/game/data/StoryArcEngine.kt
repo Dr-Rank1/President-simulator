@@ -20,6 +20,7 @@ object StoryArcEngine {
     private const val CABINET_SCANDAL = "cabinet_scandal"
     private const val CONFIDENCE_VOTE = "confidence_vote"
     private const val POLICY_BACKLASH = "policy_backlash"
+    private const val BORDER_ESCALATION = "border_escalation"
 
     fun onMonth(state: GameState): GameState {
         val current = state.storyArc
@@ -37,6 +38,9 @@ object StoryArcEngine {
             POLICY_BACKLASH !in current.completedArcIds && state.legal.policyInsights.reports.lastOrNull()?.let { report ->
                 report.approvalChange <= -8f || report.monthlyBalanceChange <= -5_000_000_000L || report.workersChange <= -5f
             } == true -> POLICY_BACKLASH
+            BORDER_ESCALATION !in current.completedArcIds &&
+                state.diplomacy.activeWar == null &&
+                state.diplomacy.rivals.any { it.relationshipScore <= -55 } -> BORDER_ESCALATION
             else -> null
         } ?: return state
 
@@ -59,7 +63,7 @@ object StoryArcEngine {
     }
 
     fun eventById(id: String): GameEvent? {
-        val match = Regex("^story_(cabinet_scandal|confidence_vote|policy_backlash)_([1-3])$").matchEntire(id) ?: return null
+        val match = Regex("^story_(cabinet_scandal|confidence_vote|policy_backlash|border_escalation)_([1-3])$").matchEntire(id) ?: return null
         return event(match.groupValues[1], match.groupValues[2].toInt(), "")
     }
 
@@ -81,6 +85,7 @@ object StoryArcEngine {
                 lastStoryNote = when (arc.activeArcId) {
                     CABINET_SCANDAL -> if (openingChoice == "open") "The inquiry widens" else "The cover-up draws scrutiny"
                     POLICY_BACKLASH -> if (openingChoice == "open") "Reviewers trace the rollout" else "The cabinet closes ranks"
+                    BORDER_ESCALATION -> if (openingChoice == "open") "Envoys return to the table" else "Divisions mass at the frontier"
                     else -> if (openingChoice == "open") "Negotiations continue" else "The whip count tightens"
                 },
             )
@@ -89,9 +94,14 @@ object StoryArcEngine {
 
         val arcId = arc.activeArcId
         val title = arcTitle(arcId)
+        val pillar = if (arcId == BORDER_ESCALATION) LegacyPillar.SECURITY else LegacyPillar.MANDATE
         val successful = when (arcId) {
             CABINET_SCANDAL -> state.press.credibility >= 48f && state.cabinet.cohesion >= 40f
             POLICY_BACKLASH -> state.vitals.approval >= 45f && state.press.credibility >= 42f && state.cabinet.cohesion >= 35f
+            BORDER_ESCALATION ->
+                state.vitals.approval >= 45f &&
+                    state.internalSecurity.instabilityScore <= 60f &&
+                    state.diplomacy.activeWar == null
             else -> state.opposition.noConfidenceHeat < 45f && state.vitals.approval >= 45f
         }
         val entry = LegacyEntry(
@@ -100,7 +110,7 @@ object StoryArcEngine {
             month = state.month,
             title = if (successful) "$title contained" else "$title deepened",
             detail = if (successful) "Your choices shaped the outcome of a three-part national story." else "The story closed, but its consequences remain in the national record.",
-            pillar = LegacyPillar.MANDATE,
+            pillar = pillar,
             tone = if (successful) LegacyTone.MILESTONE else LegacyTone.TURNING_POINT,
             scoreDelta = if (successful) 5 else -3,
         )
@@ -114,7 +124,7 @@ object StoryArcEngine {
                 sourceReference = "",
             ),
             legacy = state.legacy.copy(
-                scores = state.legacy.scores.adjust(LegacyPillar.MANDATE, if (successful) 4 else -2),
+                scores = state.legacy.scores.adjust(pillar, if (successful) 4 else -2),
                 entries = (state.legacy.entries + entry).takeLast(40),
                 lastLegacyNote = entry.title,
             ),
@@ -125,6 +135,7 @@ object StoryArcEngine {
         CABINET_SCANDAL -> "Cabinet Leak"
         CONFIDENCE_VOTE -> "Confidence Crisis"
         POLICY_BACKLASH -> "Reform Fallout"
+        BORDER_ESCALATION -> "Border Escalation"
         else -> "National Story"
     }
 
@@ -211,6 +222,37 @@ object StoryArcEngine {
             choices = listOf(
                 EventChoice("Amend the rollout and publish new targets", EventConsequence(approvalChange = 3f, pressCredibilityChange = 4f, oppositionHeatChange = -5f, cabinetCohesionChange = -2f)),
                 EventChoice("Stand by the original policy", EventConsequence(approvalChange = -3f, pressCredibilityChange = -3f, oppositionHeatChange = 6f, cabinetCohesionChange = 2f)),
+            ),
+        )
+        BORDER_ESCALATION to 1 -> GameEvent(
+            id = "story_${BORDER_ESCALATION}_1",
+            title = "Shots Across the Border",
+            description = "Exchange of fire on the frontier left two soldiers dead. Hawks demand an answer before the evening news; envoys are still offering a channel.",
+            choices = listOf(
+                EventChoice("Open an immediate diplomatic channel", EventConsequence(approvalChange = -2f, mediaSentimentChange = 3f, pressCredibilityChange = 4f, instabilityChange = -1f)),
+                EventChoice("Rally the armed forces on the frontier", EventConsequence(approvalChange = 3f, budgetChange = -2_000_000_000L, defconChange = 1, instabilityChange = 2f)),
+            ),
+        )
+        BORDER_ESCALATION to 2 -> GameEvent(
+            id = "story_${BORDER_ESCALATION}_2",
+            title = if (branch == "open") "Envoys at the Table" else "Mobilization Doctrine",
+            description = if (branch == "open") {
+                "Back-channel talks produced a draft ceasefire. The general staff warns that the terms look weak on maps; the public wants peace before the holidays."
+            } else {
+                "The defense ministry proposes forward mobilization. Neighbors are counting divisions and markets are sliding with every convoy."
+            },
+            choices = listOf(
+                EventChoice(if (branch == "open") "Sign the draft ceasefire" else "Publish the evidence and demand arbitration", EventConsequence(approvalChange = 2f, pressCredibilityChange = 4f, instabilityChange = -2f)),
+                EventChoice(if (branch == "open") "Demand tougher terms" else "Mobilize three divisions", EventConsequence(approvalChange = 3f, budgetChange = -4_000_000_000L, defconChange = 1, instabilityChange = 3f)),
+            ),
+        )
+        BORDER_ESCALATION to 3 -> GameEvent(
+            id = "story_${BORDER_ESCALATION}_3",
+            title = "The Reckoning",
+            description = "The crisis reaches its endgame. How you close it decides whether this becomes a chapter of statesmanship — or the prelude to a war nobody wanted.",
+            choices = listOf(
+                EventChoice("Address the nation for peace and pull back", EventConsequence(approvalChange = 4f, instabilityChange = -3f, mediaSentimentChange = 4f)),
+                EventChoice("Announce war aims to the assembly", EventConsequence(approvalChange = -2f, instabilityChange = 4f, armySizeChange = 50_000L, mediaSentimentChange = -3f)),
             ),
         )
         else -> null
