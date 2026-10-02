@@ -103,6 +103,14 @@ class AnalyticsSaveViewModel {
         val obj = root as? JsonObject
             ?: throw IllegalArgumentException("not a campaign save (unexpected contents)")
 
+        // Every campaign payload ever written carries the core state containers. Without
+        // them this is some unrelated JSON object (settings, logs, a wrong file) that
+        // would otherwise decode into a *default* state and silently replace the
+        // player's campaign on load.
+        if (SAVE_REQUIRED_KEYS.none { it in obj }) {
+            throw IllegalArgumentException("not a campaign save (missing campaign data)")
+        }
+
         // Absent key = written before versioning existed.
         val version = (obj[SAVE_VERSION_KEY] as? JsonPrimitive)?.intOrNull ?: LEGACY_VERSION
         if (version > GameState.SAVE_VERSION) {
@@ -113,6 +121,11 @@ class AnalyticsSaveViewModel {
 
         val decoded = runCatching { json.decodeFromJsonElement(GameState.serializer(), obj) }
             .getOrElse { throw IllegalArgumentException("save data is damaged or unreadable") }
+        // Defense in depth: a pre-versioning payload that decodes to a pristine default
+        // state has no campaign in it — reject rather than "restore" nothing.
+        if (version == LEGACY_VERSION && decoded == GameState()) {
+            throw IllegalArgumentException("not a campaign save (no campaign data found)")
+        }
         return migrate(decoded, fromVersion = version)
     }
 
@@ -162,6 +175,13 @@ class AnalyticsSaveViewModel {
 
         /** JSON key holding [GameState.saveVersion]. */
         const val SAVE_VERSION_KEY = "saveVersion"
+
+        /**
+         * Keys that must appear in any payload we are willing to call a campaign save.
+         * [GameState.vitals] has been present since the first schema, so its absence
+         * means the JSON is not one of ours.
+         */
+        val SAVE_REQUIRED_KEYS = listOf("vitals")
 
         /** Version reported for payloads written before schema versioning existed. */
         const val LEGACY_VERSION = 0
