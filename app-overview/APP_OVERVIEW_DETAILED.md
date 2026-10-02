@@ -119,27 +119,28 @@ The simulation starts from `GameState.initial()` with seeded values so the first
 
 ### Monthly Tick (`advanceTimeTick`)
 
-A single tick performs a multi-system pipeline:
+A single tick delegates to `MonthlySimulationPipeline.advance`, which applies the
+month in a fixed, documented order (pinned by `MonthlySimulationPipelineTest`):
 
-1. Advance month/year
-2. Process production/law dynamics
-3. Settle budget and demographic drift
-4. Simulate diplomacy and active wars
-5. Process security and espionage
-6. Process science/society effects
-7. Process trade and market effects
-8. Process UN/governance outcomes
-9. Record analytics snapshot
+1. Advance month/year, settle military procurement
+2. Production, fiscal settlement, population drift
+3. Geopolitics, active war resolution, internal security
+4. Crisis aftermath, press, cabinet, opposition, disasters, speeches, terms
+5. Domination layer (military industry, victory checks)
+6. Society, laws, policy impact, trade, UN governance, demographics
+7. Analytics snapshot, legacy ledger, agenda, mandates, world news, story arcs
 
-Then:
+Then (owned by `GameViewModel`, not the pipeline):
 
-- Rolls for event trigger (`EVENT_CHANCE_PER_TICK = 0.15`)
-- Stops auto-tick if game-over is reached
+- Story arcs are offered first; otherwise a seeded roll for a random event
+  (`EVENT_CHANCE_PER_TICK = 0.02`, followed by a 12-month cooldown)
+- Auto-save (coalesced) and auto-tick pause if game-over, a blocking event,
+  an election night, or a briefing is pending
 
 ### Auto-Tick
 
 - Driven by coroutine job in `viewModelScope`
-- 1 second interval (`TICK_INTERVAL_MS = 1000`)
+- Speed modes: Pause · Normal 1× (1,000 ms/month) · Fast 3× (333 ms/month)
 - Pauses if an active event blocks progression
 
 ---
