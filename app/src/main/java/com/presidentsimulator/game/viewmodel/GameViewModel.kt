@@ -62,6 +62,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -109,6 +110,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val tickMutex = Mutex()
     /** True while an async save is being written; new save requests coalesce into this. */
     private val saveInFlight = AtomicBoolean(false)
+    /** Months simulated since the last auto-save; checkpoint every [AUTO_SAVE_TICK_INTERVAL]. */
+    private var ticksSinceLastSave = 0
+    /** Wall-clock time of the last write, used to throttle automatic checkpoints. */
+    @Volatile
+    private var lastSaveAtMs = 0L
 
     /**
      * Randomness source for the whole simulation. Rebuilt from [GameState.campaignSeed] by
@@ -198,6 +204,17 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     init {
         if (!hasAutomatedSave()) _showTutorial.value = true
         _hasSave.value = hasAutomatedSave()
+        // Debounced action save: when the state stops changing for
+        // [ACTION_SAVE_DEBOUNCE_MS] (the player acted, then paused), persist it so a
+        // mid-month process death cannot eat the action. While the ticker runs,
+        // emissions never go quiet — [maybeAutoSave] checkpoints every N ticks instead.
+        viewModelScope.launch {
+            state
+                .debounce(ACTION_SAVE_DEBOUNCE_MS)
+                .collect {
+                    if (!_showLaunchScreen.value) saveGameProgress()
+                }
+        }
     }
 
     // ── Time engine ──────────────────────────────────────────────────────────
@@ -253,8 +270,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                     pauseTimeAdvance()
                 }
 
-                // Auto-save after every tick (async, coalesced).
-                saveGameProgress()
+                // Debounced auto-save (checkpoint every N ticks, async, coalesced).
+                maybeAutoSave()
                 maybeTriggerEvent()
                 if (_currentActiveEvent.value != null) {
                     pauseTimeAdvance()
@@ -585,7 +602,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         return try {
             val restored = analyticsEngine.importGameStateFromJson(jsonString)
             // Stop the ticker *before* swapping engines so a tick can't observe a half-swapped set.
-            pauseTimeAdvance()
+            // No checkpoint here: the state in memory is about to be replaced, and saving it
+            // would overwrite the automated save with the outgoing campaign.
+            pauseTimeAdvance(checkpoint = false)
             reseed(restored.campaignSeed)
             _state.value = restored
             _currentActiveEvent.value = restored.crisis.pendingEventId
@@ -607,6 +626,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         // guaranteed to be at least as new as what this request saw.
         if (!saveInFlight.compareAndSet(false, true)) return
         val stateSnapshot = _state.value
+        ticksSinceLastSave = 0
+        lastSaveAtMs = System.currentTimeMillis()
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val payload = analyticsEngine.exportGameStateToJson(stateSnapshot)
@@ -1064,6 +1085,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (_state.value.gameOver.isGameOver && mode != TimeSpeedMode.PAUSED) return
         _timeSpeedMode.value = mode
         syncTimeTickJob()
+        if (mode == TimeSpeedMode.PAUSED) {
+            // Manual pause is an explicit checkpoint moment.
+            saveGameProgress()
+        }
     }
 
     private fun syncTimeTickJob() {
@@ -1087,10 +1112,34 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun pauseTimeAdvance() {
+    /** Checkpoints the campaign when the app leaves the foreground ([MainActivity.onStop]). */
+    fun onAppBackgrounded() {
+        if (_showLaunchScreen.value) return
+        saveGameProgress()
+    }
+
+    /** Auto-save cadence while the ticker runs: one write every N simulated months. */
+    private fun maybeAutoSave() {
+        ticksSinceLastSave++
+        if (ticksSinceLastSave >= AUTO_SAVE_TICK_INTERVAL) checkpointSave()
+    }
+
+    /**
+     * Throttled automatic save: briefing/tick checkpoints must not serialize the payload
+     * more than once per [AUTO_SAVE_MIN_INTERVAL_MS] while the player plays quickly.
+     * Forced saves (manual pause, foreground loss, blocking events, quiet action debounce)
+     * bypass this.
+     */
+    private fun checkpointSave() {
+        if (System.currentTimeMillis() - lastSaveAtMs < AUTO_SAVE_MIN_INTERVAL_MS) return
+        saveGameProgress()
+    }
+
+    private fun pauseTimeAdvance(checkpoint: Boolean = true) {
         _timeSpeedMode.value = TimeSpeedMode.PAUSED
         autoTickJob?.cancel()
         autoTickJob = null
+        if (checkpoint) checkpointSave()
     }
 
     // ── Crisis engine ────────────────────────────────────────────────────────
@@ -1285,6 +1334,15 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         const val MIN_TAX_RATE = 0.00f
         const val MAX_TAX_RATE = 0.50f
         const val EVENT_CHANCE_PER_TICK = 0.02f
+
+        /** Simulated months between background auto-saves while the ticker runs. */
+        const val AUTO_SAVE_TICK_INTERVAL = 12
+
+        /** Minimum wall-clock gap between *automatic* checkpoint saves. */
+        const val AUTO_SAVE_MIN_INTERVAL_MS = 5_000L
+
+        /** Quiet period after a player action before that action is auto-saved. */
+        const val ACTION_SAVE_DEBOUNCE_MS = 2_000L
 
         /**
          * Months without random events after resolving one.

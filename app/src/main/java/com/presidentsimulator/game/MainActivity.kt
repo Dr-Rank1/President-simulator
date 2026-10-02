@@ -67,6 +67,12 @@ class MainActivity : ComponentActivity() {
         hideSystemBars()
     }
 
+    override fun onStop() {
+        // Process death is legal after onStop: checkpoint the campaign first.
+        gameViewModel.onAppBackgrounded()
+        super.onStop()
+    }
+
     private fun hideSystemBars() {
         val controller = WindowCompat.getInsetsController(window, window.decorView)
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
