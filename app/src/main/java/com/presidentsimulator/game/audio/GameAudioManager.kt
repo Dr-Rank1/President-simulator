@@ -74,6 +74,13 @@ class GameAudioManager private constructor(
     private val diagnosticLog = ConcurrentLinkedQueue<String>()
     private val released = AtomicBoolean(false)
 
+    /**
+     * True only when at least one `res/raw` sound asset actually exists in this build.
+     * The UI gates music/SFX controls on this flag so the app never advertises audio it
+     * cannot play; flipping it on is automatic as soon as assets are added under `res/raw`.
+     */
+    val hasAudioAssets: Boolean
+
     val diagnostics: List<String>
         get() = diagnosticLog.toList()
 
@@ -86,7 +93,10 @@ class GameAudioManager private constructor(
     init {
         initializeSoundPool()
         preloadSfx()
-        log("GameAudioManager initialized")
+        hasAudioAssets =
+            SfxType.entries.any { resolveRawId(it.rawName) != 0 } ||
+                BgmTrack.entries.any { it != BgmTrack.NONE && resolveRawId(it.rawName) != 0 }
+        log("GameAudioManager initialized (assets present: $hasAudioAssets)")
     }
 
     // ── SFX ──────────────────────────────────────────────────────────────────

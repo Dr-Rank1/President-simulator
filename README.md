@@ -13,7 +13,7 @@ President Simulator is an Android grand strategy game built with Kotlin and Jetp
 - **Campaign briefings and reports:** Review a state-aware chief-of-staff outlook, active story progress, legacy pillar scores, and earned honors.
 - **Regional relationship map:** See the nation's relationships with neighboring powers from the dashboard.
 - **Monthly simulation:** Advance turns manually or use the time controls. Crises can pause the simulation until a decision is made.
-- **Save and audio settings:** Save and restore campaign state, with background music and sound effects controls.
+- **Save and audio settings:** Autosave plus manual save slots, with background music and sound-effect controls that appear when audio assets are bundled in the build.
 
 ## Requirements
 

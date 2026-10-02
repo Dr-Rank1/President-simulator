@@ -94,6 +94,22 @@ fun SettingsAudioScreen(
                 .padding(4.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp),
         ) {
+            if (!audio.hasAudioAssets) {
+                // Honest placeholder: this build ships without res/raw sound assets, so
+                // the music/SFX controls are hidden until assets are actually bundled.
+                NssPanel(modifier = Modifier.fillMaxWidth()) {
+                    Text("AUDIO", fontWeight = FontWeight.Black, fontSize = 10.sp, color = NssForeground)
+                    Text(
+                        text = "Sound is not bundled in this build. Music and SFX controls " +
+                            "appear automatically once audio assets are added.",
+                        fontSize = 9.sp,
+                        color = NssMutedForeground,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                }
+            }
+
+            if (audio.hasAudioAssets) {
             NssPanel(modifier = Modifier.fillMaxWidth()) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text("Master Music", fontWeight = FontWeight.Bold, fontSize = 10.sp, color = NssForeground)
@@ -139,7 +155,9 @@ fun SettingsAudioScreen(
                     textAlign = TextAlign.Center,
                 )
             }
+            }
 
+            if (audio.hasAudioAssets) {
             NssPanel(modifier = Modifier.fillMaxWidth()) {
                 Text("Audio Diagnostics", fontWeight = FontWeight.Black, fontSize = 10.sp, color = NssForeground)
                 Text("Loaded SFX handles", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = NssMutedForeground, modifier = Modifier.padding(top = 7.dp))
@@ -159,6 +177,7 @@ fun SettingsAudioScreen(
                         Text(line, fontSize = 8.sp, color = NssMutedForeground)
                     }
                 }
+            }
             }
 
             
