@@ -2,6 +2,7 @@ package com.presidentsimulator.game.ui.navigation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.clickable
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +48,7 @@ import com.presidentsimulator.game.audio.GameAudioManager
 import com.presidentsimulator.game.audio.SfxType
 import com.presidentsimulator.game.audio.playClick
 import com.presidentsimulator.game.data.GameState
+import com.presidentsimulator.game.data.LegacyLedger
 import com.presidentsimulator.game.ui.GovernanceUNScreen
 import com.presidentsimulator.game.ui.components.ConquestChoiceDialog
 import com.presidentsimulator.game.ui.components.MarketShopDialog
@@ -62,6 +65,7 @@ import com.presidentsimulator.game.ui.components.WarOutcomeDialog
 import com.presidentsimulator.game.ui.components.collectAlertCount
 import com.presidentsimulator.game.ui.theme.NssAccent
 import com.presidentsimulator.game.ui.theme.NssBackground
+import com.presidentsimulator.game.ui.theme.NssBorder
 import com.presidentsimulator.game.ui.theme.NssEmerald
 import com.presidentsimulator.game.ui.theme.NssForeground
 import com.presidentsimulator.game.ui.theme.NssMutedForeground
@@ -98,6 +102,8 @@ fun GameNavigation(
     val showLaunch by viewModel.showLaunchScreen.collectAsStateWithLifecycle()
     val hasSave by viewModel.hasSave.collectAsStateWithLifecycle()
     val saveSlots by viewModel.saveSlots.collectAsStateWithLifecycle()
+    val dailyInfo by viewModel.dailyInfo.collectAsStateWithLifecycle()
+    val dailyBoard by viewModel.dailyBoard.collectAsStateWithLifecycle()
     val gameOver = state.gameOver.isGameOver
     val isVictory = state.gameOver.isVictory
 
@@ -162,6 +168,14 @@ fun GameNavigation(
                 onNewGame = {
                     audio.playClick()
                     showCountrySelect = true
+                },
+                dailyInfo = dailyInfo,
+                dailyBoard = dailyBoard,
+                onDailyChallenge = {
+                    audio.playClick()
+                    viewModel.startDailyChallenge()
+                    tutorialPage = 0
+                    showTutorial = true
                 },
                 slots = saveSlots,
                 onLoadSlot = { slot ->
@@ -450,7 +464,7 @@ private fun CampaignEndDialog(
             Spacer(modifier = Modifier.height(10.dp))
             NssPanel(modifier = Modifier.fillMaxWidth()) {
                 val scores = campaign.legacy.scores
-                val finalScore = (scores.overall * campaign.scenario.scoreMultiplier).roundToInt()
+                val finalScore = LegacyLedger.campaignScore(campaign)
                 Text("NATIONAL LEADERSHIP LEGACY · ${scores.grade.uppercase()}", fontSize = 10.sp, fontWeight = FontWeight.Black, color = accent, letterSpacing = 1.5.sp)
                 Text("Campaign score  $finalScore", fontSize = 20.sp, fontWeight = FontWeight.Black, color = NssForeground, modifier = Modifier.padding(top = 4.dp))
                 Text("${scores.overall} base × ${campaign.scenario.scoreMultiplier} challenge modifier", fontSize = 10.sp, color = NssMutedForeground)
@@ -461,12 +475,45 @@ private fun CampaignEndDialog(
                     "Society" to scores.society,
                     "Mandate" to scores.mandate,
                 ).forEach { (pillar, value) ->
-                    Text("$pillar  ·  $value", fontSize = 11.sp, color = NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+                    Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(pillar, fontSize = 11.sp, color = NssMutedForeground)
+                            Text("$value", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = NssForeground)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(4.dp)
+                                .padding(top = 2.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(NssBorder),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth((value.coerceIn(0, 100) / 100f))
+                                    .height(4.dp)
+                                    .background(accent),
+                            )
+                        }
+                    }
                 }
                 val honors = campaignHonors(campaign, isVictory)
                 if (honors.isNotEmpty()) {
                     Text("HONORS", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
                     honors.forEach { honor -> Text("✦  $honor", fontSize = 11.sp, color = NssForeground, modifier = Modifier.padding(top = 3.dp)) }
+                }
+                val eraHeadlines = campaign.news.entries.take(6)
+                if (eraHeadlines.isNotEmpty()) {
+                    Text("HEADLINES OF THE ERA", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
+                    eraHeadlines.forEach { entry ->
+                        Text(
+                            text = "${entry.month}/${entry.year} · ${entry.headline}",
+                            fontSize = 10.sp,
+                            color = NssMutedForeground,
+                            modifier = Modifier.padding(top = 3.dp),
+                            maxLines = 2,
+                        )
+                    }
                 }
                 if (campaign.mandate.lastReview.isNotEmpty()) {
                     Text("TERM PROMISE REVIEW", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))

@@ -173,6 +173,9 @@ class AnalyticsSaveEngine {
         const val SLOT_COUNT = 3
         const val KEY_LAST_PAYLOAD_BYTES = "last_payload_bytes"
 
+        /** Local Daily Seed Challenge leaderboard (encoded via [DailyChallenge.encode]). */
+        const val KEY_DAILY_SCORES = "daily_challenge_scores"
+
         /** JSON key holding [GameState.saveVersion]. */
         const val SAVE_VERSION_KEY = "saveVersion"
 

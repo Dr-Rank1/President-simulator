@@ -8,6 +8,14 @@ import kotlin.math.roundToInt
  */
 object LegacyLedger {
 
+    /**
+     * Final campaign score: legacy pillars × scenario/challenge difficulty multiplier.
+     * Single source of truth shared by the end-of-campaign debrief and the
+     * Daily Seed Challenge leaderboard.
+     */
+    fun campaignScore(state: GameState): Int =
+        (state.legacy.scores.overall * state.scenario.scoreMultiplier).roundToInt()
+
     fun processMonth(before: GameState, after: GameState): GameState {
         if (after.gameOver.isGameOver && before.gameOver.isGameOver) return after
         var legacy = after.legacy

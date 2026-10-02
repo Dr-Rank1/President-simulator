@@ -7,6 +7,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.presidentsimulator.game.data.ActiveCrisisState
 import com.presidentsimulator.game.data.AgendaItem
+import com.presidentsimulator.game.data.DailyChallenge
+import com.presidentsimulator.game.data.DailyChallengeInfo
+import com.presidentsimulator.game.data.DailyScore
 import com.presidentsimulator.game.data.CabinetEngine
 import com.presidentsimulator.game.data.CabinetPortfolio
 import com.presidentsimulator.game.data.DisasterEngine
@@ -69,6 +72,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -100,6 +104,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     /** Whether a persisted save exists so the launch screen can offer Continue. */
     private val _hasSave = MutableStateFlow(false)
     val hasSave: StateFlow<Boolean> = _hasSave.asStateFlow()
+
+    /** Today's Daily Seed Challenge facts (seed and nation are derived from the date). */
+    private val _dailyInfo = MutableStateFlow<DailyChallengeInfo?>(null)
+    val dailyInfo: StateFlow<DailyChallengeInfo?> = _dailyInfo.asStateFlow()
+
+    /** Local daily-challenge leaderboard, best score first. */
+    private val _dailyBoard = MutableStateFlow<List<DailyScore>>(emptyList())
+    val dailyBoard: StateFlow<List<DailyScore>> = _dailyBoard.asStateFlow()
 
     /** True while showing the launch/new-game screen. */
     private val _showLaunchScreen = MutableStateFlow(true)
@@ -204,6 +216,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     init {
         if (!hasAutomatedSave()) _showTutorial.value = true
         _hasSave.value = hasAutomatedSave()
+        refreshDailyChallenge()
         // Debounced action save: when the state stops changing for
         // [ACTION_SAVE_DEBOUNCE_MS] (the player acted, then paused), persist it so a
         // mid-month process death cannot eat the action. While the ticker runs,
@@ -253,6 +266,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             if (after.gameOver.isGameOver) {
+                maybeRecordDailyScore()
                 pauseTimeAdvance()
             } else {
                 val newlyResolved = after.espionage.activeMissions.filter { mission ->
@@ -747,6 +761,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun confirmElectionNight() {
         _state.update { demographicsEngine.confirmElectionNight(it) }
         if (_state.value.gameOver.isGameOver) {
+            maybeRecordDailyScore()
             pauseTimeAdvance()
         }
     }
@@ -837,11 +852,20 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun playableNations(): List<PlayableNationCatalog.NationDefinition> =
         PlayableNationCatalog.all()
 
-    fun startNewGame(countryId: String = "us", scenarioId: String = "standard", challengeId: String = "standard") {
+    fun startNewGame(
+        countryId: String = "us",
+        scenarioId: String = "standard",
+        challengeId: String = "standard",
+        seedOverride: Long? = null,
+        dailyEpochDay: Long = 0L,
+    ) {
         // A fresh, non-zero seed makes every campaign of this setup replay identically.
-        val seed = Random.Default.nextLong(1, Long.MAX_VALUE)
-        val seeded = ScenarioCatalog.apply(GameState.initial(countryId), scenarioId, challengeId = challengeId)
-            .copy(campaignSeed = seed)
+        val seed = seedOverride ?: Random.Default.nextLong(1, Long.MAX_VALUE)
+        val applied = ScenarioCatalog.apply(GameState.initial(countryId), scenarioId, challengeId = challengeId)
+        val seeded = applied.copy(
+            campaignSeed = seed,
+            scenario = applied.scenario.copy(dailyChallengeEpochDay = dailyEpochDay),
+        )
         reseed(seed)
         _state.value = seeded
         _currentActiveEvent.value = null
@@ -857,6 +881,61 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         _missionResults.value = emptyList()
         _hasSave.value = hasAutomatedSave()
         _showLaunchScreen.value = true
+        refreshDailyChallenge()
+    }
+
+    // ── Daily Seed Challenge ─────────────────────────────────────────────────
+
+    /** Starts today's shared-seed, shared-nation run (same for every player). */
+    fun startDailyChallenge() {
+        val day = LocalDate.now().toEpochDay()
+        startNewGame(
+            countryId = DailyChallenge.nationIdFor(day),
+            scenarioId = "standard",
+            challengeId = "standard",
+            seedOverride = DailyChallenge.seedFor(day),
+            dailyEpochDay = day,
+        )
+    }
+
+    private fun refreshDailyChallenge() {
+        val day = LocalDate.now().toEpochDay()
+        val nationId = DailyChallenge.nationIdFor(day)
+        val nation = PlayableNationCatalog.byId(nationId)
+        val board = DailyChallenge.decode(
+            savePrefs.getString(AnalyticsSaveEngine.KEY_DAILY_SCORES, null),
+        )
+        _dailyBoard.value = board
+        _dailyInfo.value = DailyChallengeInfo(
+            epochDay = day,
+            nationId = nationId,
+            nationName = nation?.name ?: nationId,
+            flagEmoji = nation?.flagEmoji ?: "",
+            bestScore = board.filter { it.epochDay == day }.maxOfOrNull { it.score } ?: 0,
+        )
+    }
+
+    /** Persists today's daily result at most once, keeping the best attempt per day. */
+    private fun maybeRecordDailyScore() {
+        val current = _state.value
+        if (!current.gameOver.isGameOver) return
+        val day = current.scenario.dailyChallengeEpochDay
+        if (day <= 0L) return
+        val board = DailyChallenge.decode(
+            savePrefs.getString(AnalyticsSaveEngine.KEY_DAILY_SCORES, null),
+        )
+        val entry = DailyScore(
+            epochDay = day,
+            nationId = current.playerNation.id,
+            score = LegacyLedger.campaignScore(current),
+            victory = current.gameOver.isVictory,
+        )
+        if (board.any { it.epochDay == day && it.score >= entry.score }) return
+        val updated = DailyChallenge.record(board, entry)
+        savePrefs.edit()
+            .putString(AnalyticsSaveEngine.KEY_DAILY_SCORES, DailyChallenge.encode(updated))
+            .apply()
+        refreshDailyChallenge()
     }
 
     // ── Production & law actions ──────────────────────────────────────────────

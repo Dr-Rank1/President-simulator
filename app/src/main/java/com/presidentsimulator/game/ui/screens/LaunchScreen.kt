@@ -8,9 +8,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,16 +22,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.presidentsimulator.game.data.DailyChallengeInfo
+import com.presidentsimulator.game.data.DailyScore
+import com.presidentsimulator.game.data.PlayableNationCatalog
 import com.presidentsimulator.game.ui.theme.NssPrimary
 import com.presidentsimulator.game.ui.theme.NssBackground
 import com.presidentsimulator.game.ui.theme.NssForeground
 import com.presidentsimulator.game.viewmodel.SaveSlotInfo
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun LaunchScreen(
     hasSave: Boolean,
     onContinueGame: () -> Unit,
     onNewGame: () -> Unit,
+    dailyInfo: DailyChallengeInfo? = null,
+    dailyBoard: List<DailyScore> = emptyList(),
+    onDailyChallenge: (() -> Unit)? = null,
     slots: List<SaveSlotInfo> = emptyList(),
     onLoadSlot: ((Int) -> Unit)? = null,
 ) {
@@ -95,6 +105,16 @@ fun LaunchScreen(
                     onClick = onNewGame
                 )
 
+                if (dailyInfo != null && onDailyChallenge != null) {
+                    LaunchButton(
+                        label = "DAILY CHALLENGE",
+                        icon = Icons.Default.CalendarToday,
+                        primary = false,
+                        onClick = onDailyChallenge,
+                    )
+                    DailyChallengeSummary(info = dailyInfo, board = dailyBoard)
+                }
+
                 val occupiedSlots = slots.filter { it.occupied }
                 if (occupiedSlots.isNotEmpty() && onLoadSlot != null) {
                     occupiedSlots.forEach { slot ->
@@ -116,6 +136,39 @@ fun LaunchScreen(
                 fontSize = 12.sp,
                 textAlign = TextAlign.Center
             )
+        }
+    }
+}
+
+@Composable
+private fun DailyChallengeSummary(info: DailyChallengeInfo, board: List<DailyScore>) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        val bestLabel = if (info.bestScore > 0) " · best ${info.bestScore}" else ""
+        Text(
+            text = "${info.flagEmoji} ${info.nationName} today$bestLabel",
+            color = NssForeground.copy(alpha = 0.7f),
+            fontSize = 11.sp,
+            textAlign = TextAlign.Center,
+        )
+        val topScores = board.sortedByDescending { it.score }.take(3)
+        if (topScores.isNotEmpty()) {
+            val formatter = remember { DateTimeFormatter.ofPattern("MMM d") }
+            topScores.forEach { entry ->
+                val date = LocalDate.ofEpochDay(entry.epochDay).format(formatter)
+                val nation = PlayableNationCatalog.byId(entry.nationId)?.name ?: entry.nationId
+                Text(
+                    text = "★ ${entry.score} · $nation · $date${if (entry.victory) " · victory" else ""}",
+                    color = NssForeground.copy(alpha = 0.5f),
+                    fontSize = 9.sp,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }

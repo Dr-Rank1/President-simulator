@@ -29,6 +29,11 @@ data class ScenarioState(
     val notes: List<String> = emptyList(),
     val challengeId: String = "standard",
     val scoreMultiplier: Float = 1f,
+    /**
+     * UTC epoch day of the Daily Seed Challenge this campaign belongs to;
+     * 0 = ordinary campaign. Shared seed + nation make the run comparable.
+     */
+    val dailyChallengeEpochDay: Long = 0L,
 )
 
 data class CampaignChallenge(

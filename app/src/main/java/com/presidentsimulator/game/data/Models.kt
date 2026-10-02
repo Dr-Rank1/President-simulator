@@ -144,8 +144,11 @@ data class GameState(
         get() = territory.monthlyTributeIncome
 
     companion object {
-        /** Bump whenever the persisted shape of [GameState] changes. */
-        const val SAVE_VERSION = 2
+        /**
+         * Bump whenever the persisted shape of [GameState] changes.
+         * v3: added [ScenarioState.dailyChallengeEpochDay] (older payloads decode to 0).
+         */
+        const val SAVE_VERSION = 3
 
         fun initial(countryId: String = "us"): GameState =
             PlayableNationCatalog.initialState(countryId)
