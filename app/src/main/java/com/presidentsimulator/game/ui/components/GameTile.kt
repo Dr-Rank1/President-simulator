@@ -63,19 +63,19 @@ fun GameTile(item: GameTileData) {
             }
         }
 
-        // Bottom 35%: Clean white background with dark text
+        // Bottom 35%: Slate Navy background with crisp executive text
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(0.35f)
-                .background(Color.White)
-                .padding(horizontal = 2.dp, vertical = 2.dp),
+                .background(Color(0xFF1E293B))
+                .padding(horizontal = 4.dp, vertical = 2.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = item.title,
-                color = Color(0xFF212121),
+                color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 12.sp,
                 maxLines = 1,
@@ -84,8 +84,8 @@ fun GameTile(item: GameTileData) {
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = item.amountString,
-                color = Color(0xFF757575),
-                fontWeight = FontWeight.Normal,
+                color = Color(0xFFFBBF24),
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 10.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

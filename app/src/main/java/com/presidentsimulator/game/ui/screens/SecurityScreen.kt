@@ -3,6 +3,7 @@ package com.presidentsimulator.game.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -78,9 +79,65 @@ fun SecurityScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(NssBackground)
+            .background(Color(0xFF0F172A))
             .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
     ) {
+        // Satellite Recon & Classified Directorate Header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(110.dp)
+        ) {
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(id = com.presidentsimulator.game.R.drawable.satellite),
+                contentDescription = "Satellite Reconnaissance",
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xCC060A13)),
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            text = "[TOP SECRET // EYES ONLY]",
+                            color = Color(0xFFEF4444),
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.sp,
+                        )
+                    }
+                    Text(
+                        text = "DIRECTORATE OF NATIONAL INTELLIGENCE",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Black,
+                    )
+                    Text(
+                        text = "ORBITAL SAT-RECON & COUNTER-ESPIONAGE",
+                        color = Color(0xFFD97706),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("ACTIVE AGENTS", color = Color.Gray, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                    Text("${state.espionage.availableSpies} Field Officers", color = Color(0xFF34D399), fontSize = 12.sp, fontWeight = FontWeight.Black)
+                    Text("Exposure: ${state.espionage.exposureLevel.toInt()}%", color = Color(0xFFFCA5A5), fontSize = 9.sp)
+                }
+            }
+        }
+
         NssTabBar(
             tabs = SECURITY_TABS,
             selectedTab = selectedTab,

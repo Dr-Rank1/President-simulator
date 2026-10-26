@@ -15,9 +15,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.GpsFixed
+import androidx.compose.material.icons.filled.Handshake
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -128,6 +132,13 @@ object WorldCoordinates {
     }
 }
 
+enum class MapOverlayMode(val label: String) {
+    POLITICAL("Political"),
+    ECONOMY("GDP Heatmap"),
+    MILITARY("Military Threat"),
+    ALLIANCE("Alliances"),
+}
+
 @Composable
 fun InteractiveWorldMap(
     state: GameState? = null,
@@ -141,6 +152,7 @@ fun InteractiveWorldMap(
     var showCountryDetails by remember { mutableStateOf(false) }
     var selectedCountryDossier by remember { mutableStateOf<com.presidentsimulator.game.data.WorldCountryDossier?>(null) }
     var searchQuery by remember { mutableStateOf("") }
+    var mapOverlayMode by remember { mutableStateOf(MapOverlayMode.POLITICAL) }
 
     val allCountries = remember(state?.playerNation?.name) {
         com.presidentsimulator.game.data.WorldNationCatalog.createInitialDossiers(state?.playerNation?.name ?: "Kenya")
@@ -280,39 +292,117 @@ fun InteractiveWorldMap(
                     )
                 }
 
-                // Minor markers for rival nations if available
-                state?.diplomacy?.rivals?.take(4)?.forEach { rival ->
-                    val rivalCoord = WorldCoordinates.forCode(rival.id, rival.name)
-                    if (rivalCoord != playerCoord) {
-                        val rx = containerSize.width * rivalCoord.first
-                        val ry = containerSize.height * rivalCoord.second
+                // Dynamic Tactical Overlays for Major World Powers
+                val overlayPowers = listOf("USA", "Russia", "China", "Germany", "United Kingdom", "France", "Japan", "India", "Brazil", "Australia")
+                overlayPowers.forEach { powerName ->
+                    val powerDossier = allCountries.find { it.name.equals(powerName, ignoreCase = true) }
+                    if (powerDossier != null && !powerDossier.name.equals(state?.playerNation?.name, ignoreCase = true)) {
+                        val pCoord = WorldCoordinates.forCode(powerDossier.name.take(3).uppercase(), powerDossier.name)
+                        val px = containerSize.width * pCoord.first
+                        val py = containerSize.height * pCoord.second
+
                         Row(
                             modifier = Modifier
                                 .offset(
-                                    x = (rx - 20f).dp / (containerSize.width / 360f).coerceAtLeast(1f),
-                                    y = (ry - 10f).dp / (containerSize.height / 200f).coerceAtLeast(1f)
+                                    x = (px - 24f).dp / (containerSize.width / 360f).coerceAtLeast(1f),
+                                    y = (py - 12f).dp / (containerSize.height / 200f).coerceAtLeast(1f)
                                 )
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(Color(0xCC0B131F))
-                                .border(0.5.dp, Color(0x66FFFFFF), RoundedCornerShape(4.dp))
-                                .clickable { onOpenDiplomacy() }
+                                .background(
+                                    when (mapOverlayMode) {
+                                        MapOverlayMode.POLITICAL -> Color(0xDD0F172A)
+                                        MapOverlayMode.ECONOMY -> if (powerDossier.gdpBillion >= 5000L) Color(0xDD065F46) else Color(0xDD0F172A)
+                                        MapOverlayMode.MILITARY -> if (powerDossier.nuclearPower) Color(0xDD7F1D1D) else Color(0xDD1E293B)
+                                        MapOverlayMode.ALLIANCE -> Color(0xDD1E3A8A)
+                                    }
+                                )
+                                .border(
+                                    0.5.dp,
+                                    when (mapOverlayMode) {
+                                        MapOverlayMode.POLITICAL -> Color(0x66FFFFFF)
+                                        MapOverlayMode.ECONOMY -> Color(0xFF34D399)
+                                        MapOverlayMode.MILITARY -> if (powerDossier.nuclearPower) Color(0xFFEF4444) else Color(0xFF64748B)
+                                        MapOverlayMode.ALLIANCE -> Color(0xFF60A5FA)
+                                    },
+                                    RoundedCornerShape(4.dp)
+                                )
+                                .clickable { selectedCountryDossier = powerDossier }
                                 .padding(horizontal = 4.dp, vertical = 2.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
-                            Text(rival.flagEmoji, fontSize = 9.sp)
-                            Text(rival.name.take(6), color = Color.LightGray, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                            Text(powerDossier.flagEmoji, fontSize = 9.sp)
+                            when (mapOverlayMode) {
+                                MapOverlayMode.POLITICAL -> {
+                                    Text(powerDossier.name.take(6), color = Color.LightGray, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                                }
+                                MapOverlayMode.ECONOMY -> {
+                                    Text("\$${powerDossier.gdpBillion / 1000}T", color = Color(0xFF6EE7B7), fontSize = 8.sp, fontWeight = FontWeight.Black)
+                                }
+                                MapOverlayMode.MILITARY -> {
+                                    if (powerDossier.nuclearPower) {
+                                        Text("☢", color = Color(0xFFFCA5A5), fontSize = 9.sp)
+                                    }
+                                    Text("${powerDossier.activeTroops / 1000}k", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                                }
+                                MapOverlayMode.ALLIANCE -> {
+                                    val allianceTag = if (powerDossier.name in listOf("USA", "United Kingdom", "France", "Germany")) "NATO"
+                                    else if (powerDossier.name in listOf("Russia")) "CSTO"
+                                    else if (powerDossier.name in listOf("China")) "SCO"
+                                    else "G7"
+                                    Text(allianceTag, color = Color(0xFF93C5FD), fontSize = 8.sp, fontWeight = FontWeight.Black)
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        // On-Map Floating Interactive Zoom / Focus Controls (Top-Center / Right)
+        // Floating Tactical Map Mode Filter Ribbon (Top Center)
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .offset(y = 12.dp)
+                .offset(y = 10.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color(0xDD0F172A))
+                .border(1.dp, Color(0xFF334155), RoundedCornerShape(20.dp))
+                .padding(horizontal = 4.dp, vertical = 3.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            MapOverlayMode.entries.forEach { mode ->
+                val isSelected = mapOverlayMode == mode
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (isSelected) Color(0xFFD97706) else Color.Transparent)
+                        .clickable { mapOverlayMode = mode }
+                        .padding(horizontal = 8.dp, vertical = 3.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    val icon = when (mode) {
+                        MapOverlayMode.POLITICAL -> Icons.Default.Public
+                        MapOverlayMode.ECONOMY -> Icons.Default.AttachMoney
+                        MapOverlayMode.MILITARY -> Icons.Default.Shield
+                        MapOverlayMode.ALLIANCE -> Icons.Default.Handshake
+                    }
+                    Icon(icon, contentDescription = null, tint = if (isSelected) Color.White else Color.Gray, modifier = Modifier.size(11.dp))
+                    Text(
+                        mode.label,
+                        color = if (isSelected) Color.White else Color.LightGray,
+                        fontSize = 9.sp,
+                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.Normal,
+                    )
+                }
+            }
+        }
+
+        // Floating Zoom / Focus Controls (Top Right)
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(x = (-10).dp, y = 10.dp)
                 .clip(RoundedCornerShape(20.dp))
                 .background(Color(0xEE0B131F))
                 .border(1.dp, Color(0x44FFFFFF), RoundedCornerShape(20.dp))
@@ -322,19 +412,17 @@ fun InteractiveWorldMap(
         ) {
             Box(
                 modifier = Modifier
-                    .size(28.dp)
+                    .size(26.dp)
                     .clip(CircleShape)
-                    .clickable {
-                        scale = (scale + 0.4f).coerceAtMost(3.8f)
-                    },
+                    .clickable { scale = (scale + 0.4f).coerceAtMost(3.8f) },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Zoom In", tint = Color.White, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Add, contentDescription = "Zoom In", tint = Color.White, modifier = Modifier.size(14.dp))
             }
 
             Box(
                 modifier = Modifier
-                    .size(28.dp)
+                    .size(26.dp)
                     .clip(CircleShape)
                     .clickable {
                         scale = (scale - 0.4f).coerceAtLeast(1.0f)
@@ -342,26 +430,25 @@ fun InteractiveWorldMap(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Remove, contentDescription = "Zoom Out", tint = Color.White, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Remove, contentDescription = "Zoom Out", tint = Color.White, modifier = Modifier.size(14.dp))
             }
 
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .clickable {
-                        // Focus directly on player HQ
                         scale = 2.0f
                         val targetPanX = -(playerCoord.first - 0.5f) * containerSize.width * 1.5f
                         val targetPanY = -(playerCoord.second - 0.5f) * containerSize.height * 1.5f
                         panOffset = Offset(targetPanX, targetPanY)
                         showCountryDetails = true
                     }
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(horizontal = 6.dp, vertical = 3.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(Icons.Default.GpsFixed, contentDescription = null, tint = NssEmerald, modifier = Modifier.size(14.dp))
-                    Text("FOCUS HQ", color = NssEmerald, fontSize = 9.sp, fontWeight = FontWeight.Black)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Icon(Icons.Default.GpsFixed, contentDescription = null, tint = NssEmerald, modifier = Modifier.size(12.dp))
+                    Text("HQ", color = NssEmerald, fontSize = 9.sp, fontWeight = FontWeight.Black)
                 }
             }
         }

@@ -43,8 +43,8 @@ fun PresidentCard(data: PresidentCardData) {
         modifier = Modifier
             .width(150.dp)
             .clip(RoundedCornerShape(6.dp))
-            .background(Color.White)
-            .border(0.75.dp, Color(0xFFCBD5E1), RoundedCornerShape(6.dp))
+            .background(Color(0xFF1E293B))
+            .border(1.dp, Color(0xFF334155), RoundedCornerShape(6.dp))
             .clickable(onClick = data.onClick)
     ) {
         // Top Photo Area (approx 45%)
@@ -112,10 +112,11 @@ fun PresidentCard(data: PresidentCardData) {
             )
         }
 
-        // White Stats Area
+        // Slate Navy Stats Area
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(Color(0xFF1E293B))
                 .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -125,8 +126,8 @@ fun PresidentCard(data: PresidentCardData) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(label, color = Color.Gray, fontSize = 11.sp)
-                    Text(value, color = if (value.startsWith("+")) Color(0xFF43A047) else if (value.startsWith("-")) Color(0xFFD32F2F) else Color.DarkGray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(label, color = Color.LightGray, fontSize = 11.sp)
+                    Text(value, color = if (value.startsWith("+")) Color(0xFF34D399) else if (value.startsWith("-")) Color(0xFFF87171) else Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

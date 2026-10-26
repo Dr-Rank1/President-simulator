@@ -8,13 +8,13 @@ import androidx.compose.ui.graphics.Color
 val NssPrimary = Color(0xFF0F172A) // Midnight Presidential Navy
 val NssSecondary = Color(0xFF1E293B) // Deep Slate Navy
 val NssAccent = Color(0xFFD97706) // Executive Warm Amber Gold
-val NssBackground = Color(0xFFF1F5F9) // Refined Slate Mist Canvas
-val NssForeground = Color(0xFF0F172A) // Deep Navy Text
-val NssCard = Color(0xFFFFFFFF) // Crisp Pearl White
-val NssGameCard = Color(0xFFFFFFFF)
-val NssMuted = Color(0xFFCBD5E1) // Soft Border Slate
-val NssMutedForeground = Color(0xFF64748B) // Cool Executive Slate
-val NssBorder = Color(0xFFE2E8F0)
+val NssBackground = Color(0xFF0F172A) // Midnight Presidential Canvas
+val NssForeground = Color(0xFFF8FAFC) // Crisp White Text
+val NssCard = Color(0xFF1E293B) // Slate Navy Card
+val NssGameCard = Color(0xFF1E293B)
+val NssMuted = Color(0xFF334155) // Soft Border Slate
+val NssMutedForeground = Color(0xFF94A3B8) // Cool Executive Slate
+val NssBorder = Color(0xFF334155)
 val NssDestructive = Color(0xFFDC2626) // Executive Crimson
 
 val NssEmerald = Color(0xFF059669) // Treasury Green
