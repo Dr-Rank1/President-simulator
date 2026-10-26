@@ -1,5 +1,6 @@
 package com.presidentsimulator.game.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -22,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -96,10 +98,9 @@ fun GlobalHud(
                         }
                     }
                 }
-                Icon(
-                    Icons.Default.ShoppingCart,
+                Image(
+                    painter = painterResource(R.drawable.shop_10),
                     contentDescription = stringResource(R.string.cd_shop),
-                    tint = Color.White,
                     modifier = Modifier
                         .size(26.dp)
                         .clickable(onClick = onOpenShop)
@@ -113,10 +114,9 @@ fun GlobalHud(
             ) {
                 // Money
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Icon(
-                        Icons.Default.AttachMoney,
+                    Image(
+                        painter = painterResource(R.drawable.icon_money),
                         contentDescription = null,
-                        tint = Color.White,
                         modifier = Modifier.size(18.dp)
                     )
                     val dailyIncome = (state.netIncome / 30).let { if (it >= 0) "+${formatCompactMoney(it)}" else formatCompactMoney(it) }
@@ -133,10 +133,9 @@ fun GlobalHud(
 
                 // Approval (star)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Icon(
-                        Icons.Default.Star,
+                    Image(
+                        painter = painterResource(R.drawable.icon_rating),
                         contentDescription = null,
-                        tint = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
@@ -152,10 +151,9 @@ fun GlobalHud(
 
                 // Population
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Icon(
-                        Icons.Default.People,
+                    Image(
+                        painter = painterResource(R.drawable.icon_people),
                         contentDescription = null,
-                        tint = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(

@@ -222,7 +222,7 @@ fun NssLvBadge(level: Int, modifier: Modifier = Modifier) {
 @Composable
 fun NssScreenHeader(
     title: String,
-    imageUrl: String?,
+    imageUrl: Any?,
     statPills: List<Pair<String, String>>,
     gradientColors: List<Color> = listOf(NssPrimary, NssPrimary.copy(alpha = 0.7f)),
     modifier: Modifier = Modifier,

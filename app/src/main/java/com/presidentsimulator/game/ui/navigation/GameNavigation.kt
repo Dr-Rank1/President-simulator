@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import android.widget.Toast
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -88,6 +89,7 @@ import com.presidentsimulator.game.ui.screens.ScienceScreen
 import com.presidentsimulator.game.ui.screens.SecurityScreen
 import com.presidentsimulator.game.ui.screens.SettingsAudioScreen
 import com.presidentsimulator.game.viewmodel.GameViewModel
+import com.presidentsimulator.game.viewmodel.UiEvent
 import kotlin.math.roundToInt
 
 @Composable
@@ -119,6 +121,16 @@ fun GameNavigation(
     val context = LocalContext.current
     val audio = remember(context) { GameAudioManager.getInstance(context) }
     val haptics = LocalHapticFeedback.current
+
+    // One-shot action feedback: the ViewModel stays Android-free, we render it here.
+    LaunchedEffect(viewModel) {
+        viewModel.uiEvents.collect { event ->
+            when (event) {
+                is UiEvent.Notice ->
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
     var showCountrySelect by remember { mutableStateOf(false) }
     var showMarketShop by remember { mutableStateOf(false) }
     var showTutorial by rememberSaveable { mutableStateOf(false) }

@@ -25,7 +25,7 @@ data class GameTileData(
     val amountString: String,
     val icon: ImageVector,
     val topColor: Color,
-    val imageUrl: String? = null,
+    val imageUrl: Any? = null,
     val onClick: () -> Unit
 )
 

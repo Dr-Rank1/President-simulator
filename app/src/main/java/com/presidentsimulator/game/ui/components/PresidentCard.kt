@@ -24,7 +24,7 @@ import coil.compose.AsyncImage
 
 data class PresidentCardData(
     val title: String,
-    val imageUrl: String,
+    val imageUrl: Any,
     val badgeMode: BadgeMode = BadgeMode.UpgradeArrow,
     val badgeText: String = "",
     val stats: List<Pair<String, String>>, // e.g. "Cost" to "-2,000"

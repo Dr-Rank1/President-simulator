@@ -22,7 +22,7 @@ import com.presidentsimulator.game.ui.theme.PhotoScrimAlpha
  */
 @Composable
 fun NssPhotoHeader(
-    imageUrl: String?,
+    imageUrl: Any?,
     fallbackGradient: List<Color>,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
@@ -31,7 +31,7 @@ fun NssPhotoHeader(
     scrimLeftToRight: List<Color>? = null,
 ) {
     Box(modifier = modifier) {
-        if (!imageUrl.isNullOrBlank()) {
+        if (imageUrl != null && (imageUrl !is String || imageUrl.isNotBlank())) {
             SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(imageUrl)

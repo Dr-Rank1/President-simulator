@@ -55,10 +55,10 @@ fun MilitaryScreen(
     modifier: Modifier = Modifier
 ) {
     val hardwareCards = listOf(
-        HardwareCard(MilitaryHardware.TANKS, NssCardImages.ARMORED, ::tanksOwned),
-        HardwareCard(MilitaryHardware.FIGHTER_JETS, NssCardImages.FIGHTER, ::jetsOwned),
-        HardwareCard(MilitaryHardware.NAVAL_SHIPS, NssCardImages.BOMBER, ::shipsOwned),
-        HardwareCard(MilitaryHardware.NUCLEAR_ARSENAL, NssCardImages.INFANTRY, ::nukesOwned),
+        HardwareCard(MilitaryHardware.TANKS, com.presidentsimulator.game.R.drawable.pic_tank, ::tanksOwned),
+        HardwareCard(MilitaryHardware.FIGHTER_JETS, com.presidentsimulator.game.R.drawable.armyfighter, ::jetsOwned),
+        HardwareCard(MilitaryHardware.NAVAL_SHIPS, com.presidentsimulator.game.R.drawable.armydestroyer, ::shipsOwned),
+        HardwareCard(MilitaryHardware.NUCLEAR_ARSENAL, com.presidentsimulator.game.R.drawable.yadernoeoruzhie, ::nukesOwned),
     )
 
     Column(
@@ -81,15 +81,16 @@ fun MilitaryScreen(
         ) {
             val industry = state.militaryIndustry
             val facilities = listOf(
-                Triple(MilitaryFacilityType.ARSENAL, industry.arsenals, industry.lastTanksProduced),
-                Triple(MilitaryFacilityType.AIRFIELD, industry.airfields, industry.lastJetsProduced),
-                Triple(MilitaryFacilityType.SHIPYARD, industry.shipyards, industry.lastShipsProduced),
+                Triple(MilitaryFacilityType.ARSENAL, industry.arsenals, industry.lastTanksProduced to com.presidentsimulator.game.R.drawable.pic_broneauto),
+                Triple(MilitaryFacilityType.AIRFIELD, industry.airfields, industry.lastJetsProduced to com.presidentsimulator.game.R.drawable.aircraftfactory),
+                Triple(MilitaryFacilityType.SHIPYARD, industry.shipyards, industry.lastShipsProduced to com.presidentsimulator.game.R.drawable.armycruiser),
             )
-            items(facilities) { (type, count, produced) ->
+            items(facilities) { (type, count, producedAndImage) ->
+                val (produced, img) = producedAndImage
                 PresidentCard(
                     PresidentCardData(
                         title = type.displayName,
-                        imageUrl = NssCardImages.ARMORED,
+                        imageUrl = img,
                         badgeMode = BadgeMode.UpgradeArrow,
                         stats = listOf(
                             "Owned" to count.toString(),
@@ -186,7 +187,7 @@ fun MilitaryScreen(
 
 private data class HardwareCard(
     val hardware: MilitaryHardware,
-    val imageUrl: String,
+    val imageUrl: Any,
     val ownedOf: (GameState) -> Int,
 )
 

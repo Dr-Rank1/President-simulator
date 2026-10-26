@@ -77,7 +77,21 @@ fun DiplomacyScreen(
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = rival.flagEmoji, fontSize = 28.sp)
+                        val context = androidx.compose.ui.platform.LocalContext.current
+                        val flagRes = com.presidentsimulator.game.ui.components.CountryFlagHelper.getFlagResId(context, rival.id, rival.name)
+                        if (flagRes != 0) {
+                            androidx.compose.foundation.Image(
+                                painter = androidx.compose.ui.res.painterResource(flagRes),
+                                contentDescription = rival.name,
+                                modifier = Modifier
+                                    .size(width = 38.dp, height = 26.dp)
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .border(0.5.dp, Color(0xFFCBD5E1), RoundedCornerShape(3.dp)),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                            )
+                        } else {
+                            Text(text = rival.flagEmoji, fontSize = 28.sp)
+                        }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(text = rival.name, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))

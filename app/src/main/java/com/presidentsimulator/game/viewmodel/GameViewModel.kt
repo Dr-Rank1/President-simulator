@@ -2,7 +2,6 @@ package com.presidentsimulator.game.viewmodel
 
 import android.app.Application
 import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.presidentsimulator.game.data.ActiveCrisisState
@@ -61,11 +60,14 @@ import com.presidentsimulator.game.data.TechCatalog
 import com.presidentsimulator.game.data.StoryArcEngine
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -116,6 +118,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     /** How many past months the player can roll back right now. */
     private val _undoCount = MutableStateFlow(0)
     val undoCount: StateFlow<Int> = _undoCount.asStateFlow()
+
+    /** One-shot feedback (formerly Toasts) rendered by the UI layer — see [UiEvent]. */
+    private val _uiEvents = Channel<UiEvent>(Channel.BUFFERED)
+    val uiEvents: Flow<UiEvent> = _uiEvents.receiveAsFlow()
 
     /** Pre-tick snapshots of the most recent months, newest last. */
     private val undoStack = ArrayDeque<GameState>()
@@ -180,20 +186,22 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         Context.MODE_PRIVATE,
     )
 
-    
+    private fun notifyUser(message: String, success: Boolean) {
+        _uiEvents.trySend(UiEvent.Notice(message, success))
+    }
+
     private fun applyActionWithFeedback(successMsg: String, failMsg: String, block: (GameState) -> GameState) {
         var success = false
         _state.update { old ->
             val new = block(old)
-            if (new !== old) success = true
+            // Structural comparison: an engine that copies on a failed action still
+            // compares equal, so it can no longer report a false success.
+            if (new != old) success = true
             new
         }
-        if (success) {
-            Toast.makeText(getApplication(), successMsg, Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(getApplication(), failMsg, Toast.LENGTH_SHORT).show()
-        }
+        notifyUser(if (success) successMsg else failMsg, success)
     }
+    
 
     
     private val _showTutorial = MutableStateFlow(false)
@@ -465,8 +473,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             if (new !== old) success = true
             new
         }
-        if (success) Toast.makeText(getApplication(), "Trade Deal Proposed.", Toast.LENGTH_SHORT).show()
-        else Toast.makeText(getApplication(), "Trade Deal Failed (Check requirements).", Toast.LENGTH_SHORT).show()
+        if (success) notifyUser("Trade Deal Proposed.", true)
+        else notifyUser("Trade Deal Failed (Check requirements).", false)
     }
 
     fun cancelTradeDeal(dealId: String) {
@@ -477,7 +485,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             if (new !== old) success = true
             new
         }
-        if (success) Toast.makeText(getApplication(), "Trade Deal Cancelled.", Toast.LENGTH_SHORT).show()
+        if (success) notifyUser("Trade Deal Cancelled.", true)
     }
 
     fun setTariffRate(rate: Float) {
@@ -967,11 +975,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val legal = _state.value.legal
         // Distinguish the real reason instead of always blaming the budget.
         if (legal.isActive(lawId)) {
-            Toast.makeText(getApplication(), "${law.name} is already in force.", Toast.LENGTH_SHORT).show()
+            notifyUser("${law.name} is already in force.", false)
             return
         }
         if (legal.pendingLaws.any { it.lawId == lawId }) {
-            Toast.makeText(getApplication(), "${law.name} is already before parliament.", Toast.LENGTH_SHORT).show()
+            notifyUser("${law.name} is already before parliament.", false)
             return
         }
         applyActionWithFeedback(
@@ -992,7 +1000,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (_currentActiveEvent.value != null) return
         val law = com.presidentsimulator.game.data.LawCatalog.byId(lawId) ?: return
         if (_state.value.legal.pendingLaws.any { it.lawId == lawId }) {
-            Toast.makeText(getApplication(), "${law.name} already has a bill before parliament.", Toast.LENGTH_SHORT).show()
+            notifyUser("${law.name} already has a bill before parliament.", false)
             return
         }
         applyActionWithFeedback(
@@ -1080,8 +1088,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             if (new !== old) success = true
             new
         }
-        if (success) Toast.makeText(getApplication(), "Foreign Aid Sent.", Toast.LENGTH_SHORT).show()
-        else Toast.makeText(getApplication(), "Action Failed (Insufficient Budget/Cooldown).", Toast.LENGTH_SHORT).show()
+        if (success) notifyUser("Foreign Aid Sent.", true)
+        else notifyUser("Action Failed (Insufficient Budget/Cooldown).", false)
     }
 
     fun canSendForeignAid(targetCountryId: String): Boolean =
@@ -1095,8 +1103,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             if (new !== old) success = true
             new
         }
-        if (success) Toast.makeText(getApplication(), "State Visit Completed.", Toast.LENGTH_SHORT).show()
-        else Toast.makeText(getApplication(), "Action Failed (Insufficient Capital/Cooldown).", Toast.LENGTH_SHORT).show()
+        if (success) notifyUser("State Visit Completed.", true)
+        else notifyUser("Action Failed (Insufficient Capital/Cooldown).", false)
     }
 
     fun canConductStateVisit(targetCountryId: String): Boolean =
@@ -1501,6 +1509,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
          */
         const val EVENT_COOLDOWN_MONTHS = 12
     }
+}
+
+/** One-shot effects surfaced by [GameViewModel] for the UI layer to render. */
+sealed interface UiEvent {
+    data class Notice(val message: String, val success: Boolean) : UiEvent
 }
 
 fun Long.toBudgetString(): String {
