@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -33,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.HistoricalSnapshot
 import com.presidentsimulator.game.data.LegacyPillar
+import com.presidentsimulator.game.ui.components.CountryFlag
 import com.presidentsimulator.game.data.LegacyTone
 import com.presidentsimulator.game.ui.components.NssCardImages
 import com.presidentsimulator.game.ui.components.NssCardShape
@@ -446,7 +448,7 @@ private fun WorldStandingsPanel(state: GameState) {
                     .padding(vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(rival.flagEmoji, fontSize = 11.sp)
+                CountryFlag(countryName = rival.name, modifier = Modifier.size(width = 16.dp, height = 11.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(
                     rival.name,
@@ -471,7 +473,7 @@ private fun WorldStandingsPanel(state: GameState) {
                 .padding(vertical = 4.dp, horizontal = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(state.playerNation.flagEmoji, fontSize = 11.sp)
+            CountryFlag(countryName = state.playerNation.name, modifier = Modifier.size(width = 16.dp, height = 11.dp))
             Spacer(Modifier.width(6.dp))
             Text(
                 "${state.playerNation.name} (YOU)",

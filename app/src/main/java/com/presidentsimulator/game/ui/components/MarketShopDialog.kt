@@ -1,6 +1,8 @@
 package com.presidentsimulator.game.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -18,6 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -90,23 +95,38 @@ fun MarketShopDialog(
                         .padding(horizontal = 10.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "${commodity.iconEmoji} ${commodity.displayName}",
-                            color = NssForeground,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Black,
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Image(
+                            painter = painterResource(id = commodity.imageRes),
+                            contentDescription = commodity.displayName,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .border(0.5.dp, Color(0xFF334155), RoundedCornerShape(4.dp)),
                         )
-                        Text(
-                            "${formatCompactMoney(price)} / unit${if (tariffRate > 0f) " · +${(tariffRate * 100).roundToInt()}% tariff" else ""}",
-                            color = NssMutedForeground,
-                            fontSize = 9.sp,
-                        )
-                        Text(
-                            "Stockpile: ${formatCompactNumber(stock)}",
-                            color = Color(0xFF8ECBFF),
-                            fontSize = 9.sp,
-                        )
+                        Column {
+                            Text(
+                                commodity.displayName.uppercase(),
+                                color = NssForeground,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Black,
+                            )
+                            Text(
+                                "${formatCompactMoney(price)} / unit${if (tariffRate > 0f) " · +${(tariffRate * 100).roundToInt()}% tariff" else ""}",
+                                color = NssMutedForeground,
+                                fontSize = 9.sp,
+                            )
+                            Text(
+                                "Stockpile: ${formatCompactNumber(stock)}",
+                                color = Color(0xFF8ECBFF),
+                                fontSize = 9.sp,
+                            )
+                        }
                     }
                     Text(
                         if (up) "▲ $deltaPct%" else "▼ ${abs(deltaPct)}%",

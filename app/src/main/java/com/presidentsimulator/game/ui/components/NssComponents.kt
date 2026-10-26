@@ -1,6 +1,7 @@
 package com.presidentsimulator.game.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Remove
@@ -45,9 +47,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import com.presidentsimulator.game.R
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -652,18 +656,28 @@ fun NssSectorCard(
             }
             NssXpBar(percent = xpPercent.toFloat())
             if (revenueLabel != null) {
-                Text(
-                    text = "💰 $revenueLabel",
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = NssMutedForeground,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_money),
+                        contentDescription = null,
+                        modifier = Modifier.size(10.dp),
+                    )
+                    Text(
+                        text = revenueLabel,
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = NssMutedForeground,
+                    )
+                }
             }
         }
         Text(
             text = when {
-                !investEnabled -> "👁 Overview"
-                invested -> "✓ Investing"
+                !investEnabled -> "Overview"
+                invested -> "Investing"
                 else -> investLabel
             },
             modifier = Modifier
@@ -954,7 +968,10 @@ fun NssNationCard(
                 modifier = Modifier.matchParentSize(),
                 scrimTopToBottom = CardHeaderBottomScrim,
             )
-            Text(text = flagEmoji, fontSize = 27.sp)
+            CountryFlag(
+                countryName = nationName,
+                modifier = Modifier.size(width = 44.dp, height = 28.dp).clip(RoundedCornerShape(3.dp))
+            )
             NssBadge(label = status, large = true, modifier = Modifier.align(Alignment.TopStart).padding(6.dp))
             NssBadge(label = threat, modifier = Modifier.align(Alignment.TopEnd).padding(6.dp))
             Text(
@@ -1035,7 +1052,12 @@ fun NssAlertBanner(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(9.dp),
     ) {
-        Text(text = "⚠", color = NssAmber, fontSize = 10.sp)
+        Icon(
+            imageVector = Icons.Default.Warning,
+            contentDescription = "Alert",
+            tint = NssAmber,
+            modifier = Modifier.size(13.dp),
+        )
         Text(text = message.uppercase(), style = MaterialTheme.typography.labelMedium, color = NssAmber)
     }
 }

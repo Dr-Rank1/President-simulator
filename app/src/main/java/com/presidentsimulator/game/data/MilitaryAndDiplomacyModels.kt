@@ -169,6 +169,9 @@ data class RivalNation(
             relationshipScore <= -40 -> DiplomaticStance.HOSTILE
             else -> DiplomaticStance.NEUTRAL
         }
+
+    val flagDrawableRes: Int
+        get() = com.presidentsimulator.game.ui.components.CountryFlagHelper.getFlagResource(name)
 }
 
 enum class DiplomaticStance(val label: String) {

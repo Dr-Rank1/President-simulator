@@ -1,5 +1,6 @@
 package com.presidentsimulator.game.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,12 +16,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.presidentsimulator.game.R
 import com.presidentsimulator.game.data.EventChoice
 import com.presidentsimulator.game.data.EventConsequence
 import com.presidentsimulator.game.data.GameEvent
@@ -142,12 +145,22 @@ fun EventCrisisDialog(
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "⏸ Time paused until resolved",
-                    fontSize = 12.sp,
-                    color = Color(0xFF94A3B8),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                )
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_pause),
+                        contentDescription = null,
+                        modifier = Modifier.size(13.dp),
+                    )
+                    Text(
+                        text = "Time paused until resolved",
+                        fontSize = 12.sp,
+                        color = Color(0xFF94A3B8),
+                    )
+                }
             }
         }
     }

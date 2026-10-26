@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -266,14 +267,12 @@ fun InteractiveWorldMap(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(7.dp)
-                                    .clip(CircleShape)
-                                    .background(NssEmerald)
+                            CountryFlag(
+                                countryName = state?.playerNation?.name ?: "Kenya",
+                                modifier = Modifier.size(width = 14.dp, height = 10.dp)
                             )
                             Text(
-                                text = "${state?.playerNation?.flagEmoji ?: "🇰🇪"} ${(state?.playerNation?.name ?: "KENYA").uppercase()} (HQ)",
+                                text = "${(state?.playerNation?.name ?: "KENYA").uppercase()} (HQ)",
                                 color = Color.White,
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Black,
@@ -331,7 +330,10 @@ fun InteractiveWorldMap(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(3.dp)
                         ) {
-                            Text(powerDossier.flagEmoji, fontSize = 9.sp)
+                            CountryFlag(
+                                countryName = powerDossier.name,
+                                modifier = Modifier.size(width = 13.dp, height = 9.dp)
+                            )
                             when (mapOverlayMode) {
                                 MapOverlayMode.POLITICAL -> {
                                     Text(powerDossier.name.take(6), color = Color.LightGray, fontSize = 8.sp, fontWeight = FontWeight.Bold)
@@ -341,7 +343,12 @@ fun InteractiveWorldMap(
                                 }
                                 MapOverlayMode.MILITARY -> {
                                     if (powerDossier.nuclearPower) {
-                                        Text("☢", color = Color(0xFFFCA5A5), fontSize = 9.sp)
+                                        Icon(
+                                            imageVector = Icons.Default.Warning,
+                                            contentDescription = "Nuclear",
+                                            tint = Color(0xFFFCA5A5),
+                                            modifier = Modifier.size(9.dp),
+                                        )
                                     }
                                     Text("${powerDossier.activeTroops / 1000}k", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Bold)
                                 }
@@ -477,7 +484,10 @@ fun InteractiveWorldMap(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Text(s.playerNation.flagEmoji, fontSize = 24.sp)
+                                CountryFlag(
+                                    countryName = s.playerNation.name,
+                                    modifier = Modifier.size(width = 32.dp, height = 22.dp).clip(RoundedCornerShape(3.dp))
+                                )
                                 Column {
                                     Text(s.playerNation.name.uppercase(), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black)
                                     Text("SOVEREIGN COMMAND • YEAR ${s.year}", color = NssEmerald, fontSize = 9.sp, fontWeight = FontWeight.Bold)
@@ -563,16 +573,10 @@ fun InteractiveWorldMap(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    if (dossier.flagRes != 0) {
-                        Image(
-                            painter = painterResource(id = dossier.flagRes),
-                            contentDescription = dossier.name,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(width = 16.dp, height = 11.dp),
-                        )
-                    } else {
-                        Text(dossier.flagEmoji, fontSize = 10.sp)
-                    }
+                    CountryFlag(
+                        countryName = dossier.name,
+                        modifier = Modifier.size(width = 16.dp, height = 11.dp),
+                    )
                     Text(
                         text = dossier.name,
                         color = if (isPlayer) Color(0xFF6EE7B7) else Color.White,

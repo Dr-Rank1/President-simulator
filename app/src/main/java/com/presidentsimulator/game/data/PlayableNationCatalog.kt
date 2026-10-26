@@ -31,6 +31,9 @@ object PlayableNationCatalog {
         val gdpYear: Int = 0,
         val statusNote: String = "",
     ) {
+        val flagDrawableRes: Int
+            get() = com.presidentsimulator.game.ui.components.CountryFlagHelper.getFlagResource(name)
+
         fun toPlayerNation(): PlayerNation = PlayerNation(
             id = id,
             name = name,

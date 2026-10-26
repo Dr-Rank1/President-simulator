@@ -265,7 +265,22 @@ fun WarRoomDialog(
                             )
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(commander.name, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                Text(commander.rank, color = Color(0xFFFBBF24), fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    repeat(4) {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.stararmy),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(9.dp),
+                                        )
+                                    }
+                                    Spacer(Modifier.width(3.dp))
+                                    Text(
+                                        text = commander.rank.replace(" (4-Star)", "").replace(" (★★★★)", ""),
+                                        color = Color(0xFFFBBF24),
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                }
                                 Text(commander.roleTitle, color = Color.LightGray, fontSize = 9.sp)
                             }
                             Column(horizontalAlignment = Alignment.End) {

@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.presidentsimulator.game.R
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.VictoryThresholds
+import com.presidentsimulator.game.ui.components.CountryFlag
 import com.presidentsimulator.game.ui.components.DominancePanel
 import com.presidentsimulator.game.ui.components.NewsTicker
 import com.presidentsimulator.game.ui.components.formatCompactMoney
@@ -231,17 +232,23 @@ fun MainDashboardScreen(
                     fontWeight = FontWeight.Black,
                 )
                 state.territory.conquered.take(6).forEach { territory ->
-                    Text(
-                        "${territory.flagEmoji} ${territory.name}",
-                        color = when (territory.status) {
-                            com.presidentsimulator.game.data.TerritoryStatus.ANNEXED -> NssRed
-                            com.presidentsimulator.game.data.TerritoryStatus.PUPPET -> NssAccent
-                            com.presidentsimulator.game.data.TerritoryStatus.LIBERATED -> NssEmerald
-                        },
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    ) {
+                        CountryFlag(countryName = territory.name, modifier = Modifier.size(width = 12.dp, height = 8.dp))
+                        Text(
+                            territory.name,
+                            color = when (territory.status) {
+                                com.presidentsimulator.game.data.TerritoryStatus.ANNEXED -> NssRed
+                                com.presidentsimulator.game.data.TerritoryStatus.PUPPET -> NssAccent
+                                com.presidentsimulator.game.data.TerritoryStatus.LIBERATED -> NssEmerald
+                            },
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                        )
+                    }
                 }
                 Spacer(Modifier.weight(1f))
                 Text(

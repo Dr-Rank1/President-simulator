@@ -1,5 +1,6 @@
 package com.presidentsimulator.game.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,16 +12,21 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.presidentsimulator.game.R
 import com.presidentsimulator.game.data.DeploymentStatus
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.WarState
@@ -80,13 +86,23 @@ fun ActiveWarPanel(
             highlighted = true,
         ) {
         NssBadge(label = "WAR ROOM", large = true)
-        Text(
-            text = "⚔ Engaged with $rivalName",
-            fontWeight = FontWeight.Black,
-            fontSize = 13.sp,
-            color = NssForeground,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             modifier = Modifier.padding(top = 6.dp),
-        )
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.icon_swords),
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+            )
+            Text(
+                text = "Engaged with $rivalName",
+                fontWeight = FontWeight.Black,
+                fontSize = 13.sp,
+                color = NssForeground,
+            )
+        }
         Text(
             text = "Month ${war.monthsActive} · Goal: ${war.warGoal.displayName} · Posture: ${state.military.deployment.name}",
             fontSize = 8.sp,
@@ -122,12 +138,14 @@ fun ActiveWarPanel(
         Text("TACTICAL ORDERS", fontSize = 8.sp, fontWeight = FontWeight.Black, color = NssMutedForeground, letterSpacing = 8.sp)
 
         WarActionButton(
-            label = if (state.military.deployment == DeploymentStatus.MOBILIZED) "Launch Offensive (Active)" else "⚔ Launch Offensive",
+            label = if (state.military.deployment == DeploymentStatus.MOBILIZED) "Offensive Posture (Active)" else "Launch Ground Offensive",
+            iconRes = R.drawable.icon_swords,
             color = NssRed,
             onClick = onLaunchOffensive,
         )
         WarActionButton(
-            label = if (state.military.deployment == DeploymentStatus.DEFENSIVE) "Hold Line (Active)" else "🛡 Hold Defensive Line",
+            label = if (state.military.deployment == DeploymentStatus.DEFENSIVE) "Defensive Line (Active)" else "Hold Defensive Line",
+            iconRes = R.drawable.icon_shield,
             color = Color(0xFF1E3A6E),
             onClick = onHoldDefensiveLine,
         )
@@ -162,9 +180,9 @@ private fun WarActionButton(
     color: Color,
     onClick: () -> Unit,
     enabled: Boolean = true,
+    @androidx.annotation.DrawableRes iconRes: Int? = null,
 ) {
-    Text(
-        text = label,
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 6.dp)
@@ -172,9 +190,23 @@ private fun WarActionButton(
             .background(if (enabled) color else color.copy(alpha = 0.35f))
             .clickable(enabled = enabled, onClick = onClick)
             .padding(vertical = 7.dp),
-        color = NssOnPhoto,
-        fontWeight = FontWeight.Bold,
-        fontSize = 9.sp,
-        textAlign = TextAlign.Center,
-    )
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (iconRes != null) {
+            Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(13.dp),
+            )
+            Spacer(Modifier.width(6.dp))
+        }
+        Text(
+            text = label,
+            color = NssOnPhoto,
+            fontWeight = FontWeight.Bold,
+            fontSize = 9.sp,
+            textAlign = TextAlign.Center,
+        )
+    }
 }

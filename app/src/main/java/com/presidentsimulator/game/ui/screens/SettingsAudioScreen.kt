@@ -10,9 +10,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
@@ -141,19 +146,30 @@ fun SettingsAudioScreen(
                     colors = SliderDefaults.colors(thumbColor = NssPrimary, activeTrackColor = NssPrimary, inactiveTrackColor = NssBorder),
                 )
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = "🔊 Test Sound",
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(NssCardShape)
                         .background(if (sfxEnabled) NssAccent else NssAccent.copy(alpha = 0.35f))
                         .clickable(enabled = sfxEnabled) { audio.playSfx(SfxType.CLICK); diagnosticsTick++ }
                         .padding(vertical = 7.dp),
-                    color = NssOnPhoto,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 9.sp,
-                    textAlign = TextAlign.Center,
-                )
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.VolumeUp,
+                        contentDescription = null,
+                        tint = NssOnPhoto,
+                        modifier = Modifier.size(13.dp),
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = "Test Sound",
+                        color = NssOnPhoto,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 9.sp,
+                    )
+                }
             }
             }
 

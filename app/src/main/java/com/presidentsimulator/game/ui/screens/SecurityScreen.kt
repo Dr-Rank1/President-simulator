@@ -1,6 +1,7 @@
 package com.presidentsimulator.game.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -45,6 +47,7 @@ import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.MissionType
 import com.presidentsimulator.game.data.SecurityProtocol
 import com.presidentsimulator.game.ui.components.ActiveOperationCard
+import com.presidentsimulator.game.ui.components.CountryFlag
 import com.presidentsimulator.game.ui.components.DisasterResponseSection
 import com.presidentsimulator.game.ui.components.GameTile
 import com.presidentsimulator.game.ui.components.GameTileData
@@ -277,18 +280,25 @@ private fun IntelligencePanel(state: GameState, viewModel: GameViewModel) {
             ) {
                 state.diplomacy.rivals.take(4).forEach { rival ->
                     val selected = rival.id == selectedTarget
-                    Text(
-                        text = "${rival.flagEmoji} ${rival.name.take(9)}",
-                        fontSize = 8.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (selected) NssOnPhoto else NssForeground,
-                        textAlign = TextAlign.Center,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
                         modifier = Modifier
                             .clip(NssCardShape)
-                            .background(if (selected) NssPrimary else Color(0xFFEDECE8))
+                            .background(if (selected) NssPrimary else Color(0xFF1E293B))
+                            .border(0.5.dp, if (selected) Color(0xFFD97706) else Color(0xFF334155), NssCardShape)
                             .clickable { selectedTarget = rival.id }
                             .padding(horizontal = 6.dp, vertical = 6.dp),
-                    )
+                    ) {
+                        CountryFlag(countryName = rival.name, modifier = Modifier.size(width = 14.dp, height = 10.dp))
+                        Text(
+                            text = rival.name.take(9),
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (selected) NssOnPhoto else NssForeground,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
 

@@ -28,6 +28,7 @@ import com.presidentsimulator.game.R
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.TreatyType
 import com.presidentsimulator.game.data.WarGoal
+import com.presidentsimulator.game.ui.components.CountryFlag
 import com.presidentsimulator.game.ui.components.CountryFlagHelper
 import com.presidentsimulator.game.ui.components.formatCompactMoney
 import com.presidentsimulator.game.ui.theme.NssAccent
@@ -164,21 +165,13 @@ fun DiplomacyScreen(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            val context = LocalContext.current
-                            val flagRes = CountryFlagHelper.getFlagResId(context, rival.id, rival.name)
-                            if (flagRes != 0) {
-                                Image(
-                                    painter = painterResource(flagRes),
-                                    contentDescription = rival.name,
-                                    modifier = Modifier
-                                        .size(width = 38.dp, height = 26.dp)
-                                        .clip(RoundedCornerShape(3.dp))
-                                        .border(0.5.dp, Color(0xFF64748B), RoundedCornerShape(3.dp)),
-                                    contentScale = ContentScale.Crop,
-                                )
-                            } else {
-                                Text(text = rival.flagEmoji, fontSize = 24.sp)
-                            }
+                            CountryFlag(
+                                countryName = rival.name,
+                                modifier = Modifier
+                                    .size(width = 38.dp, height = 26.dp)
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .border(0.5.dp, Color(0xFF64748B), RoundedCornerShape(3.dp)),
+                            )
 
                             Spacer(modifier = Modifier.width(10.dp))
 

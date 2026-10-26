@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -21,9 +22,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,9 +48,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.presidentsimulator.game.R
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -512,11 +523,11 @@ fun GameNavigation(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(
-                        text = if (notice.success) "✓" else "⚠",
-                        color = Color.White,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Black,
+                    Icon(
+                        imageVector = if (notice.success) Icons.Default.CheckCircle else Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = if (notice.success) Color(0xFF34D399) else Color(0xFFF87171),
+                        modifier = Modifier.size(16.dp),
                     )
                     Text(
                         text = notice.message,
@@ -685,7 +696,20 @@ private fun CampaignEndDialog(
                 val honors = campaignHonors(campaign, isVictory)
                 if (honors.isNotEmpty()) {
                     Text("HONORS", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
-                    honors.forEach { honor -> Text("✦  $honor", fontSize = 11.sp, color = NssForeground, modifier = Modifier.padding(top = 3.dp)) }
+                    honors.forEach { honor ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(top = 3.dp),
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.stararmy),
+                                contentDescription = null,
+                                modifier = Modifier.size(10.dp),
+                            )
+                            Text(honor, fontSize = 11.sp, color = NssForeground)
+                        }
+                    }
                 }
                 val eraHeadlines = campaign.news.entries.take(6)
                 if (eraHeadlines.isNotEmpty()) {
@@ -703,7 +727,23 @@ private fun CampaignEndDialog(
                 if (campaign.mandate.lastReview.isNotEmpty()) {
                     Text("TERM PROMISE REVIEW", fontSize = 9.sp, fontWeight = FontWeight.Black, color = NssAccent, letterSpacing = 1.sp, modifier = Modifier.padding(top = 8.dp))
                     campaign.mandate.lastReview.forEach { result ->
-                        Text("${if (result.fulfilled) "✓" else "×"} ${result.goal.title} · ${result.review}", fontSize = 10.sp, color = if (result.fulfilled) NssEmerald else NssMutedForeground, modifier = Modifier.padding(top = 3.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.padding(top = 3.dp),
+                        ) {
+                            Icon(
+                                imageVector = if (result.fulfilled) Icons.Default.Check else Icons.Default.Close,
+                                contentDescription = null,
+                                tint = if (result.fulfilled) NssEmerald else NssMutedForeground,
+                                modifier = Modifier.size(12.dp),
+                            )
+                            Text(
+                                "${result.goal.title} · ${result.review}",
+                                fontSize = 10.sp,
+                                color = if (result.fulfilled) NssEmerald else NssMutedForeground,
+                            )
+                        }
                     }
                 }
             }

@@ -39,6 +39,9 @@ data class PlayerNation(
         countryId == id || countryId == LEGACY_PLAYER_COUNTRY_ID
 
     fun resolvedPerk(): NationalPerk = NationalPerkEffects.forNationId(id)
+
+    val flagDrawableRes: Int
+        get() = com.presidentsimulator.game.ui.components.CountryFlagHelper.getFlagResource(name)
 }
 
 /**

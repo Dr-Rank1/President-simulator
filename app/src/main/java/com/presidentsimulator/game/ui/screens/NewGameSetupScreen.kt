@@ -31,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -55,6 +56,7 @@ import com.presidentsimulator.game.data.PlayableNationCatalog
 import com.presidentsimulator.game.data.ScenarioCatalog
 import com.presidentsimulator.game.data.StateReligion
 import com.presidentsimulator.game.data.VictoryPath
+import com.presidentsimulator.game.ui.components.CountryFlag
 import com.presidentsimulator.game.ui.theme.NssAccent
 import com.presidentsimulator.game.ui.theme.NssBackground
 import com.presidentsimulator.game.ui.theme.NssPrimary
@@ -115,7 +117,10 @@ fun NewGameSetupScreen(
                 )
             }
             nation?.let {
-                Text(it.flagEmoji, fontSize = 26.sp)
+                CountryFlag(
+                    countryName = it.name,
+                    modifier = Modifier.size(width = 34.dp, height = 23.dp).clip(RoundedCornerShape(3.dp))
+                )
                 Spacer(Modifier.width(8.dp))
             }
         }
@@ -287,8 +292,11 @@ private fun androidx.compose.foundation.layout.ColumnScope.NationStep(
                         .padding(8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Text(n.flagEmoji, fontSize = 22.sp)
-                    Spacer(Modifier.height(3.dp))
+                    CountryFlag(
+                        countryName = n.name,
+                        modifier = Modifier.size(width = 30.dp, height = 20.dp).clip(RoundedCornerShape(3.dp))
+                    )
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         n.name,
                         color = if (selected) Color.White else Color(0xFFB7C2D0),
@@ -333,9 +341,21 @@ private fun LeaderStep(
         )
         if (nation != null) {
             Spacer(Modifier.height(14.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                CountryFlag(countryName = nation.name, modifier = Modifier.size(width = 24.dp, height = 16.dp))
+                Text(
+                    "${nation.name} — ${nation.officialName}",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            Spacer(Modifier.height(6.dp))
             Text(
-                "${nation.flagEmoji} ${nation.name} — ${nation.officialName}\n\n" +
-                    "You will rule ${nation.name} as its ${title.ifBlank { nation.governmentSystem.executiveTitle }}. " +
+                "You will rule ${nation.name} as its ${title.ifBlank { nation.governmentSystem.executiveTitle }}. " +
                     "Your first acts will define the era to come.",
                 color = Color(0xFFB7C2D0),
                 fontSize = 11.sp,
@@ -420,19 +440,36 @@ private fun VictoryPathStep(
                 Spacer(Modifier.height(3.dp))
                 Text(path.goalLabel, color = Color(0xFFB7C2D0), fontSize = 10.sp, lineHeight = 14.sp)
                 if (selected == path) {
-                    Spacer(Modifier.height(3.dp))
-                    Text("✓ SELECTED", color = Color(0xFF4ADE80), fontSize = 9.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color(0xFF4ADE80),
+                            modifier = Modifier.size(12.dp),
+                        )
+                        Text("SELECTED", color = Color(0xFF4ADE80), fontSize = 9.sp, fontWeight = FontWeight.Black)
+                    }
                 }
             }
         }
         nation?.let {
             Spacer(Modifier.height(8.dp))
-            Text(
-                "${it.flagEmoji} The story of ${it.name} awaits its greatest era — or its final one.",
-                color = NssAccent,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                CountryFlag(countryName = it.name, modifier = Modifier.size(width = 16.dp, height = 11.dp))
+                Text(
+                    "The story of ${it.name} awaits its greatest era — or its final one.",
+                    color = NssAccent,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
     }
 }

@@ -16,7 +16,15 @@ enum class TradeCommodity(
     OIL("Oil", "🛢", 12_000_000L, 0.08f),
     STEEL("Steel", "⚙", 8_000_000L, 0.05f),
     GRAIN("Grain", "🌾", 5_000_000L, 0.06f),
-    CONSUMER_GOODS("Consumer Goods", "📦", 15_000_000L, 0.04f),
+    CONSUMER_GOODS("Consumer Goods", "📦", 15_000_000L, 0.04f);
+
+    val imageRes: Int
+        get() = when (this) {
+            OIL -> com.presidentsimulator.game.R.drawable.neftplatforma
+            STEEL -> com.presidentsimulator.game.R.drawable.ferrousmetallurgy
+            GRAIN -> com.presidentsimulator.game.R.drawable.foodindestry
+            CONSUMER_GOODS -> com.presidentsimulator.game.R.drawable.ic_production
+        }
 }
 
 /**

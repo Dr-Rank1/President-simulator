@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +34,7 @@ import androidx.compose.ui.window.Dialog
 import com.presidentsimulator.game.data.Alliance
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.data.ResolutionType
+import com.presidentsimulator.game.ui.components.CountryFlag
 import com.presidentsimulator.game.data.UNResolution
 import com.presidentsimulator.game.ui.components.NssBadge
 import com.presidentsimulator.game.ui.components.NssCardImages
@@ -252,8 +254,7 @@ private fun ProposalCard(
             Text("Target nation", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = NssPrimary)
             state.diplomacy.rivals.forEach { rival ->
                 val selected = selectedTarget == rival.id
-                Text(
-                    text = "${rival.flagEmoji} ${rival.name}",
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 2.dp)
@@ -261,10 +262,17 @@ private fun ProposalCard(
                         .background(if (selected) NssPrimary.copy(alpha = 0.15f) else NssMutedForeground.copy(alpha = 0.08f))
                         .clickable { selectedTarget = rival.id }
                         .padding(horizontal = 12.dp, vertical = 8.dp),
-                    fontSize = 12.sp,
-                    color = if (selected) NssPrimary else NssForeground,
-                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    CountryFlag(countryName = rival.name, modifier = Modifier.size(width = 18.dp, height = 12.dp))
+                    Text(
+                        text = rival.name,
+                        fontSize = 12.sp,
+                        color = if (selected) NssPrimary else NssForeground,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                    )
+                }
             }
         }
 
@@ -351,12 +359,18 @@ private fun BribeNationRow(
     val rival = state.diplomacy.rivalById(countryId)
 
     NssPanel(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "${rival?.flagEmoji.orEmpty()} $name",
-            fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
-            color = NssForeground,
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            CountryFlag(countryName = name, modifier = Modifier.size(width = 20.dp, height = 14.dp))
+            Text(
+                text = name,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                color = NssForeground,
+            )
+        }
         Text(
             text = "Relations: ${rival?.relationshipScore ?: 0} · Cost ${GovernanceEngine.BRIBE_COST.toBudgetString()}",
             fontSize = 11.sp,
@@ -486,12 +500,19 @@ private fun AllianceCard(
         Text("Members", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = NssPrimary)
         alliance.memberCountryIds.forEach { memberId ->
             val rival = state.diplomacy.rivalById(memberId)
-            val label = if (state.playerNation.matchesCountryId(memberId)) {
-                "${state.playerNation.flagEmoji} ${state.playerNation.name}"
+            val memberName = if (state.playerNation.matchesCountryId(memberId)) {
+                state.playerNation.name
             } else {
-                "${rival?.flagEmoji.orEmpty()} ${rival?.name ?: memberId}"
+                rival?.name ?: memberId
             }
-            Text(text = "• $label", fontSize = 12.sp, color = NssForeground)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.padding(vertical = 2.dp),
+            ) {
+                CountryFlag(countryName = memberName, modifier = Modifier.size(width = 16.dp, height = 11.dp))
+                Text(text = memberName, fontSize = 12.sp, color = NssForeground)
+            }
         }
         if (state.playerNation.matchesCountryId(alliance.leaderCountryId)) {
             Spacer(modifier = Modifier.height(8.dp))
@@ -555,14 +576,15 @@ private fun CreateAllianceDialog(
                 Text("No eligible partners. Improve relations first.", fontSize = 12.sp, color = NssRed)
             } else {
                 eligible.forEach { rival ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Checkbox(
                             checked = rival.id in selected,
                             onCheckedChange = { checked ->
                                 selected = if (checked) selected + rival.id else selected - rival.id
                             },
                         )
-                        Text("${rival.flagEmoji} ${rival.name} (${rival.relationshipScore})", fontSize = 12.sp)
+                        CountryFlag(countryName = rival.name, modifier = Modifier.size(width = 16.dp, height = 11.dp))
+                        Text("${rival.name} (${rival.relationshipScore})", fontSize = 12.sp)
                     }
                 }
             }

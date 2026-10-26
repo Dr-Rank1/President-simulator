@@ -22,12 +22,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -87,19 +89,13 @@ fun CountryDossierDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    if (dossier.flagRes != 0) {
-                        Image(
-                            painter = painterResource(id = dossier.flagRes),
-                            contentDescription = dossier.name,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(width = 38.dp, height = 26.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .border(0.5.dp, Color.White, RoundedCornerShape(4.dp)),
-                        )
-                    } else {
-                        Text(dossier.flagEmoji, fontSize = 26.sp)
-                    }
+                    CountryFlag(
+                        countryName = dossier.name,
+                        modifier = Modifier
+                            .size(width = 38.dp, height = 26.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .border(0.5.dp, Color.White, RoundedCornerShape(4.dp)),
+                    )
 
                     Column {
                         Text(
@@ -185,12 +181,23 @@ fun CountryDossierDialog(
                     fontSize = 11.sp,
                 )
                 if (dossier.nuclearPower) {
-                    Text(
-                        text = "☢ NUCLEAR CAPABLE",
-                        color = Color(0xFFF59E0B),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = "Nuclear",
+                            tint = Color(0xFFF59E0B),
+                            modifier = Modifier.size(13.dp),
+                        )
+                        Text(
+                            text = "NUCLEAR CAPABLE",
+                            color = Color(0xFFF59E0B),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Black,
+                        )
+                    }
                 }
             }
 
@@ -208,13 +215,15 @@ fun CountryDossierDialog(
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ActionChip(
-                    label = if (dossier.hasEmbassy) "✓ Embassy Open" else "Open Embassy",
+                    label = if (dossier.hasEmbassy) "Embassy Open" else "Open Embassy",
+                    icon = if (dossier.hasEmbassy) Icons.Default.Check else null,
                     enabled = !dossier.hasEmbassy,
                     onClick = onOpenEmbassy,
                     modifier = Modifier.weight(1f),
                 )
                 ActionChip(
-                    label = if (dossier.nonAggressionPact) "✓ Non-Aggression" else "Sign NAP Pact",
+                    label = if (dossier.nonAggressionPact) "Non-Aggression" else "Sign NAP Pact",
+                    icon = if (dossier.nonAggressionPact) Icons.Default.Check else null,
                     enabled = !dossier.nonAggressionPact,
                     onClick = onSignNonAggression,
                     modifier = Modifier.weight(1f),
@@ -225,7 +234,8 @@ fun CountryDossierDialog(
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ActionChip(
-                    label = if (dossier.tradeDealActive) "✓ Trade Contract" else "Trade Deal",
+                    label = if (dossier.tradeDealActive) "Trade Contract" else "Trade Deal",
+                    icon = if (dossier.tradeDealActive) Icons.Default.Check else null,
                     enabled = !dossier.tradeDealActive,
                     onClick = onSignTradeDeal,
                     modifier = Modifier.weight(1f),
@@ -304,6 +314,7 @@ private fun ActionChip(
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
 ) {
     Box(
         modifier = modifier
@@ -314,12 +325,25 @@ private fun ActionChip(
             .padding(vertical = 8.dp, horizontal = 6.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = label,
-            color = if (enabled) Color.White else Color(0xFF64748B),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1,
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = if (enabled) Color.White else Color(0xFF64748B),
+                    modifier = Modifier.size(12.dp),
+                )
+            }
+            Text(
+                text = label,
+                color = if (enabled) Color.White else Color(0xFF64748B),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+            )
+        }
     }
 }

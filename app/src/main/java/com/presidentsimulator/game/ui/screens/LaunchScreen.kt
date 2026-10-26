@@ -1,5 +1,6 @@
 package com.presidentsimulator.game.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -27,6 +29,7 @@ import com.presidentsimulator.game.R
 import com.presidentsimulator.game.data.DailyChallengeInfo
 import com.presidentsimulator.game.data.DailyScore
 import com.presidentsimulator.game.data.PlayableNationCatalog
+import com.presidentsimulator.game.ui.components.CountryFlag
 import com.presidentsimulator.game.ui.theme.NssPrimary
 import com.presidentsimulator.game.ui.theme.NssBackground
 import com.presidentsimulator.game.ui.theme.NssForeground
@@ -149,31 +152,49 @@ private fun DailyChallengeSummary(info: DailyChallengeInfo, board: List<DailySco
             .fillMaxWidth()
             .padding(horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        val nationLabel = "${info.flagEmoji} ${info.nationName}"
-        Text(
-            text = if (info.bestScore > 0) {
-                stringResource(R.string.launch_daily_nation_today_best, nationLabel, info.bestScore)
-            } else {
-                stringResource(R.string.launch_daily_nation_today, nationLabel)
-            },
-            color = NssForeground.copy(alpha = 0.7f),
-            fontSize = 11.sp,
-            textAlign = TextAlign.Center,
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            CountryFlag(countryName = info.nationName, modifier = Modifier.size(width = 18.dp, height = 12.dp))
+            val nationLabel = info.nationName
+            Text(
+                text = if (info.bestScore > 0) {
+                    stringResource(R.string.launch_daily_nation_today_best, nationLabel, info.bestScore)
+                } else {
+                    stringResource(R.string.launch_daily_nation_today, nationLabel)
+                },
+                color = NssForeground.copy(alpha = 0.7f),
+                fontSize = 11.sp,
+                textAlign = TextAlign.Center,
+            )
+        }
         val topScores = board.sortedByDescending { it.score }.take(3)
         if (topScores.isNotEmpty()) {
             val formatter = remember { DateTimeFormatter.ofPattern("MMM d") }
             topScores.forEach { entry ->
                 val date = LocalDate.ofEpochDay(entry.epochDay).format(formatter)
                 val nation = PlayableNationCatalog.byId(entry.nationId)?.name ?: entry.nationId
-                Text(
-                    text = "★ ${entry.score} · $nation · $date${if (entry.victory) " · victory" else ""}",
-                    color = NssForeground.copy(alpha = 0.5f),
-                    fontSize = 9.sp,
-                    textAlign = TextAlign.Center,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.stararmy),
+                        contentDescription = null,
+                        modifier = Modifier.size(10.dp),
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = "${entry.score} · $nation · $date${if (entry.victory) " · victory" else ""}",
+                        color = NssForeground.copy(alpha = 0.5f),
+                        fontSize = 9.sp,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
     }

@@ -160,7 +160,7 @@ object VictoryEngine {
 
         val reason = when (path) {
             VictoryPath.MILITARY_DOMINANCE ->
-                "Victory: Military dominance — $controlled nations bow to ${state.effectiveTitle()} ${state.playerNation.flagEmoji}."
+                "Victory: Military dominance — $controlled nations bow to ${state.effectiveTitle()} of ${state.playerNation.name}."
             VictoryPath.RELIGIOUS_DOMINANCE ->
                 "Victory: Religious dominance — ${state.society.stateReligion.displayName} sweeps the world."
             VictoryPath.IDEOLOGICAL_DOMINANCE ->
