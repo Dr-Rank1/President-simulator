@@ -33,19 +33,32 @@ fun DiplomacyScreen(
     viewModel: GameViewModel,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxSize().background(Color(0xFFF5F1E6))) {
+    Column(modifier = modifier.fillMaxSize().background(Color(0xFFF1F5F9))) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF03A9F4))
+                .background(Color(0xFF0F172A))
                 .padding(vertical = 12.dp, horizontal = 16.dp)
         ) {
-            Text(
-                text = "FOREIGN AFFAIRS",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "DIPLOMATIC RELATIONS",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    letterSpacing = 1.sp
+                )
+                Text(
+                    text = "${state.diplomacy.rivals.size} NATIONS",
+                    color = Color(0xFFD97706),
+                    fontWeight = FontWeight.Black,
+                    fontSize = 12.sp
+                )
+            }
         }
 
         LazyColumn(
@@ -73,7 +86,8 @@ fun DiplomacyScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color(0xFFE3F2FD))
+                            .background(Color(0xFFF8FAFC))
+                            .border(width = 0.5.dp, color = Color(0xFFE2E8F0), shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                             .padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {

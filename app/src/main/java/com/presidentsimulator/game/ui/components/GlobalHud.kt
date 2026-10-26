@@ -18,16 +18,20 @@ import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.presidentsimulator.game.audio.SoundManager
 import com.presidentsimulator.game.data.GameState
 import com.presidentsimulator.game.R
 import com.presidentsimulator.game.viewmodel.TimeSpeedMode
@@ -49,6 +53,7 @@ fun GlobalHud(
     onOpenMenu: () -> Unit,
     canUndo: Boolean = false,
     onUndo: () -> Unit = {},
+    onOpenAdvisor: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -105,6 +110,34 @@ fun GlobalHud(
                         .size(26.dp)
                         .clickable(onClick = onOpenShop)
                 )
+
+                val context = LocalContext.current
+                val isMusicOn by SoundManager.isMusicEnabled.collectAsState()
+                LaunchedEffect(Unit) {
+                    SoundManager.initialize(context)
+                }
+
+                Image(
+                    painter = painterResource(if (isMusicOn) R.drawable.icon_music_on else R.drawable.icon_music_off),
+                    contentDescription = "Background Music",
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clickable { SoundManager.toggleMusic(context) }
+                )
+
+                // Chief Presidential Adviser icon (authentic newspaper asset from APK)
+                Box(
+                    modifier = Modifier
+                        .clickable(onClick = onOpenAdvisor)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.newspaper),
+                        contentDescription = "Chief Presidential Adviser",
+                        modifier = Modifier
+                            .height(20.dp)
+                            .width(32.dp)
+                    )
+                }
             }
 
             // Center: Money | Stars | Population
@@ -253,25 +286,27 @@ fun GlobalHud(
             }
         }
 
-        // === TICKER ROW: White bar with news + date ===
+        // === TICKER ROW: Executive White/Slate bar with news + gold date ===
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
-                .padding(horizontal = 8.dp, vertical = 3.dp),
+                .background(Color(0xFFF8FAFC))
+                .clickable(onClick = onOpenAdvisor)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = state.press.headlines.firstOrNull()?.title ?: "All is quiet in the nation.",
-                color = Color(0xFF333333),
+                color = Color(0xFF0F172A),
                 fontSize = 12.sp,
                 maxLines = 1,
                 modifier = Modifier.weight(1f)
             )
             Text(
                 text = state.dateLabel,
-                color = Color(0xFF757575),
+                color = Color(0xFFD97706),
+                fontWeight = FontWeight.Bold,
                 fontSize = 11.sp,
                 modifier = Modifier.padding(start = 8.dp)
             )

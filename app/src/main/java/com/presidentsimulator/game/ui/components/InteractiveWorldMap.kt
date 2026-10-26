@@ -1,4 +1,4 @@
-﻿package com.presidentsimulator.game.ui.components
+package com.presidentsimulator.game.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
@@ -167,7 +167,7 @@ fun InteractiveWorldMap(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF031626))
+            .background(Color(0xFF0F172A))
             .onSizeChanged { containerSize = it }
             .pointerInput(Unit) {
                 detectTransformGestures { _, pan, zoomChange, _ ->
@@ -231,8 +231,8 @@ fun InteractiveWorldMap(
                     // Tactical Sovereign HQ Chip
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = Color(0xFA050A0F),
-                        border = BorderStroke(1.dp, NssEmerald),
+                        color = Color(0xF20F172A),
+                        border = BorderStroke(1.dp, Color(0xFFD97706)),
                         shadowElevation = 6.dp
                     ) {
                         Row(
@@ -364,8 +364,8 @@ fun InteractiveWorldMap(
             state?.let { s ->
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xF2070E1A),
-                    border = BorderStroke(1.5.dp, NssEmerald),
+                    color = Color(0xF20F172A),
+                    border = BorderStroke(1.5.dp, Color(0xFFD97706)),
                     shadowElevation = 16.dp,
                     modifier = Modifier.width(320.dp)
                 ) {
@@ -436,7 +436,7 @@ fun InteractiveWorldMap(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(NssEmerald)
+                                .background(Color(0xFFD97706)) // Executive Gold
                                 .clickable {
                                     showCountryDetails = false
                                     onOpenDiplomacy()

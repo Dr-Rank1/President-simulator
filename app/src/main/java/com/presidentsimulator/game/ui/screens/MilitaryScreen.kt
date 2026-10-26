@@ -64,7 +64,7 @@ fun MilitaryScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F1E6))
+            .background(Color(0xFFF1F5F9))
             .verticalScroll(rememberScrollState())
     ) {
         // War command: only present while a war is running.

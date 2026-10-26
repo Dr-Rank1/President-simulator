@@ -90,8 +90,17 @@ fun BulkBuildControls(
                 if (canBuild) {
                     "$actionLabel (Cost: ${totalCost.toBudgetString()})"
                 } else {
-                    "Cannot Afford"
+                    "Cannot Afford (${unitCost.toBudgetString()})"
                 },
+            )
+        }
+        if (maxAffordable == 0) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "⚠ Insufficient funds: requires ${unitCost.toBudgetString()} per unit",
+                style = MaterialTheme.typography.bodySmall,
+                color = com.presidentsimulator.game.ui.theme.DeficitRed,
+                fontWeight = FontWeight.Bold,
             )
         }
     }

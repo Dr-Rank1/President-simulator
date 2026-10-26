@@ -2,32 +2,35 @@ package com.presidentsimulator.game.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val NssBackground = Color(0xFFF5F1E6) // Beige
-val NssForeground = Color(0xFF333333) // Dark Gray
-val NssCard = Color(0xFFFFFFFF) // White
-val NssGameCard = Color(0xFFFFFFFF) // White
-val NssPrimary = Color(0xFF00ACC1) // Cyan
-val NssSecondary = Color(0xFF0097A7) // Dark Cyan
-val NssMuted = Color(0xFFE0E0E0)
-val NssMutedForeground = Color(0xFF757575)
-val NssAccent = Color(0xFF00ACC1) // Cyan
-val NssBorder = Color(0xFFE0E0E0)
-val NssDestructive = Color(0xFFE53935)
+// === "The Oval Office" Theme Palette ===
+// Deep Presidential Navy, Executive Gold, Crisp Slate, and Rich Sovereignty Accents
 
-val NssEmerald = Color(0xFF43A047)
-val NssSky = Color(0xFF03A9F4)
-val NssAmber = Color(0xFFFFB300)
-val NssRed = Color(0xFFE53935)
-val NssViolet = Color(0xFF8E24AA)
-val NssIndigo = Color(0xFF3949AB)
-val NssOrange = Color(0xFFF4511E)
+val NssPrimary = Color(0xFF0F172A) // Midnight Presidential Navy
+val NssSecondary = Color(0xFF1E293B) // Deep Slate Navy
+val NssAccent = Color(0xFFD97706) // Executive Warm Amber Gold
+val NssBackground = Color(0xFFF1F5F9) // Refined Slate Mist Canvas
+val NssForeground = Color(0xFF0F172A) // Deep Navy Text
+val NssCard = Color(0xFFFFFFFF) // Crisp Pearl White
+val NssGameCard = Color(0xFFFFFFFF)
+val NssMuted = Color(0xFFCBD5E1) // Soft Border Slate
+val NssMutedForeground = Color(0xFF64748B) // Cool Executive Slate
+val NssBorder = Color(0xFFE2E8F0)
+val NssDestructive = Color(0xFFDC2626) // Executive Crimson
+
+val NssEmerald = Color(0xFF059669) // Treasury Green
+val NssSky = Color(0xFF1D4ED8) // Royal Diplomatic Blue
+val NssAmber = Color(0xFFD97706) // Executive Gold
+val NssRed = Color(0xFFDC2626) // State Emergency Red
+val NssViolet = Color(0xFF7C3AED) // Imperial Violet
+val NssIndigo = Color(0xFF312E81) // Deep Indigo
+val NssOrange = Color(0xFFEA580C) // Warning Orange
 
 val NssOnPhoto = Color(0xFFFFFFFF)
-val NssHudMetricsBar = Color(0xFFFFFFFF)
+val NssHudMetricsBar = Color(0xFF0F172A)
 
 val Ma2Teal = NssPrimary
 val Ma2TealDark = NssSecondary
-val Ma2HeaderBlue = NssPrimary
+val Ma2HeaderBlue = Color(0xFF1E3A8A)
 val Ma2HeaderOrange = NssAmber
 val Ma2Green = NssEmerald
 val Ma2Red = NssRed
@@ -41,19 +44,19 @@ val TileRed = NssRed
 val TileGreen = NssEmerald
 val TilePurple = NssViolet
 val TileOrange = NssOrange
-val TileBrown = Color(0xFF795548)
-val TileCyan = NssPrimary
+val TileBrown = Color(0xFF78350F)
+val TileCyan = Color(0xFF0284C7)
 val TileIndigo = NssIndigo
 
-val DeepNavy = Color(0xFF00ACC1)
-val NavySurface = Color.White
-val SlateGray = Color(0xFFE0E0E0)
-val SlateOutline = Color(0xFFE0E0E0)
+val DeepNavy = Color(0xFF0F172A)
+val NavySurface = Color(0xFFFFFFFF)
+val SlateGray = Color(0xFF64748B)
+val SlateOutline = Color(0xFFCBD5E1)
 val StarkWhite = Color(0xFFFFFFFF)
-val NeutralGray = Color(0xFF757575)
-val CommandGold = NssAmber
+val NeutralGray = Color(0xFF64748B)
+val CommandGold = Color(0xFFD97706)
 val ProfitGreen = NssEmerald
 val DeficitRed = NssRed
-val WarningOrange = NssAmber
+val WarningOrange = NssOrange
 val InfoBlue = NssSky
 val CrisisCrimson = NssRed

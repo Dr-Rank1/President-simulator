@@ -14,6 +14,12 @@ object NssCardImages {
     val AGRICULTURE: Any = R.drawable.farm
     val ENERGY: Any = R.drawable.solarpowerplant
     val DEFENSE_IND: Any = R.drawable.radarsystems
+    val NUCLEAR_PLANT: Any = R.drawable.aes
+    val COAL_MINE: Any = R.drawable.ugolplant
+    val SALT_MINE: Any = R.drawable.saltmining
+    val HIGHRISE_HOUSING: Any = R.drawable.highrisebuilding
+    val CLINIC: Any = R.drawable.clinic
+    val UNIVERSITY: Any = R.drawable.vuz
 
     val INFANTRY: Any = R.drawable.soldierstraine
     val ARMORED: Any = R.drawable.pic_tank

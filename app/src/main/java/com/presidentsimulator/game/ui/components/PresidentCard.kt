@@ -42,9 +42,9 @@ fun PresidentCard(data: PresidentCardData) {
     Column(
         modifier = Modifier
             .width(150.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(6.dp))
             .background(Color.White)
-            .border(0.5.dp, Color.LightGray, RoundedCornerShape(4.dp))
+            .border(0.75.dp, Color(0xFFCBD5E1), RoundedCornerShape(6.dp))
             .clickable(onClick = data.onClick)
     ) {
         // Top Photo Area (approx 45%)
@@ -68,7 +68,8 @@ fun PresidentCard(data: PresidentCardData) {
                             .padding(6.dp)
                             .size(24.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF1E88E5))
+                            .background(Color(0xFFD97706)) // Executive Gold
+                            .border(1.dp, Color.White, CircleShape)
                             .align(Alignment.TopEnd),
                         contentAlignment = Alignment.Center
                     ) {
@@ -81,31 +82,31 @@ fun PresidentCard(data: PresidentCardData) {
                             .padding(6.dp)
                             .size(24.dp)
                             .clip(CircleShape)
-                            .background(Color.White)
-                            .border(1.dp, Color.Black, CircleShape)
+                            .background(Color(0xFF0F172A)) // Midnight Navy
+                            .border(1.dp, Color(0xFFD97706), CircleShape)
                             .align(Alignment.TopEnd),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(data.badgeText, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(data.badgeText, color = Color(0xFFD97706), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                 }
                 BadgeMode.None -> {}
             }
         }
 
-        // Blue Banner
+        // Presidential Navy Banner
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF1E88E5))
+                .background(Color(0xFF1E3A8A)) // Deep Royal Navy
                 .padding(vertical = 6.dp, horizontal = 4.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = data.title,
                 color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 lineHeight = 16.sp
             )

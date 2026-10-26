@@ -70,8 +70,8 @@ data class AgendaState(
     val briefingIntro: String = "",
 ) {
     val needsBriefing: Boolean
-        get() = monthKey.isNotEmpty() &&
-            acknowledgedMonthKey != monthKey &&
+        get() = acknowledgedMonthKey == null &&
+            monthKey.isNotEmpty() &&
             items.isNotEmpty()
 
     val criticalCount: Int

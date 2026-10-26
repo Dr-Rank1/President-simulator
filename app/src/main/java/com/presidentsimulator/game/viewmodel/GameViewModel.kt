@@ -364,25 +364,34 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun buildMilitaryFacility(type: MilitaryFacilityType, amount: Int) {
         if (_currentActiveEvent.value != null) return
         if (amount <= 0) return
-        _state.update { current ->
-            val cost = type.unitCost * amount
-            if (current.vitals.budget < cost) return@update current
-            val industry = current.militaryIndustry
-            val updated = when (type) {
-                MilitaryFacilityType.ARSENAL -> industry.copy(arsenals = industry.arsenals + amount)
-                MilitaryFacilityType.AIRFIELD -> industry.copy(airfields = industry.airfields + amount)
-                MilitaryFacilityType.SHIPYARD -> industry.copy(shipyards = industry.shipyards + amount)
-            }
-            current
-                .copy(
-                    vitals = current.vitals.copy(budget = current.vitals.budget - cost),
-                    militaryIndustry = updated,
-                )
-                .pushNews(
-                    "Construction: $amount ${type.displayName.lowercase()}(s) commissioned",
-                    tag = "MILITARY",
-                )
+        val current = _state.value
+        val cost = type.unitCost * amount
+        if (current.vitals.budget < cost) {
+            notifyUser(
+                "Insufficient Defense Budget: ${amount}x ${type.displayName} requires ${cost.toBudgetString()} (Treasury: ${current.vitals.budget.toBudgetString()})",
+                success = false
+            )
+            return
         }
+        val industry = current.militaryIndustry
+        val updated = when (type) {
+            MilitaryFacilityType.ARSENAL -> industry.copy(arsenals = industry.arsenals + amount)
+            MilitaryFacilityType.AIRFIELD -> industry.copy(airfields = industry.airfields + amount)
+            MilitaryFacilityType.SHIPYARD -> industry.copy(shipyards = industry.shipyards + amount)
+        }
+        _state.value = current
+            .copy(
+                vitals = current.vitals.copy(budget = current.vitals.budget - cost),
+                militaryIndustry = updated,
+            )
+            .pushNews(
+                "Construction: $amount ${type.displayName.lowercase()}(s) commissioned",
+                tag = "MILITARY",
+            )
+        notifyUser(
+            "Facility Commissioned: $amount ${type.displayName}(s) for ${cost.toBudgetString()}",
+            success = true
+        )
     }
 
     fun availableLoan(): Long = LoanEngine.availableLoan(_state.value)
@@ -391,14 +400,30 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun takeLoan(amount: Long) {
         if (_currentActiveEvent.value != null) return
-        applyActionWithFeedback("Loan secured.", "Loan unavailable (credit limit).") {
+        val available = availableLoan()
+        if (amount > available || !canTakeLoan()) {
+            notifyUser("Loan Application Rejected: Sovereign credit limit reached. Max available: ${available.toBudgetString()}", success = false)
+            return
+        }
+        applyActionWithFeedback(
+            "Loan Approved: +${amount.toBudgetString()} credited to National Treasury.",
+            "Failed to disburse loan funds."
+        ) {
             LoanEngine.takeLoan(it, amount)
         }
     }
 
     fun repayLoan(amount: Long) {
         if (_currentActiveEvent.value != null) return
-        applyActionWithFeedback("Repayment sent.", "Insufficient funds to repay.") {
+        val current = _state.value
+        if (current.vitals.budget < amount) {
+            notifyUser("Insufficient Funds: Debt repayment requires ${amount.toBudgetString()} (Treasury: ${current.vitals.budget.toBudgetString()})", success = false)
+            return
+        }
+        applyActionWithFeedback(
+            "Public Debt Reduced by ${amount.toBudgetString()}.",
+            "Failed to execute debt repayment."
+        ) {
             LoanEngine.repayLoan(it, amount)
         }
     }
@@ -548,7 +573,16 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun allocateExtraResearchFunding() {
         if (_currentActiveEvent.value != null) return
-        _state.update { advancementEngine.allocateExtraResearchFunding(it) }
+        val current = _state.value
+        val cost = AdvancementEngine.EXTRA_RESEARCH_FUNDING_COST
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Funds: Research grant requires ${cost.toBudgetString()} (Treasury: ${current.vitals.budget.toBudgetString()})", success = false)
+            return
+        }
+        applyActionWithFeedback(
+            "Research Accelerated: Project time reduced by 1 month.",
+            "Failed to allocate extra research funds."
+        ) { advancementEngine.allocateExtraResearchFunding(it) }
     }
 
     fun canStartResearch(techId: String): Boolean =
@@ -575,7 +609,16 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun buildUniversity() {
         if (_currentActiveEvent.value != null) return
-        _state.update { advancementEngine.buildUniversity(it) }
+        val current = _state.value
+        val cost = AdvancementEngine.UNIVERSITY_COST
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Funds: University construction requires ${cost.toBudgetString()} (Treasury: ${current.vitals.budget.toBudgetString()})", success = false)
+            return
+        }
+        applyActionWithFeedback(
+            "National University Established (+${AdvancementEngine.SCIENCE_PER_UNIVERSITY} Science/mo).",
+            "Failed to build university."
+        ) { advancementEngine.buildUniversity(it) }
     }
 
     fun projectedSciencePerTick(): Long =
@@ -1010,11 +1053,31 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun buildPowerPlant(amount: Int) {
-        applyActionWithFeedback("Started construction.", "Insufficient budget to build Power Plants.") { productionLawEngine.buildPowerPlant(it, amount) }
+        if (amount <= 0) return
+        val current = _state.value
+        val cost = InfrastructureType.POWER_PLANT.unitCost * amount
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Funds: Power plant requires ${cost.toBudgetString()} (Treasury: ${current.vitals.budget.toBudgetString()})", success = false)
+            return
+        }
+        applyActionWithFeedback(
+            "Power Plant Online: +${amount * 120}MW generated for ${cost.toBudgetString()}.",
+            "Failed: Insufficient budget (${cost.toBudgetString()})."
+        ) { productionLawEngine.buildPowerPlant(it, amount) }
     }
 
     fun buildMine(amount: Int) {
-        applyActionWithFeedback("Started construction.", "Insufficient budget to build Mines.") { productionLawEngine.buildMine(it, amount) }
+        if (amount <= 0) return
+        val current = _state.value
+        val cost = InfrastructureType.MINE.unitCost * amount
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Funds: Mine development requires ${cost.toBudgetString()} (Treasury: ${current.vitals.budget.toBudgetString()})", success = false)
+            return
+        }
+        applyActionWithFeedback(
+            "Extraction Mine Online: +$amount mine(s) for ${cost.toBudgetString()}.",
+            "Failed: Insufficient budget (${cost.toBudgetString()})."
+        ) { productionLawEngine.buildMine(it, amount) }
     }
 
     fun canEnactLaw(lawId: String): Boolean {
@@ -1112,7 +1175,25 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun runCampaignAction(action: CampaignAction) {
         if (_currentActiveEvent.value != null) return
-        _state.update { demographicsEngine.runCampaignAction(it, action) }
+        val current = _state.value
+        val cooldown = campaignCooldownMonths(action)
+        if (cooldown > 0) {
+            notifyUser("Campaign Cooldown Active: Available in $cooldown month(s).", success = false)
+            return
+        }
+        val seasonPremium = if (isElectionSeason()) 1.25f else 1f
+        val totalCost = (action.cost * seasonPremium).toLong()
+        if (current.vitals.budget < totalCost) {
+            notifyUser(
+                "Insufficient Campaign Budget: ${action.displayName} requires ${totalCost.toBudgetString()} (Treasury: ${current.vitals.budget.toBudgetString()})",
+                success = false
+            )
+            return
+        }
+        applyActionWithFeedback(
+            "Campaign Event Held: ${action.displayName} (+${action.boost.toInt()}% approval boost).",
+            "Campaign action failed."
+        ) { demographicsEngine.runCampaignAction(it, action) }
     }
 
     fun worldEconomicRank(): Int = analyticsEngine.worldEconomicRank(_state.value)
@@ -1133,13 +1214,41 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun recruitPersonnel(amount: Long) {
-        if (_currentActiveEvent.value != null) return
-        applyActionWithFeedback("Recruitment started.", "Insufficient budget to recruit personnel.") { diplomacyEngine.recruitPersonnel(it, amount) }
+        if (_currentActiveEvent.value != null || amount <= 0L) return
+        val current = _state.value
+        val perk = com.presidentsimulator.game.data.NationalPerkEffects.forNationId(current.playerNation.id)
+        val lawRecruit = current.legal.combinedMilitaryRecruitModifier.coerceAtLeast(0.5f)
+        val cost = (
+            amount * DiplomacyEngine.RECRUIT_COST_PER_SOLDIER *
+                com.presidentsimulator.game.data.NationalPerkEffects.recruitCostMultiplier(perk) / lawRecruit
+        ).toLong().coerceAtLeast(1L)
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Recruitment Funds: Requires ${cost.toBudgetString()} (Treasury: ${current.vitals.budget.toBudgetString()})", success = false)
+            return
+        }
+        applyActionWithFeedback(
+            "Recruitment Order Confirmed: +$amount active personnel for ${cost.toBudgetString()}.",
+            "Insufficient budget to recruit personnel."
+        ) { diplomacyEngine.recruitPersonnel(it, amount) }
     }
 
     fun upgradeMilitaryTraining() {
         if (_currentActiveEvent.value != null) return
-        _state.update { diplomacyEngine.upgradeMilitaryTraining(it) }
+        val current = _state.value
+        val level = current.military.trainingLevel.coerceIn(1, DiplomacyEngine.MAX_TRAINING_LEVEL)
+        if (level >= DiplomacyEngine.MAX_TRAINING_LEVEL) {
+            notifyUser("Armed Forces Already at Maximum Tactical Training Level (${DiplomacyEngine.MAX_TRAINING_LEVEL}).", success = false)
+            return
+        }
+        val cost = DiplomacyEngine.MILITARY_TRAINING_BASE_COST * level
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Defense Budget: Combat readiness drills require ${cost.toBudgetString()} (Treasury: ${current.vitals.budget.toBudgetString()})", success = false)
+            return
+        }
+        applyActionWithFeedback(
+            "Combat Readiness Drills Completed (+10% training tier).",
+            "Drill failed: Insufficient funds (${cost.toBudgetString()})."
+        ) { diplomacyEngine.upgradeMilitaryTraining(it) }
     }
 
     fun setFrontlineFocus(countryId: String) {
@@ -1147,29 +1256,35 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         _state.update { diplomacyEngine.setFrontlineFocus(it, countryId) }
     }
 
-    fun purchaseTanks(amount: Int) {
-        if (_currentActiveEvent.value != null) return
-        _state.update { diplomacyEngine.purchaseTanks(it, amount) }
-    }
-
-    fun purchaseJets(amount: Int) {
-        if (_currentActiveEvent.value != null) return
-        _state.update { diplomacyEngine.purchaseJets(it, amount) }
-    }
-
-    fun purchaseShips(amount: Int) {
-        if (_currentActiveEvent.value != null) return
-        _state.update { diplomacyEngine.purchaseShips(it, amount) }
-    }
-
-    fun purchaseNukes(amount: Int) {
-        if (_currentActiveEvent.value != null) return
-        _state.update { diplomacyEngine.purchaseNukes(it, amount) }
-    }
-
     fun purchaseMilitaryHardware(hardware: MilitaryHardware, amount: Int) {
-        applyActionWithFeedback("Order placed.", "Failed: Insufficient budget or weapons embargo active.") { diplomacyEngine.purchaseHardware(it, amount, hardware) }
+        if (amount <= 0) return
+        val current = _state.value
+        if (hardware == MilitaryHardware.NUCLEAR_ARSENAL && current.governance.nuclearEmbargoActive) {
+            notifyUser("Procurement Blocked: UN Nuclear Non-Proliferation Sanctions in effect.", success = false)
+            return
+        }
+        if (hardware != MilitaryHardware.NUCLEAR_ARSENAL && current.governance.weaponsBanActive) {
+            notifyUser("Procurement Blocked: UN Security Council Weapons Embargo active.", success = false)
+            return
+        }
+        val cost = hardware.unitCost * amount
+        if (current.vitals.budget < cost) {
+            notifyUser(
+                "Insufficient Defense Budget: ${amount}x ${hardware.displayName} requires ${cost.toBudgetString()} (Treasury: ${current.vitals.budget.toBudgetString()})",
+                success = false
+            )
+            return
+        }
+        applyActionWithFeedback(
+            "Procurement Approved: ${amount}x ${hardware.displayName} acquired for ${cost.toBudgetString()}.",
+            "Failed: Insufficient budget or weapons embargo active."
+        ) { diplomacyEngine.purchaseHardware(it, amount, hardware) }
     }
+
+    fun purchaseTanks(amount: Int) = purchaseMilitaryHardware(MilitaryHardware.TANKS, amount)
+    fun purchaseJets(amount: Int) = purchaseMilitaryHardware(MilitaryHardware.FIGHTER_JETS, amount)
+    fun purchaseShips(amount: Int) = purchaseMilitaryHardware(MilitaryHardware.NAVAL_SHIPS, amount)
+    fun purchaseNukes(amount: Int) = purchaseMilitaryHardware(MilitaryHardware.NUCLEAR_ARSENAL, amount)
 
     fun launchOffensive() {
         if (_currentActiveEvent.value != null) return
@@ -1367,54 +1482,67 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     fun buildInfrastructure(type: InfrastructureType, amount: Int) {
         if (_currentActiveEvent.value != null) return
         if (amount <= 0) return
-        _state.update { current ->
-            val cost = type.unitCost * amount
-            if (current.vitals.budget < cost) return@update current
-
-            when (type) {
-                InfrastructureType.POWER_PLANT ->
-                    return@update productionLawEngine.buildPowerPlant(current, amount)
-                InfrastructureType.MINE ->
-                    return@update productionLawEngine.buildMine(current, amount)
-                else -> Unit
-            }
-
-            val economy = current.economy
-            val updatedEconomy = when (type) {
-                InfrastructureType.FACTORY ->
-                    economy.copy(factories = economy.factories + amount)
-                InfrastructureType.FARM ->
-                    economy.copy(farms = economy.farms + amount)
-                InfrastructureType.HOUSING ->
-                    economy.copy(housing = economy.housing + amount)
-                InfrastructureType.POWER_PLANT,
-                InfrastructureType.MINE,
-                -> economy
-            }
-
-            val approvalBump = when (type) {
-                InfrastructureType.HOUSING -> 0.4f * amount
-                InfrastructureType.FARM -> 0.2f * amount
-                InfrastructureType.FACTORY -> 0.1f * amount
-                InfrastructureType.POWER_PLANT -> 0.15f * amount
-                InfrastructureType.MINE -> 0.1f * amount
-            }
-
-            val sector = SectorInvestment.sectorForInfrastructure(type)
-            val withSectorXp = if (sector != null) {
-                current.awardSectorXp(sector, SectorInvestment.XP_PER_BUILD * amount)
-            } else {
-                current
-            }
-
-            withSectorXp.copy(
-                vitals = withSectorXp.vitals.copy(
-                    budget = withSectorXp.vitals.budget - cost,
-                    approval = (withSectorXp.vitals.approval + approvalBump).coerceIn(0f, 100f),
-                ),
-                economy = updatedEconomy,
+        val current = _state.value
+        val cost = type.unitCost * amount
+        if (current.vitals.budget < cost) {
+            notifyUser(
+                "Insufficient Funds: Building ${amount}x ${type.name.lowercase().replace('_', ' ')} requires ${cost.toBudgetString()} (Treasury: ${current.vitals.budget.toBudgetString()})",
+                success = false
             )
+            return
         }
+
+        when (type) {
+            InfrastructureType.POWER_PLANT -> {
+                buildPowerPlant(amount)
+                return
+            }
+            InfrastructureType.MINE -> {
+                buildMine(amount)
+                return
+            }
+            else -> Unit
+        }
+
+        val economy = current.economy
+        val updatedEconomy = when (type) {
+            InfrastructureType.FACTORY ->
+                economy.copy(factories = economy.factories + amount)
+            InfrastructureType.FARM ->
+                economy.copy(farms = economy.farms + amount)
+            InfrastructureType.HOUSING ->
+                economy.copy(housing = economy.housing + amount)
+            InfrastructureType.POWER_PLANT,
+            InfrastructureType.MINE,
+            -> economy
+        }
+
+        val approvalBump = when (type) {
+            InfrastructureType.HOUSING -> 0.4f * amount
+            InfrastructureType.FARM -> 0.2f * amount
+            InfrastructureType.FACTORY -> 0.1f * amount
+            InfrastructureType.POWER_PLANT -> 0.15f * amount
+            InfrastructureType.MINE -> 0.1f * amount
+        }
+
+        val sector = SectorInvestment.sectorForInfrastructure(type)
+        val withSectorXp = if (sector != null) {
+            current.awardSectorXp(sector, SectorInvestment.XP_PER_BUILD * amount)
+        } else {
+            current
+        }
+
+        _state.value = withSectorXp.copy(
+            vitals = withSectorXp.vitals.copy(
+                budget = withSectorXp.vitals.budget - cost,
+                approval = (withSectorXp.vitals.approval + approvalBump).coerceIn(0f, 100f),
+            ),
+            economy = updatedEconomy,
+        )
+        notifyUser(
+            "Construction Approved: +$amount ${type.name.lowercase().replace('_', ' ')} built for ${cost.toBudgetString()}",
+            success = true
+        )
     }
 
     fun maxAffordable(type: InfrastructureType): Int {
@@ -1488,7 +1616,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     companion object {
         const val MIN_TAX_RATE = 0.00f
         const val MAX_TAX_RATE = 0.50f
-        const val EVENT_CHANCE_PER_TICK = 0.02f
+        const val EVENT_CHANCE_PER_TICK = 0.005f
 
         /** Simulated months between background auto-saves while the ticker runs. */
         const val AUTO_SAVE_TICK_INTERVAL = 12
@@ -1504,10 +1632,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
         /**
          * Months without random events after resolving one.
-         * The state model's own default is 24; this constant is deliberately smaller
-         * so a 2%/tick trigger rate yields a visible but not relentless event cadence.
+         * Default set to 36 months so random events are rare, meaningful crises
+         * rather than relentless pop-up interruptions.
          */
-        const val EVENT_COOLDOWN_MONTHS = 12
+        const val EVENT_COOLDOWN_MONTHS = 36
     }
 }
 

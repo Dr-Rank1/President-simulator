@@ -47,59 +47,67 @@ fun EconomyScreen(
     modifier: Modifier = Modifier
 ) {
     // Real, wired sector tiles: production ministers, infrastructure builds,
-    // and the live market board. Every tile opens a working dialog or screen.
+    // Authentic Oval Office industrial sectors matching the full APK roster
     val expenseTiles = listOf(
         GameTileData(
-            title = "Energy industry",
-            amountString = "Stock ${state.production.energy} · Plants ${state.production.powerPlants}",
+            title = "Energy Industry",
+            amountString = "Stock ${state.production.energy} MW · ${state.production.powerPlants} Plants",
             icon = Icons.Default.Bolt,
-            imageUrl = NssCardImages.ENERGY,
-            topColor = Color(0xFFD32F2F),
+            imageUrl = NssCardImages.NUCLEAR_PLANT,
+            topColor = Color(0xFFD97706), // Executive Gold
             onClick = { viewModel.buildPowerPlant(1) }
         ),
         GameTileData(
-            title = "Mining",
-            amountString = "Stock ${state.production.materials} · Mines ${state.production.mines}",
+            title = "Resource Mining",
+            amountString = "Stock ${state.production.materials} Mt · ${state.production.mines} Mines",
             icon = Icons.Default.Terrain,
-            imageUrl = NssCardImages.INDUSTRY,
-            topColor = Color(0xFF1565C0),
+            imageUrl = NssCardImages.COAL_MINE,
+            topColor = Color(0xFF1E3A8A), // Royal Navy
             onClick = { viewModel.buildMine(1) }
         ),
         GameTileData(
             title = "Agriculture",
-            amountString = "Stock ${state.production.food} · Farms ${state.economy.farms}",
+            amountString = "Stock ${state.production.food} · ${state.economy.farms} Farms",
             icon = Icons.Default.Eco,
             imageUrl = NssCardImages.AGRICULTURE,
-            topColor = Color(0xFF2E7D32),
+            topColor = Color(0xFF059669), // Treasury Green
             onClick = { viewModel.buildFarm(1) }
         ),
         GameTileData(
             title = "Manufacturing",
-            amountString = "Stock ${state.production.goods} · Factories ${state.economy.factories}",
+            amountString = "Stock ${state.production.goods} · ${state.economy.factories} Factories",
             icon = Icons.Default.PrecisionManufacturing,
             imageUrl = NssCardImages.MANUFACTURING,
-            topColor = Color(0xFF6A1B9A),
+            topColor = Color(0xFF334155), // Slate Navy
             onClick = { viewModel.buildFactory(1) }
         ),
         GameTileData(
-            title = "World market",
+            title = "Urban Housing",
+            amountString = "${state.economy.housing} Districts · Net ${state.netIncome.toBudgetString()}/mo",
+            icon = Icons.Default.Domain,
+            imageUrl = NssCardImages.HIGHRISE_HOUSING,
+            topColor = Color(0xFFB45309), // Amber
+            onClick = { viewModel.buildHousing(1) }
+        ),
+        GameTileData(
+            title = "Higher Education",
+            amountString = "${state.society.universities} Universities · Science ${viewModel.projectedSciencePerTick()}/mo",
+            icon = Icons.Default.School,
+            imageUrl = NssCardImages.UNIVERSITY,
+            topColor = Color(0xFF4338CA), // Deep Indigo
+            onClick = { viewModel.buildUniversity() }
+        ),
+        GameTileData(
+            title = "World Market",
             amountString = "Tariff ${(state.trade.tariffRate * 100).roundToInt()}% · Balance ${state.trade.netTradeCashflow.toBudgetString()}",
             icon = Icons.Default.Storefront,
             imageUrl = NssCardImages.BANNER_ECONOMY,
-            topColor = Color(0xFF0288D1),
+            topColor = Color(0xFF0F172A), // Midnight Presidential Navy
             onClick = { viewModel.openWorldMarket() }
-        ),
-        GameTileData(
-            title = "Housing",
-            amountString = "Districts ${state.economy.housing} · Net income ${state.netIncome.toBudgetString()}/mo",
-            icon = Icons.Default.Domain,
-            imageUrl = NssCardImages.SERVICES,
-            topColor = Color(0xFFEF6C00),
-            onClick = { viewModel.buildHousing(1) }
         ),
     )
 
-    Column(modifier = modifier.fillMaxSize().background(Color(0xFFF5F1E6))) {
+    Column(modifier = modifier.fillMaxSize().background(Color(0xFFF1F5F9))) {
         // Fiscal policy: tax rate and import tariffs, both previously unreachable.
         FiscalPolicyPanel(state = state, viewModel = viewModel)
 

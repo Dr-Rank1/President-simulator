@@ -1,7 +1,13 @@
 package com.presidentsimulator.game.ui.navigation
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,8 +33,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -122,13 +130,25 @@ fun GameNavigation(
     val audio = remember(context) { GameAudioManager.getInstance(context) }
     val haptics = LocalHapticFeedback.current
 
+    var activeNotice by remember { mutableStateOf<UiEvent.Notice?>(null) }
+    var showAdvisorDialog by remember { mutableStateOf(false) }
+
     // One-shot action feedback: the ViewModel stays Android-free, we render it here.
     LaunchedEffect(viewModel) {
         viewModel.uiEvents.collect { event ->
             when (event) {
-                is UiEvent.Notice ->
+                is UiEvent.Notice -> {
+                    activeNotice = event
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                }
             }
+        }
+    }
+
+    LaunchedEffect(activeNotice) {
+        if (activeNotice != null) {
+            kotlinx.coroutines.delay(3500)
+            activeNotice = null
         }
     }
     var showCountrySelect by remember { mutableStateOf(false) }
@@ -357,6 +377,17 @@ fun GameNavigation(
         )
     }
 
+    if (showAdvisorDialog && !gameOver && !showLaunch) {
+        com.presidentsimulator.game.ui.components.PresidentialAdvisorDialog(
+            state = state,
+            onDismiss = { showAdvisorDialog = false },
+            onNavigateRoute = { route ->
+                showAdvisorDialog = false
+                GameDestination.fromRoute(route)?.let(navigate)
+            },
+        )
+    }
+
     if (gameOver) {
         CampaignEndDialog(
             isVictory = isVictory,
@@ -389,12 +420,56 @@ fun GameNavigation(
                 audio.playClick()
                 navigate(GameDestination.AudioSettings)
             },
+            onOpenAdvisor = {
+                audio.playClick()
+                showAdvisorDialog = true
+            },
             canUndo = canUndo,
             onUndo = {
                 audio.playClick()
                 viewModel.undoLastMonth()
             },
         )
+
+        // Executive In-Game Feedback Banner (Clear explanation for insufficient funds / actions)
+        AnimatedVisibility(
+            visible = activeNotice != null,
+            enter = fadeIn() + slideInVertically(initialOffsetY = { -it }),
+            exit = fadeOut() + slideOutVertically(targetOffsetY = { -it }),
+        ) {
+            activeNotice?.let { notice ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (notice.success) Color(0xFF065F46) else Color(0xFF991B1B))
+                        .border(
+                            1.dp,
+                            if (notice.success) Color(0xFF34D399) else Color(0xFFF87171),
+                            RoundedCornerShape(8.dp),
+                        )
+                        .clickable { activeNotice = null }
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = if (notice.success) "✓" else "⚠",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Black,
+                    )
+                    Text(
+                        text = notice.message,
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
 
         Row(modifier = Modifier.weight(1f).fillMaxSize()) {
             Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
