@@ -48,6 +48,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import android.widget.Toast
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.presidentsimulator.game.data.WorldCountryDossier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -132,6 +133,11 @@ fun GameNavigation(
 
     var activeNotice by remember { mutableStateOf<UiEvent.Notice?>(null) }
     var showAdvisorDialog by remember { mutableStateOf(false) }
+    var showWarRoomDialog by remember { mutableStateOf(false) }
+    var showNuclearFootballDialog by remember { mutableStateOf(false) }
+    var showExecutiveOrdersDialog by remember { mutableStateOf(false) }
+    var showMinistriesDialog by remember { mutableStateOf(false) }
+    var showCrisisHotlineDialog by remember { mutableStateOf(false) }
 
     // One-shot action feedback: the ViewModel stays Android-free, we render it here.
     LaunchedEffect(viewModel) {
@@ -388,6 +394,58 @@ fun GameNavigation(
         )
     }
 
+    if (showWarRoomDialog && !gameOver && !showLaunch) {
+        com.presidentsimulator.game.ui.components.WarRoomDialog(
+            warRoom = state.warRoom,
+            onDismiss = { showWarRoomDialog = false },
+            onSelectDoctrine = { viewModel.assignMilitaryDoctrine(it) },
+            onOpenNuclearFootball = {
+                showWarRoomDialog = false
+                showNuclearFootballDialog = true
+            },
+        )
+    }
+
+    if (showNuclearFootballDialog && !gameOver && !showLaunch) {
+        com.presidentsimulator.game.ui.components.NuclearFootballDialog(
+            nuclearSilo = state.warRoom.nuclearSilo,
+            onDismiss = { showNuclearFootballDialog = false },
+            onSetDefcon = { viewModel.setDefconLevel(it) },
+            onToggleLaunchKeys = { viewModel.toggleNuclearLaunchKeys() },
+            onBuildNewSilo = { viewModel.buildNuclearSilo() },
+        )
+    }
+
+    if (showExecutiveOrdersDialog && !gameOver && !showLaunch) {
+        com.presidentsimulator.game.ui.components.ExecutiveOrdersDialog(
+            ovalOffice = state.ovalOffice,
+            onDismiss = { showExecutiveOrdersDialog = false },
+            onToggleDecree = { viewModel.toggleExecutiveOrder(it) },
+        )
+    }
+
+    if (showMinistriesDialog && !gameOver && !showLaunch) {
+        com.presidentsimulator.game.ui.components.SovereignMinistriesDialog(
+            state = state.sovereignMinistries,
+            playerBudget = state.vitals.budget,
+            onDismiss = { showMinistriesDialog = false },
+            onProcurePoliceEquipment = { viewModel.procurePoliceEquipment(it) },
+            onBuildSportsArena = { viewModel.buildSportsArena(it) },
+            onBuildEcologyFacility = { viewModel.buildEcologyFacility(it) },
+        )
+    }
+
+    if (showCrisisHotlineDialog && !gameOver && !showLaunch) {
+        com.presidentsimulator.game.ui.components.CrisisHotlineDialog(
+            crises = state.crises.activeCrises,
+            playerBudget = state.vitals.budget,
+            onDismiss = { showCrisisHotlineDialog = false },
+            onExecuteOption = { crisis, option ->
+                viewModel.resolveActiveCrisis(crisis.id, option.id)
+            },
+        )
+    }
+
     if (gameOver) {
         CampaignEndDialog(
             isVictory = isVictory,
@@ -473,7 +531,22 @@ fun GameNavigation(
 
         Row(modifier = Modifier.weight(1f).fillMaxSize()) {
             Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                com.presidentsimulator.game.ui.components.InteractiveWorldMap(state = state, onOpenDiplomacy = { navigate(GameDestination.Diplomacy) }, modifier = Modifier.fillMaxSize())
+                com.presidentsimulator.game.ui.components.InteractiveWorldMap(
+                    state = state,
+                    onOpenDiplomacy = { navigate(GameDestination.Diplomacy) },
+                    onCountryAction = { action, targetDossier ->
+                        when (action) {
+                            "embassy" -> viewModel.conductStateVisit(targetDossier.name)
+                            "aid" -> viewModel.sendForeignAid(targetDossier.name)
+                            "trade" -> viewModel.openWorldMarket()
+                            "spy" -> viewModel.deploySpy(targetDossier.name, com.presidentsimulator.game.data.MissionType.STEAL_TECHNOLOGY)
+                            "war" -> viewModel.declareWar(targetDossier.name)
+                            "nap" -> viewModel.negotiateTreaty(targetDossier.name, com.presidentsimulator.game.data.TreatyType.NON_AGGRESSION)
+                            else -> Unit
+                        }
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                )
             NavHost(
                 navController = navController,
                 startDestination = GameDestination.Dashboard.route,
@@ -483,6 +556,10 @@ fun GameNavigation(
                 MainDashboardScreen(
                     state = state,
                     onNavigate = navigate,
+                    onOpenWarRoom = { showWarRoomDialog = true },
+                    onOpenExecutiveOrders = { showExecutiveOrdersDialog = true },
+                    onOpenMinistries = { showMinistriesDialog = true },
+                    onOpenCrisisHotline = { showCrisisHotlineDialog = true },
                 )
             }
             composable(GameDestination.Economy.route) {

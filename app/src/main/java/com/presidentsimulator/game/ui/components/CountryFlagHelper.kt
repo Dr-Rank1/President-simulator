@@ -53,4 +53,31 @@ object CountryFlagHelper {
 
         return 0
     }
+
+    @DrawableRes
+    fun getFlagResource(countryName: String): Int {
+        val lowerName = countryName.lowercase().trim()
+        explicitFlags[lowerName]?.let { return it }
+        return when (lowerName) {
+            "australia" -> R.drawable.australia
+            "austria" -> R.drawable.austria
+            "algeria" -> R.drawable.algeria
+            "angola" -> R.drawable.angola
+            "argentina" -> R.drawable.argentina
+            "brazil" -> R.drawable.brazil
+            "canada" -> R.drawable.canada
+            "france" -> R.drawable.france
+            "germany" -> R.drawable.germany
+            "india" -> R.drawable.india
+            "japan" -> R.drawable.japan
+            "kenya" -> R.drawable.kenya
+            "mexico" -> R.drawable.mexico
+            "nigeria" -> R.drawable.nigeria
+            "poland" -> R.drawable.poland
+            "saudi arabia" -> R.drawable.saudi_arabia
+            "turkey" -> R.drawable.turkey
+            "ukraine" -> R.drawable.ukraine
+            else -> 0
+        }
+    }
 }

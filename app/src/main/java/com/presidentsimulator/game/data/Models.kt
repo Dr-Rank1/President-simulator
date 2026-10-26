@@ -66,6 +66,16 @@ data class GameState(
     val setup: SetupState = SetupState(),
     /** Rolling world news ticker. */
     val news: NewsState = NewsState(),
+    /** 12-Sector Industrial Matrix & Supply Chain Engine (Authentic APK). */
+    val industrialMatrix: IndustrialMatrixState = IndustrialMatrixState(),
+    /** Crisis Simulation: Strikes (Zabastovka), Protests, Mutinies, Epidemics, Disasters. */
+    val crises: CrisisState = CrisisState(),
+    /** Pentagon & General Staff War Room: Commanders, ArmyStat, and Nuclear Deterrence. */
+    val warRoom: WarRoomState = WarRoomState(),
+    /** 16-Department Sovereign Ministries: Police/Crime, Olympic Sports, Ecology. */
+    val sovereignMinistries: SovereignMinistriesState = SovereignMinistriesState(),
+    /** The Oval Office: Resolute Desk, Executive Orders, Demographics Polling. */
+    val ovalOffice: OvalOfficeState = OvalOfficeState(),
     /**
      * Schema version of the persisted payload. Stamped on every save and checked on load so
      * future field changes can be migrated instead of silently corrupting a campaign.
@@ -95,9 +105,11 @@ data class GameState(
         get() = economy.totalRevenue(vitals.population) +
             tradeExportBonus +
             production.lastGoodsRevenue +
+            (industrialMatrix.totalMonthlyRevenue / 10L) +
             society.tourismIncome -
             society.totalMinistryUpkeep -
             finance.monthlyInterestCost -
+            (ovalOffice.monthlyDecreesCostMillion * 1_000_000L) -
             economy.totalExpenses -
             (military.monthlyUpkeep * cabinet.combinedEffects().militaryUpkeepMultiplier).toLong() -
             legal.totalUpkeep -

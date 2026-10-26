@@ -1,26 +1,31 @@
 package com.presidentsimulator.game.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Text
 import androidx.compose.material3.Slider
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.presidentsimulator.game.data.GameState
+import com.presidentsimulator.game.data.IndustrialSectorType
 import com.presidentsimulator.game.data.InfrastructureType
 import com.presidentsimulator.game.data.LoanEngine
 import com.presidentsimulator.game.data.TradeCommodity
@@ -29,8 +34,11 @@ import com.presidentsimulator.game.viewmodel.TradeMarketEngine
 import com.presidentsimulator.game.viewmodel.toBudgetString
 import com.presidentsimulator.game.ui.components.GameTile
 import com.presidentsimulator.game.ui.components.GameTileData
+import com.presidentsimulator.game.ui.components.IndustrialSectorDialog
 import com.presidentsimulator.game.ui.components.NssCardImages
 import com.presidentsimulator.game.ui.components.NssPanel
+import com.presidentsimulator.game.ui.components.formatCompactMoney
+import com.presidentsimulator.game.ui.components.formatCompactMil
 import com.presidentsimulator.game.ui.theme.NssAccent
 import com.presidentsimulator.game.ui.theme.NssEmerald
 import com.presidentsimulator.game.ui.theme.NssForeground
@@ -46,8 +54,29 @@ fun EconomyScreen(
     viewModel: GameViewModel,
     modifier: Modifier = Modifier
 ) {
-    // Real, wired sector tiles: production ministers, infrastructure builds,
-    // Authentic Oval Office industrial sectors matching the full APK roster
+    var economyTab by remember { mutableIntStateOf(0) } // 0: Macro Infrastructure, 1: 12-Sector Industrial Matrix
+    var inspectingSectorType by remember { mutableStateOf<IndustrialSectorType?>(null) }
+
+    inspectingSectorType?.let { sectorType ->
+        val sectorData = state.industrialMatrix.sectors[sectorType]
+        if (sectorData != null) {
+            IndustrialSectorDialog(
+                sector = sectorData,
+                playerBudget = state.vitals.budget,
+                onDismiss = { inspectingSectorType = null },
+                onBuildSubPlant = { subPlant ->
+                    viewModel.expandIndustrialPlant(sectorType, subPlant.name)
+                },
+                onModernizeSector = {
+                    viewModel.modernizeIndustrialSector(sectorType)
+                },
+                onResolveStrike = {
+                    viewModel.resolveIndustrialStrike(sectorType)
+                },
+            )
+        }
+    }
+
     val expenseTiles = listOf(
         GameTileData(
             title = "Energy Industry",
@@ -107,55 +136,225 @@ fun EconomyScreen(
         ),
     )
 
-    Column(modifier = modifier.fillMaxSize().background(Color(0xFFF1F5F9))) {
-        // Fiscal policy: tax rate and import tariffs, both previously unreachable.
-        FiscalPolicyPanel(state = state, viewModel = viewModel)
-
-        // Central bank / IMF loan desk.
-        val maxLoan = viewModel.availableLoan()
+    Column(modifier = modifier.fillMaxSize().background(Color(0xFF0F172A))) {
+        // Tab selector: Macro Infrastructure vs 12-Sector Industrial Matrix
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-                .background(Color(0xFF0D2137), androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                .padding(10.dp),
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                .background(Color(0xFF1E293B)),
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { economyTab = 0 }
+                    .background(if (economyTab == 0) Color(0xFF0F172A) else Color.Transparent)
+                    .border(
+                        BorderStroke(
+                            width = if (economyTab == 0) 2.dp else 0.dp,
+                            color = if (economyTab == 0) Color(0xFFD97706) else Color.Transparent,
+                        ),
+                    )
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(
-                    "CENTRAL BANK · DEBT ${state.finance.publicDebt.toBudgetString()} @ ${(state.finance.annualInterestRate * 100).toInt()}%",
-                    color = Color(0xFF8ECBFF),
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Black,
-                )
-                Text(
-                    "Credit line available: ${maxLoan.toBudgetString()}",
-                    color = Color.White,
+                    text = "MACRO INFRASTRUCTURE",
+                    color = if (economyTab == 0) Color(0xFFFBBF24) else Color.LightGray,
                     fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = if (economyTab == 0) FontWeight.Bold else FontWeight.Normal,
                 )
             }
-            androidx.compose.material3.TextButton(
-                onClick = { viewModel.takeLoan(maxLoan) },
-                enabled = maxLoan >= LoanEngine.MIN_LOAN,
-            ) { Text("BORROW", fontWeight = FontWeight.Black) }
-            androidx.compose.material3.TextButton(
-                onClick = { viewModel.repayLoan(state.finance.publicDebt / 10) },
-                enabled = state.finance.publicDebt > 0,
-            ) { Text("REPAY", fontWeight = FontWeight.Black) }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { economyTab = 1 }
+                    .background(if (economyTab == 1) Color(0xFF0F172A) else Color.Transparent)
+                    .border(
+                        BorderStroke(
+                            width = if (economyTab == 1) 2.dp else 0.dp,
+                            color = if (economyTab == 1) Color(0xFFD97706) else Color.Transparent,
+                        ),
+                    )
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "12 INDUSTRIAL SECTORS (APK)",
+                    color = if (economyTab == 1) Color(0xFFFBBF24) else Color.LightGray,
+                    fontSize = 11.sp,
+                    fontWeight = if (economyTab == 1) FontWeight.Bold else FontWeight.Normal,
+                )
+            }
         }
 
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 130.dp),
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            items(expenseTiles) { item ->
-                GameTile(item)
+        if (economyTab == 0) {
+            // Fiscal policy: tax rate and import tariffs
+            FiscalPolicyPanel(state = state, viewModel = viewModel)
+
+            // Central bank / IMF loan desk.
+            val maxLoan = viewModel.availableLoan()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .background(Color(0xFF0D2137), RoundedCornerShape(8.dp))
+                    .padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "CENTRAL BANK · DEBT ${state.finance.publicDebt.toBudgetString()} @ ${(state.finance.annualInterestRate * 100).toInt()}%",
+                        color = Color(0xFF8ECBFF),
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Black,
+                    )
+                    Text(
+                        "Credit line available: ${maxLoan.toBudgetString()}",
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                androidx.compose.material3.TextButton(
+                    onClick = { viewModel.takeLoan(maxLoan) },
+                    enabled = maxLoan >= LoanEngine.MIN_LOAN,
+                ) { Text("BORROW", fontWeight = FontWeight.Black) }
+                androidx.compose.material3.TextButton(
+                    onClick = { viewModel.repayLoan(state.finance.publicDebt / 10) },
+                    enabled = state.finance.publicDebt > 0,
+                ) { Text("REPAY", fontWeight = FontWeight.Black) }
+            }
+
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 130.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                items(expenseTiles) { item ->
+                    GameTile(item)
+                }
+            }
+        } else {
+            // 12 Industrial Sectors Grid
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFF1E293B))
+                        .padding(10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text("TOTAL INDUSTRIAL WORKFORCE", color = Color.Gray, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text("${formatCompactMil(state.industrialMatrix.totalWorkforce)} Workers", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text("MONTHLY DIVIDEND (10% TAX)", color = Color.Gray, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text("+${formatCompactMoney(state.industrialMatrix.totalMonthlyRevenue / 10L)}/mo", color = NssEmerald, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                    }
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 160.dp),
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(IndustrialSectorType.entries) { sectorType ->
+                        val data = state.industrialMatrix.sectors[sectorType]
+                        if (data != null) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color(0xFF1E293B))
+                                    .border(
+                                        1.dp,
+                                        if (data.isUnderStrike) Color(0xFFDC2626) else Color(0xFF334155),
+                                        RoundedCornerShape(8.dp),
+                                    )
+                                    .clickable { inspectingSectorType = sectorType },
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(72.dp),
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = sectorType.iconDrawable),
+                                        contentDescription = sectorType.title,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Color(0x990A101D)),
+                                    )
+                                    if (data.isUnderStrike) {
+                                        Text(
+                                            "STRIKE",
+                                            color = Color.White,
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Black,
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .padding(4.dp)
+                                                .clip(RoundedCornerShape(4.dp))
+                                                .background(Color(0xFFDC2626))
+                                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                                        )
+                                    }
+                                }
+
+                                Column(modifier = Modifier.padding(8.dp)) {
+                                    Text(
+                                        text = sectorType.title,
+                                        color = Color.White,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                    )
+                                    Text(
+                                        text = "Tier ${data.level} · ${data.facilitiesCount} Plants",
+                                        color = Color(0xFFD97706),
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                    ) {
+                                        Text(
+                                            text = formatCompactMoney(data.netRevenue),
+                                            color = if (data.netRevenue >= 0) NssEmerald else NssRed,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Black,
+                                        )
+                                        Text(
+                                            text = "${(data.efficiencyMultiplier * 100).toInt()}% Eff",
+                                            color = Color.LightGray,
+                                            fontSize = 9.sp,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

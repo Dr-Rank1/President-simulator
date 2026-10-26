@@ -1196,6 +1196,347 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         ) { demographicsEngine.runCampaignAction(it, action) }
     }
 
+    // ---------------------------------------------------------
+    // PILLAR 2: 12-SECTOR INDUSTRIAL MATRIX
+    // ---------------------------------------------------------
+    fun expandIndustrialPlant(sectorType: com.presidentsimulator.game.data.IndustrialSectorType, subPlantName: String) {
+        val current = _state.value
+        val sector = current.industrialMatrix.sectors[sectorType] ?: return
+        val plant = sector.subPlants.find { it.name == subPlantName } ?: return
+        val cost = plant.buildCostMillion * 1_000_000L
+
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Funds: Building ${plant.name} requires ${cost.toBudgetString()} (Treasury: ${current.vitals.budget.toBudgetString()})", success = false)
+            return
+        }
+
+        _state.update { old ->
+            val oldSector = old.industrialMatrix.sectors[sectorType] ?: return@update old
+            val updatedSubPlants = oldSector.subPlants.map {
+                if (it.name == subPlantName) it.copy(count = it.count + 1) else it
+            }
+            val updatedSector = oldSector.copy(
+                facilitiesCount = oldSector.facilitiesCount + 1,
+                workers = oldSector.workers + (plant.outputUnitBonus * 80L),
+                monthlyOutputMillion = oldSector.monthlyOutputMillion + plant.outputUnitBonus,
+                subPlants = updatedSubPlants,
+            )
+            old.copy(
+                vitals = old.vitals.copy(budget = old.vitals.budget - cost),
+                industrialMatrix = old.industrialMatrix.copy(
+                    sectors = old.industrialMatrix.sectors + (sectorType to updatedSector),
+                ),
+            )
+        }
+        notifyUser("Construction Completed: ${plant.name} operational (+${plant.outputUnitBonus}M output/mo).", success = true)
+    }
+
+    fun modernizeIndustrialSector(sectorType: com.presidentsimulator.game.data.IndustrialSectorType) {
+        val current = _state.value
+        val sector = current.industrialMatrix.sectors[sectorType] ?: return
+        val cost = sector.level * 4_500_000_000L
+
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Funds: Modernizing ${sector.type.title} requires ${cost.toBudgetString()}", success = false)
+            return
+        }
+
+        _state.update { old ->
+            val oldSector = old.industrialMatrix.sectors[sectorType] ?: return@update old
+            val updatedSector = oldSector.copy(
+                level = oldSector.level + 1,
+                efficiencyMultiplier = oldSector.efficiencyMultiplier + 0.15f,
+            )
+            old.copy(
+                vitals = old.vitals.copy(budget = old.vitals.budget - cost),
+                industrialMatrix = old.industrialMatrix.copy(
+                    sectors = old.industrialMatrix.sectors + (sectorType to updatedSector),
+                ),
+            )
+        }
+        notifyUser("${sector.type.title} Modernized: Efficiency increased to +${((sector.efficiencyMultiplier + 0.15f) * 100).toInt()}%.", success = true)
+    }
+
+    fun resolveIndustrialStrike(sectorType: com.presidentsimulator.game.data.IndustrialSectorType) {
+        val current = _state.value
+        val cost = 500_000_000L
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Funds: Labor settlement requires ${cost.toBudgetString()}", success = false)
+            return
+        }
+
+        _state.update { old ->
+            val oldSector = old.industrialMatrix.sectors[sectorType] ?: return@update old
+            val updatedSector = oldSector.copy(isUnderStrike = false)
+            old.copy(
+                vitals = old.vitals.copy(
+                    budget = old.vitals.budget - cost,
+                    approval = (old.vitals.approval + 4f).coerceAtMost(100f),
+                ),
+                industrialMatrix = old.industrialMatrix.copy(
+                    sectors = old.industrialMatrix.sectors + (sectorType to updatedSector),
+                ),
+            )
+        }
+        notifyUser("Labor Settlement Reached: Strikers returned to work in ${sectorType.title}.", success = true)
+    }
+
+    // ---------------------------------------------------------
+    // PILLAR 3: CRISIS HOTLINE ENGINE
+    // ---------------------------------------------------------
+    fun resolveActiveCrisis(crisisId: String, optionId: String) {
+        val current = _state.value
+        val crisis = current.crises.activeCrises.find { it.id == crisisId } ?: return
+        val option = crisis.options.find { it.id == optionId } ?: return
+
+        if (current.vitals.budget < option.costBudget) {
+            notifyUser("Insufficient Emergency Reserves: ${option.label} requires ${option.costBudget.toBudgetString()}", success = false)
+            return
+        }
+
+        _state.update { old ->
+            val remainingCrises = old.crises.activeCrises.filterNot { it.id == crisisId }
+            old.copy(
+                vitals = old.vitals.copy(
+                    budget = old.vitals.budget - option.costBudget,
+                    approval = (old.vitals.approval + 5f).coerceAtMost(100f),
+                ),
+                crises = old.crises.copy(
+                    activeCrises = remainingCrises,
+                    hotlineRinging = remainingCrises.isNotEmpty(),
+                    totalCrisesResolved = old.crises.totalCrisesResolved + 1,
+                ),
+            )
+        }
+        notifyUser("Executive Directive Enacted: ${option.label} resolved ${crisis.type.displayName}.", success = true)
+    }
+
+    // ---------------------------------------------------------
+    // PILLAR 4: PENTAGON WAR ROOM & NUCLEAR FOOTBALL
+    // ---------------------------------------------------------
+    fun assignMilitaryDoctrine(doctrine: com.presidentsimulator.game.data.MilitaryDoctrine) {
+        _state.update { old ->
+            old.copy(
+                warRoom = old.warRoom.copy(selectedDoctrine = doctrine),
+            )
+        }
+        notifyUser("General Staff Doctrine Adopted: ${doctrine.title}.", success = true)
+    }
+
+    fun setDefconLevel(level: Int) {
+        _state.update { old ->
+            old.copy(
+                warRoom = old.warRoom.copy(
+                    nuclearSilo = old.warRoom.nuclearSilo.copy(defconLevel = level),
+                ),
+            )
+        }
+        notifyUser("Strategic Alert Level Changed: DEFCON $level Active.", success = true)
+    }
+
+    fun toggleNuclearLaunchKeys() {
+        val isArmed = !_state.value.warRoom.nuclearSilo.launchKeysInserted
+        _state.update { old ->
+            old.copy(
+                warRoom = old.warRoom.copy(
+                    nuclearSilo = old.warRoom.nuclearSilo.copy(
+                        launchKeysInserted = isArmed,
+                        twoPersonRuleConfirmed = isArmed,
+                    ),
+                ),
+            )
+        }
+        if (isArmed) {
+            notifyUser("WARNING: Nuclear launch circuits armed with presidential keycodes.", success = false)
+        } else {
+            notifyUser("Nuclear launch circuits disarmed and placed in safe state.", success = true)
+        }
+    }
+
+    fun buildNuclearSilo() {
+        val current = _state.value
+        val cost = 10_000_000_000L
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Defense Funds: Hardened silo requires ${cost.toBudgetString()}", success = false)
+            return
+        }
+
+        _state.update { old ->
+            val silo = old.warRoom.nuclearSilo
+            old.copy(
+                vitals = old.vitals.copy(budget = old.vitals.budget - cost),
+                warRoom = old.warRoom.copy(
+                    nuclearSilo = silo.copy(
+                        activeSilos = silo.activeSilos + 1,
+                        nuclearWarheads = silo.nuclearWarheads + 4,
+                        deterrenceIndex = (silo.deterrenceIndex + 3).coerceAtMost(100),
+                    ),
+                ),
+            )
+        }
+        notifyUser("Strategic Construction Complete: New ICBM Silo operational (+4 warheads).", success = true)
+    }
+
+    // ---------------------------------------------------------
+    // PILLAR 5: SOVEREIGN MINISTRIES (Police, Sports, Ecology)
+    // ---------------------------------------------------------
+    fun procurePoliceEquipment(equipmentName: String) {
+        val current = _state.value
+        val cost = when {
+            equipmentName.contains("Cruiser", ignoreCase = true) -> 800_000_000L
+            equipmentName.contains("SWAT", ignoreCase = true) -> 1_500_000_000L
+            equipmentName.contains("Handguns", ignoreCase = true) -> 400_000_000L
+            equipmentName.contains("Batons", ignoreCase = true) -> 200_000_000L
+            equipmentName.contains("Prison", ignoreCase = true) -> 3_000_000_000L
+            else -> 1_800_000_000L
+        }
+
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Police Budget: $equipmentName requires ${cost.toBudgetString()}", success = false)
+            return
+        }
+
+        _state.update { old ->
+            val police = old.sovereignMinistries.police
+            val updatedPolice = when {
+                equipmentName.contains("Cruiser", ignoreCase = true) -> police.copy(
+                    patrolCars = police.patrolCars + 150,
+                    hooliganismRatePercent = (police.hooliganismRatePercent - 1.5f).coerceAtLeast(3f),
+                )
+                equipmentName.contains("SWAT", ignoreCase = true) -> police.copy(
+                    swatArmoredVehicles = police.swatArmoredVehicles + 20,
+                    violentCrimeRatePercent = (police.violentCrimeRatePercent - 1.8f).coerceAtLeast(2f),
+                )
+                equipmentName.contains("Handguns", ignoreCase = true) -> police.copy(
+                    servicePistols = police.servicePistols + 500,
+                    violentCrimeRatePercent = (police.violentCrimeRatePercent - 0.8f).coerceAtLeast(2f),
+                )
+                equipmentName.contains("Batons", ignoreCase = true) -> police.copy(
+                    stunBatons = police.stunBatons + 1_000,
+                    hooliganismRatePercent = (police.hooliganismRatePercent - 1.2f).coerceAtLeast(3f),
+                )
+                equipmentName.contains("Prison", ignoreCase = true) -> police.copy(
+                    highSecurityPrisons = police.highSecurityPrisons + 1,
+                    violentCrimeRatePercent = (police.violentCrimeRatePercent - 2.5f).coerceAtLeast(2f),
+                )
+                else -> police.copy(
+                    prosecutorsOffices = police.prosecutorsOffices + 2,
+                    corruptionIndexPercent = (police.corruptionIndexPercent - 3.0f).coerceAtLeast(5f),
+                )
+            }
+
+            old.copy(
+                vitals = old.vitals.copy(budget = old.vitals.budget - cost),
+                sovereignMinistries = old.sovereignMinistries.copy(police = updatedPolice),
+            )
+        }
+        notifyUser("Public Safety Procurement: $equipmentName deployed to active service.", success = true)
+    }
+
+    fun buildSportsArena(arenaName: String) {
+        val current = _state.value
+        val cost = when {
+            arenaName.contains("Football", ignoreCase = true) -> 4_000_000_000L
+            arenaName.contains("Hockey", ignoreCase = true) -> 3_500_000_000L
+            arenaName.contains("Basketball", ignoreCase = true) -> 2_800_000_000L
+            arenaName.contains("Velodrome", ignoreCase = true) -> 1_900_000_000L
+            arenaName.contains("Aquatic", ignoreCase = true) -> 2_400_000_000L
+            else -> 2_100_000_000L
+        }
+
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Sports Budget: $arenaName requires ${cost.toBudgetString()}", success = false)
+            return
+        }
+
+        _state.update { old ->
+            val sports = old.sovereignMinistries.sports
+            val updatedSports = when {
+                arenaName.contains("Football", ignoreCase = true) -> sports.copy(footballStadiums = sports.footballStadiums + 1, publicHappinessBonus = sports.publicHappinessBonus + 1.2f)
+                arenaName.contains("Hockey", ignoreCase = true) -> sports.copy(iceArenas = sports.iceArenas + 1, publicHappinessBonus = sports.publicHappinessBonus + 1.0f)
+                arenaName.contains("Basketball", ignoreCase = true) -> sports.copy(basketballArenas = sports.basketballArenas + 1, publicHappinessBonus = sports.publicHappinessBonus + 0.8f)
+                arenaName.contains("Velodrome", ignoreCase = true) -> sports.copy(velodromes = sports.velodromes + 1, publicHealthBonus = sports.publicHealthBonus + 0.6f)
+                arenaName.contains("Aquatic", ignoreCase = true) -> sports.copy(olympicPools = sports.olympicPools + 1, publicHealthBonus = sports.publicHealthBonus + 0.9f)
+                else -> sports.copy(racecourses = sports.racecourses + 1, publicHappinessBonus = sports.publicHappinessBonus + 0.7f)
+            }
+
+            old.copy(
+                vitals = old.vitals.copy(
+                    budget = old.vitals.budget - cost,
+                    approval = (old.vitals.approval + 1.5f).coerceAtMost(100f),
+                ),
+                sovereignMinistries = old.sovereignMinistries.copy(sports = updatedSports),
+            )
+        }
+        notifyUser("Sports Complex Inaugurated: $arenaName open to national athletes.", success = true)
+    }
+
+    fun buildEcologyFacility(facilityName: String) {
+        val current = _state.value
+        val cost = when {
+            facilityName.contains("Water", ignoreCase = true) -> 3_000_000_000L
+            facilityName.contains("Recycling", ignoreCase = true) -> 2_200_000_000L
+            else -> 1_500_000_000L
+        }
+
+        if (current.vitals.budget < cost) {
+            notifyUser("Insufficient Green Budget: $facilityName requires ${cost.toBudgetString()}", success = false)
+            return
+        }
+
+        _state.update { old ->
+            val eco = old.sovereignMinistries.ecology
+            val updatedEco = when {
+                facilityName.contains("Water", ignoreCase = true) -> eco.copy(
+                    waterPurificationPlants = eco.waterPurificationPlants + 1,
+                    publicHealthIndex = (eco.publicHealthIndex + 2.0f).coerceAtMost(100f),
+                )
+                facilityName.contains("Recycling", ignoreCase = true) -> eco.copy(
+                    wasteRecyclingCenters = eco.wasteRecyclingCenters + 1,
+                    airQualityIndex = (eco.airQualityIndex - 4).coerceAtLeast(15),
+                )
+                else -> eco.copy(
+                    protectedNatureReserves = eco.protectedNatureReserves + 1,
+                    airQualityIndex = (eco.airQualityIndex - 5).coerceAtLeast(15),
+                )
+            }
+
+            old.copy(
+                vitals = old.vitals.copy(budget = old.vitals.budget - cost),
+                sovereignMinistries = old.sovereignMinistries.copy(ecology = updatedEco),
+            )
+        }
+        notifyUser("Environmental Mandate Executed: $facilityName operational.", success = true)
+    }
+
+    // ---------------------------------------------------------
+    // PILLAR 6: THE OVAL OFFICE RESOLUTE DESK & EXECUTIVE ORDERS
+    // ---------------------------------------------------------
+    fun toggleExecutiveOrder(orderType: com.presidentsimulator.game.data.ExecutiveOrderType) {
+        val current = _state.value
+        val decree = current.ovalOffice.decrees[orderType] ?: return
+        val willEnact = !decree.isEnacted
+
+        _state.update { old ->
+            val updatedDecrees = old.ovalOffice.decrees + (orderType to decree.copy(
+                isEnacted = willEnact,
+                enactedYear = if (willEnact) old.year else null,
+            ))
+            val approvalDelta = if (willEnact) orderType.approvalImpact else -orderType.approvalImpact
+            old.copy(
+                vitals = old.vitals.copy(
+                    approval = (old.vitals.approval + approvalDelta).coerceIn(0f, 100f),
+                ),
+                ovalOffice = old.ovalOffice.copy(decrees = updatedDecrees),
+            )
+        }
+        if (willEnact) {
+            notifyUser("Executive Decree Signed: ${orderType.title} now in force.", success = true)
+        } else {
+            notifyUser("Executive Decree Revoked: ${orderType.title} rescinded.", success = true)
+        }
+    }
+
     fun worldEconomicRank(): Int = analyticsEngine.worldEconomicRank(_state.value)
 
     fun signArmistice() {

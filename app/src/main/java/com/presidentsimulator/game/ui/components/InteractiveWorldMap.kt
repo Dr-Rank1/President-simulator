@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.presidentsimulator.game.R
 import com.presidentsimulator.game.data.GameState
+import com.presidentsimulator.game.data.WorldCountryDossier
+import com.presidentsimulator.game.data.WorldNationCatalog
 import com.presidentsimulator.game.ui.theme.NssAccent
 import com.presidentsimulator.game.ui.theme.NssEmerald
 import com.presidentsimulator.game.ui.theme.NssRed
@@ -131,11 +133,23 @@ fun InteractiveWorldMap(
     state: GameState? = null,
     modifier: Modifier = Modifier,
     onOpenDiplomacy: () -> Unit = {},
+    onCountryAction: (String, WorldCountryDossier) -> Unit = { _, _ -> },
 ) {
     var scale by remember { mutableStateOf(1.0f) }
     var panOffset by remember { mutableStateOf(Offset.Zero) }
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
     var showCountryDetails by remember { mutableStateOf(false) }
+    var selectedCountryDossier by remember { mutableStateOf<com.presidentsimulator.game.data.WorldCountryDossier?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val allCountries = remember(state?.playerNation?.name) {
+        com.presidentsimulator.game.data.WorldNationCatalog.createInitialDossiers(state?.playerNation?.name ?: "Kenya")
+    }
+
+    val displayedCountries = remember(searchQuery) {
+        if (searchQuery.isBlank()) allCountries.take(20)
+        else allCountries.filter { it.name.contains(searchQuery, ignoreCase = true) }
+    }
 
     // Pulsing radar wave animation for HQ beacon
     val infiniteTransition = rememberInfiniteTransition(label = "hqRadar")
@@ -429,26 +443,93 @@ fun InteractiveWorldMap(
                             Text("Active Military Personnel", color = Color.LightGray, fontSize = 10.sp)
                             Text("${formatCompactMil(s.military.personnel)} Troops", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
-
-                        Spacer(Modifier.height(10.dp))
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFFD97706)) // Executive Gold
-                                .clickable {
-                                    showCountryDetails = false
-                                    onOpenDiplomacy()
-                                }
-                                .padding(vertical = 8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("OPEN STRATEGIC DIPLOMACY", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Black)
-                        }
                     }
                 }
             }
+        }
+
+        // 163-NATION GEOPOLITICAL SELECTOR STRIP (APK authentic world order)
+        androidx.compose.foundation.lazy.LazyRow(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(y = (-10).dp)
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            items(allCountries.size) { index ->
+                val dossier = allCountries[index]
+                val isPlayer = dossier.name.equals(state?.playerNation?.name, ignoreCase = true)
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(if (isPlayer) Color(0xFF065F46) else Color(0xDD0F172A))
+                        .border(
+                            1.dp,
+                            if (isPlayer) Color(0xFF34D399) else Color(0xFF334155),
+                            RoundedCornerShape(6.dp),
+                        )
+                        .clickable {
+                            selectedCountryDossier = dossier
+                        }
+                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    if (dossier.flagRes != 0) {
+                        Image(
+                            painter = painterResource(id = dossier.flagRes),
+                            contentDescription = dossier.name,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(width = 16.dp, height = 11.dp),
+                        )
+                    } else {
+                        Text(dossier.flagEmoji, fontSize = 10.sp)
+                    }
+                    Text(
+                        text = dossier.name,
+                        color = if (isPlayer) Color(0xFF6EE7B7) else Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+
+        // Tapped Country Command Dossier
+        selectedCountryDossier?.let { dossier ->
+            CountryDossierDialog(
+                dossier = dossier,
+                onDismiss = { selectedCountryDossier = null },
+                onOpenEmbassy = {
+                    onCountryAction("embassy", dossier)
+                    selectedCountryDossier = dossier.copy(hasEmbassy = true)
+                },
+                onSignNonAggression = {
+                    onCountryAction("nap", dossier)
+                    selectedCountryDossier = dossier.copy(nonAggressionPact = true)
+                },
+                onSignTradeDeal = {
+                    onCountryAction("trade", dossier)
+                    selectedCountryDossier = dossier.copy(tradeDealActive = true)
+                },
+                onSendAid = {
+                    onCountryAction("aid", dossier)
+                    selectedCountryDossier = dossier.copy(relationshipScore = (dossier.relationshipScore + 15).coerceAtMost(100))
+                },
+                onDeploySpy = {
+                    onCountryAction("spy", dossier)
+                },
+                onDeclareWar = {
+                    onCountryAction("war", dossier)
+                    selectedCountryDossier = null
+                    onOpenDiplomacy()
+                },
+                onDemandVassalage = {
+                    onCountryAction("vassal", dossier)
+                    selectedCountryDossier = dossier.copy(isPuppetOrAnnexed = true)
+                },
+            )
         }
     }
 }
